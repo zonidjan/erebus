@@ -96,7 +96,6 @@ class Erebus(object):
 main = Erebus()
 
 def setup():
-	global bots, fds
 	main.newbot('Erebus', 'erebus', None, 'irc.quakenet.org', 6667, 'Erebus', ['#dimetest'])
 	main.bot('erebus').connect()
 
