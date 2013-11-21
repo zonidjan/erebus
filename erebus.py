@@ -2,7 +2,7 @@
 
 #TODO: tons
 
-import sys, select
+import os, sys, select
 import bot
 
 class Erebus(object):
@@ -60,7 +60,12 @@ class Erebus(object):
 		def __repr__(self): return "<Channel %r>" % (self.name)
 
 	def __init__(self):
-		self.po = select.poll()
+		if os.name == "posix":
+			self.potype = "poll"
+			self.po = select.poll()
+		else: # f.e. os.name == "nt" (Windows)
+			self.potype = "select"
+			self.fdlist = []
 
 	def newbot(self, nick, user, bind, server, port, realname, chans):
 		if bind is None: bind = ''
@@ -70,7 +75,10 @@ class Erebus(object):
 	def newfd(self, obj, fileno):
 		print "newfd(Erebus(), %r, %r)" % (obj, fileno)
 		self.fds[fileno] = obj
-		self.po.register(fileno, select.POLLIN)
+		if self.potype == "poll":
+			self.po.register(fileno, select.POLLIN)
+		elif self.potype == "select":
+			self.fdlist.append(fileno)
 
 	def bot(self, name): #get Bot() by name (nick)
 		return self.bots[name.lower()]
@@ -83,7 +91,10 @@ class Erebus(object):
 		return self.Channel(name.lower())
 
 	def poll(self):
-		return self.po.poll(60000)
+		if self.potype == "poll":
+			return [fd for (fd, ev) in self.po.poll()]
+		elif self.potype == "select":
+			return select.select(self.fdlist, [], [])[0]
 
 	def connectall(self):
 		for bot in self.bots.itervalues():
@@ -112,7 +123,7 @@ def setup():
 
 def loop():
 	poready = main.poll()
-	for (fileno,mask) in poready:
+	for fileno in poready:
 		main.fd(fileno).getdata()
 
 if __name__ == '__main__':
