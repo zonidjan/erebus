@@ -20,6 +20,7 @@ class Config(object):
 	def write(self):
 		with open(self._filename, 'wb') as configfile:
 			self.config.write(configfile)
+
 	def __del__(self):
 		if self.writeout: self.write()
 
