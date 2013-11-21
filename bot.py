@@ -28,9 +28,9 @@ class Bot(object):
 
 				elif pieces[1] == "001":
 					self.conn.registered(True)
-
 					for c in self.chans:
 						self.join(c)
+
 			else:
 				self.parse(line)
 	def parse(self, line):

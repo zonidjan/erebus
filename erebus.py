@@ -26,8 +26,10 @@ class Erebus(object):
 			self.checklevel()
 
 		def checklevel(self): self.level = 9999 #TODO get level from db
+
 		def __str__(self): return self.nick
 		def __repr__(self): return "<User %r>" % (self.nick)
+
 	class Channel(object):
 		users = []
 		voices = []
@@ -40,7 +42,6 @@ class Erebus(object):
 			if user not in self.users: self.users.append(user)
 			if level == 'op' and user not in self.ops: self.ops.append(user)
 			if level == 'voice' and user not in self.voices: self.voices.append(user)
-
 		def userpart(self, user):
 			if user in self.ops: self.ops.remove(user)
 			if user in self.voices: self.voices.remove(user)
@@ -48,13 +49,10 @@ class Erebus(object):
 
 		def userop(self, user):
 			if user in self.users and user not in self.ops: self.ops.append(user)
-
 		def uservoice(self, user):
 			if user in self.users and user not in self.voices: self.voices.append(user)
-
 		def userdeop(self, user):
 			if user in self.ops: self.ops.remove(user)
-
 		def userdevoice(self, user):
 			if user in self.voices: self.voices.remove(user)
 
@@ -74,16 +72,14 @@ class Erebus(object):
 		self.fds[fileno] = obj
 		self.po.register(fileno, select.POLLIN)
 
-	def bot(self, name):
+	def bot(self, name): #get Bot() by name (nick)
 		return self.bots[name.lower()]
-
-	def fd(self, fileno):
+	def fd(self, fileno): #get Bot() by fd/fileno
 		return self.fds[fileno]
 
-	def user(self, nick): #TODO
+	def user(self, nick): #TODO #get User() by nick
 		return self.User(nick.lower())
-
-	def channel(self, name): #TODO
+	def channel(self, name): #TODO #get Channel() by name
 		return self.Channel(name.lower())
 
 	def poll(self):
@@ -116,7 +112,6 @@ def setup():
 
 def loop():
 	poready = main.poll()
-
 	for (fileno,mask) in poready:
 		main.fd(fileno).getdata()
 
