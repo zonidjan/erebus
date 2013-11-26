@@ -9,9 +9,11 @@ class Bot(object):
 	def __init__(self, parent, nick, user, bind, server, port, realname, chans):
 		self.parent = parent
 		self.nick = nick
+		self.user = user
+		self.realname = realname
 		self.chans = chans
 
-		self.conn = BotConnection(self, nick, user, bind, server, port, realname)
+		self.conn = BotConnection(self, bind, server, port)
 	def connect(self):
 		if self.conn.connect():
 			self.parent.newfd(self, self.conn.socket.fileno())
@@ -90,27 +92,27 @@ class Bot(object):
 	def quit(self, reason="Shutdown"):
 		self.conn.send("QUIT :%s" % (reason))
 
+	def __str__(self): return self.nick
+	def __repr__(self): return "<Bot %r>" % (self.nick)
+
 class BotConnection(object):
 	state = 0 # 0=disconnected, 1=registering, 2=connected
 
-	def __init__(self, parent, nick, user, bind, server, port, realname):
+	def __init__(self, parent, bind, server, port):
 		self.parent = parent
 		self.buffer = ''
 		self.socket = None
 
-		self.nick = nick
-		self.user = user
 		self.bind = bind
 		self.server = server
 		self.port = int(port)
-		self.realname = realname
 
 	def connect(self):
 		self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.socket.bind((self.bind, 0))
 		self.socket.connect((self.server, self.port))
-		self.send("NICK %s" % (self.nick))
-		self.send("USER %s 0 * :%s" % (self.user, self.realname))
+		self.send("NICK %s" % (self.parent.nick))
+		self.send("USER %s 0 * :%s" % (self.parent.user, self.parent.realname))
 		self.state = 1
 		return True
 
@@ -120,7 +122,7 @@ class BotConnection(object):
 
 	#TODO: rewrite send() to queue
 	def send(self, line):
-		print self.nick, '[O]', line
+		print self.parent.nick, '[O]', line
 		self.write(line)
 
 	def write(self, line):
@@ -136,3 +138,6 @@ class BotConnection(object):
 			self.buffer = pieces[1]
 
 		return lines
+
+	def __str__(self): return self.nick
+	def __repr__(self): return "<BotConnection %r (%r)>" % (self.socket.fileno(), self.parent.nick)
