@@ -2,8 +2,8 @@
 
 #TODO: tons
 
-import os, sys, select
-import bot
+import os, sys, select, MySQLdb, MySQLdb.cursors
+import bot, config
 
 class Erebus(object):
 	bots = {}
@@ -73,7 +73,6 @@ class Erebus(object):
 		self.bots[nick.lower()] = obj
 
 	def newfd(self, obj, fileno):
-		print "newfd(Erebus(), %r, %r)" % (obj, fileno)
 		self.fds[fileno] = obj
 		if self.potype == "poll":
 			self.po.register(fileno, select.POLLIN)
@@ -114,12 +113,22 @@ class Erebus(object):
 	def rmbind(self, word, handler): pass
 	def getbind(self, word, handler): pass
 
-
+cfg = config.Config('bot.config')
 main = Erebus()
 
 def setup():
-	main.newbot('Erebus', 'erebus', None, 'irc.quakenet.org', 6667, 'Erebus', ['#dimetest'])
-	main.bot('erebus').connect()
+	main.db = MySQLdb.connect(host=cfg.dbhost, user=cfg.dbuser, passwd=cfg.dbpass, db=cfg.dbname, cursorclass=MySQLdb.cursors.DictCursor)
+	c = main.db.cursor()
+	c.execute("SELECT nick, user, bind FROM bots WHERE active = 1")
+	rows = c.fetchall()
+	c.close()
+	for row in rows:
+		c2 = main.db.cursor()
+		c2.execute("SELECT chname FROM chans WHERE bot = %s AND active = 1", (row['nick'],))
+		chans = [chdic['chname'] for chdic in c2.fetchall()]
+		c2.close()
+		main.newbot(row['nick'], row['user'], row['bind'], cfg.host, cfg.port, cfg.realname, chans)
+	main.connectall()
 
 def loop():
 	poready = main.poll()

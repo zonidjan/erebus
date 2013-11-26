@@ -18,7 +18,7 @@ class Config(object):
 		return self.config.items('erebus')
 
 	def write(self):
-		with open(self._filename, 'wb') as configfile:
+		with open(self.filename, 'wb') as configfile:
 			self.config.write(configfile)
 
 	def __del__(self):
