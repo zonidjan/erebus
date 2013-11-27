@@ -1,7 +1,6 @@
 import ConfigParser
 
 class Config(object):
-#	config = ConfigParser.SafeConfigParser()
 	def __init__(self, filename, writeout=True):
 		self.__dict__['config'] = ConfigParser.SafeConfigParser()
 		self.__dict__['filename'] = filename
@@ -14,8 +13,8 @@ class Config(object):
 	def __setattr__(self, key, value):
 		self.config.set('erebus', key, value)
 
-	def items(self):
-		return self.config.items('erebus')
+	def items(self, section='erebus'):
+		return self.config.items(section)
 
 	def write(self):
 		with open(self.filename, 'wb') as configfile:

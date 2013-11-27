@@ -56,24 +56,14 @@ class Bot(object):
 	def parsemsg(self, user, chan, msg):
 		if msg[0] == '!': #TODO check config for trigger
 			msg = msg[1:]
-
 		else:
 			return
 
 		pieces = msg.split()
-		cmd = pieces[0].upper()
+		cmd = pieces[0].lower()
 
-		if cmd == "EVAL":
-			try: ret = eval(' '.join(pieces[1:]))
-			except: self.msg(chan, "Error: %s %s" % (sys.exc_info()[0], sys.exc_info()[1]))
-			else: self.msg(chan, "Done: %r" % (ret))
-
-		elif cmd == "EXEC":
-			try: exec ' '.join(pieces[1:])
-			except: self.msg(chan, "Error: %s %s" % (sys.exc_info()[0], sys.exc_info()[1]))
-			else: self.msg(chan, "Done.")
-
-		#TODO
+		if self.parent.hashook(cmd):
+			self.parent.gethook(cmd)(self, user, chan, *pieces[1:])
 
 	def msg(self, target, msg):
 		if isinstance(target, self.parent.User): self.conn.send("NOTICE %s :%s" % (target.nick, msg))

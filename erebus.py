@@ -3,7 +3,7 @@
 #TODO: tons
 
 import os, sys, select, MySQLdb, MySQLdb.cursors
-import bot, config
+import bot, config, ctlmod
 
 class Erebus(object):
 	bots = {}
@@ -108,15 +108,26 @@ class Erebus(object):
 	def reloadmod(self, name): pass
 
 	#bind functions
-	def bind(self, word, handler): pass
-	def addbind(self, word, handler): pass
-	def rmbind(self, word, handler): pass
-	def getbind(self, word, handler): pass
-
-cfg = config.Config('bot.config')
-main = Erebus()
+	def hook(self, word, handler):
+		print "hooked %r to %r" % (word, handler)
+		self.msghandlers[word] = handler
+	def unhook(self, word):
+		del self.msghandlers[word]
+	def hashook(self, word):
+		return word in self.msghandlers
+	def gethook(self, word):
+		return self.msghandlers[word]
 
 def setup():
+	global cfg, main
+
+	cfg = config.Config('bot.config')
+	main = Erebus()
+
+	autoloads = [mod for mod, yes in cfg.items('autoloads') if int(yes) == 1]
+	for mod in autoloads:
+		ctlmod.load(main, mod)
+
 	main.db = MySQLdb.connect(host=cfg.dbhost, user=cfg.dbuser, passwd=cfg.dbpass, db=cfg.dbname, cursorclass=MySQLdb.cursors.DictCursor)
 	c = main.db.cursor()
 	c.execute("SELECT nick, user, bind FROM bots WHERE active = 1")
