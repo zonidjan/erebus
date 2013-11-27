@@ -2,6 +2,7 @@
 import modlib
 lib = modlib.modlib(__name__)
 modstart = lib.modstart
+modstop = lib.modstop
 
 #module code
 @lib.hook('test')
