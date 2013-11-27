@@ -1,0 +1,4 @@
+- Store User and Channel objects
+- Add no-such-command error to Bot().parsemsg
+- Add level checking to Bot().parsemsg
+- Add PM-to-bot support
