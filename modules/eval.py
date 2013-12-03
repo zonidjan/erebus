@@ -1,10 +1,18 @@
+# module info
+modinfo = {
+	'author': 'John Runyon (DimeCadmium)',
+	'license': 'public domain',
+	'compatible': [1],
+	'depends': [],
+}
+
 # preamble
 import modlib
 lib = modlib.modlib(__name__)
 modstart = lib.modstart
 modstop = lib.modstop
 
-#module code
+# module code
 import sys
 
 

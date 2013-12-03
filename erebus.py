@@ -109,16 +109,8 @@ class Erebus(object):
 			if bot.conn.state == 0:
 				bot.connect()
 
-	#module functions
-	def modlist(self): pass
-	def hasmod(self, name): pass
-	def loadmod(self, name): pass
-	def unloadmod(self, name): pass
-	def reloadmod(self, name): pass
-
 	#bind functions
 	def hook(self, word, handler):
-		print "hooked %r to %r" % (word, handler)
 		self.msghandlers[word] = handler
 	def unhook(self, word):
 		del self.msghandlers[word]
