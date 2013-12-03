@@ -1,3 +1,13 @@
+class error(object):
+	def __init__(self, desc):
+		self.errormsg = desc
+	def __nonzero__(self):
+		return False #object will test to False
+	def __repr__(self):
+		return '<modlib.error %r>' % self.errormsg
+	def __str__(self):
+		return self.errormsg
+
 class modlib(object):
 	def __init__(self, name):
 		self.hooks = {}

@@ -1,6 +1,8 @@
 import sys
+import modlib
 
 modules = {}
+dependents = {}
 
 def isloaded(modname): return modname in modules
 def modhas(modname, attname): return getattr(self.modules[modname], attname, None) is not None
@@ -8,19 +10,41 @@ def modhas(modname, attname): return getattr(self.modules[modname], attname, Non
 def load(parent, modname):
 	if not isloaded(modname):
 		mod = __import__(modname)
+		reload(mod)
+
+		if 1 not in mod.modinfo['compatible']:
+			return modlib.error('API-incompatible')
+
 		modules[modname] = mod
+		dependents[modname] = []
+
+		for dep in mod.modinfo['depends']:
+			if dep not in modules:
+				depret = load(parent, dep)
+				if not depret:
+					return
+			dependents[dep].append(modname)
+
+
 		ret = mod.modstart(parent)
-		if not ret:
+		if ret is not None and not ret:
 			del modules[modname]
+			del dependents[modname]
+			for dep in mod.modinfo['depends']:
+				dependents[dep].remove(modname)
 		return ret
-	else:
-		return -1
+	else: #if not isloaded...else:
+		return modlib.error('already loaded')
 
 def unload(parent, modname):
 	if isloaded(modname):
+		for dependent in dependents[modname]:
+			unload(parent, dependent)
+		for dep in dependents[modname]:
+			dependents[dep].remove(modname)
 		self.modules[modname].modstop(parent)
 	else:
-		return -1
+		return modlib.error('already unloaded')
 
 def reloadmod(parent, modname):
 	if isloaded(modname):
