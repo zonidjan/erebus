@@ -16,6 +16,12 @@ class Config(object):
 	def __setattr__(self, key, value):
 		self.config.set('erebus', key, value)
 
+	def level(self, cmd):
+		return self.config.get('levels', cmd)
+
+	def setlevel(self, cmd, level):
+		self.config.set('levels', cmd, level)
+
 	def items(self, section='erebus'):
 		return self.config.items(section)
 

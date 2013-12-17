@@ -8,4 +8,7 @@ dbuser = erebus
 dbpass = darkness
 dbname = erebus
 
-trigger = .
+trigger = !
+
+[autoloads]
+modtest = 1

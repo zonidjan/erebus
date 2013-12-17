@@ -13,10 +13,10 @@ class error(object):
 		return self.errormsg
 
 class modlib(object):
-	#access levels
-	MANAGER = 3
-	ADMIN = 2
-	STAFF = 1
+	# default access levels
+	MANAGER = 100
+	ADMIN = 90
+	STAFF = 80
 	AUTHED = 0
 	ANYONE = -1
 
@@ -34,8 +34,9 @@ class modlib(object):
 		for cmd, func in self.hooks.iteritems():
 			self.parent.unhook(cmd, func)
 
-	def hook(self, cmd):
+	def hook(self, cmd, level=ANYONE):
 		def realhook(func):
+			func.reqlevel = level
 			self.hooks[cmd] = func
 			if self.parent is not None:
 				self.parent.hook(cmd, func)
