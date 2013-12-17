@@ -1,3 +1,6 @@
+# Erebus IRC bot - Author: John Runyon
+# module loading/unloading/tracking code
+
 import sys
 import modlib
 

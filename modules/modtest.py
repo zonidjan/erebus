@@ -1,3 +1,7 @@
+# Erebus IRC bot - Author: John Runyon
+# simple module example
+# This file is released into the public domain; see http://unlicense.org/
+
 # module info
 modinfo = {
 	'author': 'John Runyon (DimeCadmium)',

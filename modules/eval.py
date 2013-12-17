@@ -1,3 +1,6 @@
+# Erebus IRC bot - Author: John Runyon
+# !EVAL and !EXEC commands
+
 # module info
 modinfo = {
 	'author': 'John Runyon (DimeCadmium)',
@@ -16,14 +19,14 @@ modstop = lib.modstop
 import sys
 
 
-@lib.hook('eval')
+@lib.hook('eval', lib.MANAGER)
 def cmd_eval(bot, user, chan, *args):
 	try: ret = eval(' '.join(args))
 	except: bot.msg(chan, "Error (%s): %s" % (sys.exc_info()[0], sys.exc_info()[1]))
 	else: bot.msg(chan, "Done: %r" % (ret))
 
 
-@lib.hook('exec')
+@lib.hook('exec', lib.MANAGER)
 def cmd_exec(bot, user, chan, *args):
 	try: exec ' '.join(args)
 	except: bot.msg(chan, "Error: %s %s" % (sys.exc_info()[0], sys.exc_info()[1]))
