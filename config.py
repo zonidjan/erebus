@@ -1,3 +1,6 @@
+# Erebus IRC bot - Author: John Runyon
+# "Config" class (reading/providing access to bot.config)
+
 import ConfigParser
 
 class Config(object):

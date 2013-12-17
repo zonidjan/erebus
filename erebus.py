@@ -1,5 +1,8 @@
 #!/usr/bin/python
 
+# Erebus IRC bot - Author: John Runyon
+# main startup code
+
 #TODO: tons
 
 import os, sys, select, MySQLdb, MySQLdb.cursors

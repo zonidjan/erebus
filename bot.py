@@ -1,5 +1,8 @@
 #!/usr/bin/python
 
+# Erebus IRC bot - Author: John Runyon
+# "Bot" and "BotConnection" classes (handling a specific "arm")
+
 #TODO: error checking
 
 import socket, sys
@@ -15,7 +18,8 @@ class Bot(object):
 
 		self.conn = BotConnection(self, bind, server, port)
 	def connect(self):
-		if self.conn.connect():
+		
+if self.conn.connect():
 			self.parent.newfd(self, self.conn.socket.fileno())
 
 	def getdata(self):

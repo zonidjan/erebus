@@ -1,3 +1,7 @@
+# Erebus IRC bot - Author: John Runyon
+# module helper functions, see modules/modtest.py for usage
+# This file is released into the public domain; see http://unlicense.org/
+
 class error(object):
 	def __init__(self, desc):
 		self.errormsg = desc
@@ -9,6 +13,13 @@ class error(object):
 		return self.errormsg
 
 class modlib(object):
+	#access levels
+	MANAGER = 3
+	ADMIN = 2
+	STAFF = 1
+	AUTHED = 0
+	ANYONE = -1
+
 	def __init__(self, name):
 		self.hooks = {}
 		self.parent = None
