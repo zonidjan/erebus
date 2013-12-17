@@ -13,16 +13,23 @@ class Erebus(object):
 	fds = {}
 	mods = {}
 	msghandlers = {}
+	users = {}
+	chans = {}
 
 	class User(object):
 		chans = []
 
 		def __init__(self, nick, auth=None):
+			print "parent.User(self, %r, %r)" % (nick, auth)
 			self.nick = nick
-			self.auth = nick #TEMP
+			self.auth = auth
 			self.checklevel()
 
+		def isauthed(self):
+			return self.auth is not None
+
 		def authed(self, auth):
+			if auth == '0': auth = None
 			self.auth = auth
 			self.checklevel()
 
@@ -71,7 +78,8 @@ class Erebus(object):
 		def __str__(self): return self.name
 		def __repr__(self): return "<Channel %r>" % (self.name)
 
-	def __init__(self):
+	def __init__(self, trigger):
+		self.trigger = trigger
 		if os.name == "posix":
 			self.potype = "poll"
 			self.po = select.poll()
@@ -96,8 +104,14 @@ class Erebus(object):
 	def fd(self, fileno): #get Bot() by fd/fileno
 		return self.fds[fileno]
 
-	def user(self, nick): #TODO #get User() by nick
-		return self.User(nick.lower())
+	def user(self, nick):
+		nick = nick.lower()
+		if nick in self.users:
+			return self.users[nick]
+		else:
+			user = self.User(nick)
+			self.users[nick] = user
+			return user
 	def channel(self, name): #TODO #get Channel() by name
 		return self.Channel(name.lower())
 
@@ -126,9 +140,10 @@ def setup():
 	global cfg, main
 
 	cfg = config.Config('bot.config')
-	main = Erebus()
+	main = Erebus(cfg.trigger)
 
 	autoloads = [mod for mod, yes in cfg.items('autoloads') if int(yes) == 1]
+	print autoloads
 	for mod in autoloads:
 		ctlmod.load(main, mod)
 

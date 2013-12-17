@@ -18,8 +18,7 @@ class Bot(object):
 
 		self.conn = BotConnection(self, bind, server, port)
 	def connect(self):
-		
-if self.conn.connect():
+		if self.conn.connect():
 			self.parent.newfd(self, self.conn.socket.fileno())
 
 	def getdata(self):
@@ -52,13 +51,25 @@ if self.conn.connect():
 		elif pieces[0] == "PING":
 			self.conn.send("PONG %s" % (pieces[1]))
 
+		elif pieces[1] == "354": # WHOX
+			qt = pieces[3]
+			nick = pieces[4]
+			auth = pieces[5]
+			if auth != '0':
+				self.parent.user(nick).authed(auth)
+
 		elif pieces[1] == "JOIN":
 			nick = pieces[0].split('!')[0][1:]
 			user = self.parent.user(nick)
-			chan = self.parent.channel(pieces[2]) #TODO TODO TODO
+			chan = self.parent.channel(pieces[2])
+
+			if nick == self.nick:
+				self.conn.send("WHO %s %%ant,1" % (chan))
+			else:
+				pass #TODO TODO TODO add to common chans!
 			
 	def parsemsg(self, user, chan, msg):
-		if msg[0] == '!': #TODO check config for trigger
+		if msg[0] == self.parent.trigger:
 			msg = msg[1:]
 		else:
 			return
@@ -67,7 +78,12 @@ if self.conn.connect():
 		cmd = pieces[0].lower()
 
 		if self.parent.hashook(cmd):
-			self.parent.gethook(cmd)(self, user, chan, *pieces[1:])
+			callback = self.parent.gethook(cmd)
+			if user.level >= callback.reqlevel:
+				callback(self, user, chan, *pieces[1:])
+				return
+
+		self.msg(user, "No such command, or you don't have access.")
 
 	def msg(self, target, msg):
 		if isinstance(target, self.parent.User): self.conn.send("NOTICE %s :%s" % (target.nick, msg))
