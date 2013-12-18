@@ -19,15 +19,21 @@ modstop = lib.modstop
 import sys
 
 
-@lib.hook('eval', lib.MANAGER)
+@lib.hook('eval', needchan=False, glevel=lib.MANAGER)
 def cmd_eval(bot, user, chan, *args):
+	if chan is not None: replyto = chan
+	else: replyto = user
+
 	try: ret = eval(' '.join(args))
-	except: bot.msg(chan, "Error (%s): %s" % (sys.exc_info()[0], sys.exc_info()[1]))
-	else: bot.msg(chan, "Done: %r" % (ret))
+	except: bot.msg(replyto, "Error (%s): %s" % (sys.exc_info()[0], sys.exc_info()[1]))
+	else: bot.msg(replyto, "Done: %r" % (ret))
 
 
-@lib.hook('exec', lib.MANAGER)
+@lib.hook('exec', needchan=False, glevel=lib.MANAGER)
 def cmd_exec(bot, user, chan, *args):
+	if chan is not None: replyto = chan
+	else: replyto = user
+
 	try: exec ' '.join(args)
-	except: bot.msg(chan, "Error: %s %s" % (sys.exc_info()[0], sys.exc_info()[1]))
-	else: bot.msg(chan, "Done.")
+	except: bot.msg(replyto, "Error: %s %s" % (sys.exc_info()[0], sys.exc_info()[1]))
+	else: bot.msg(replyto, "Done.")
