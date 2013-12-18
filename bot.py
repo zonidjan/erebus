@@ -98,8 +98,9 @@ class Bot(object):
 			if chan is None and callback.needchan:
 				self.msg(user, "You need to specify a channel for that command.")
 				return
-			if user.glevel >= callback.reqglevel: #TODO TODO TODO check reqclevel
-				callback(self, user, chan, *pieces[1:])
+			if user.glevel >= callback.reqglevel:
+				#TODO TODO TODO check reqclevel
+				callback(self, user, chan, target, *pieces[1:])
 				return
 
 		self.msg(user, "No such command, or you don't have access.")
