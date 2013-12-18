@@ -35,19 +35,19 @@ class Erebus(object):
 
 		def checklevel(self):
 			if self.auth is None:
-				self.level = -1
+				self.glevel = -1
 			else:
 				c = main.db.cursor()
 				c.execute("SELECT level FROM users WHERE auth = %s", (self.auth,))
 				row = c.fetchone()
 				if row is not None:
-					self.level = row['level']
+					self.glevel = row['level']
 				else:
-					self.level = 0
-			return self.level
+					self.glevel = 0
+			return self.glevel
 
 		def __str__(self): return self.nick
-		def __repr__(self): return "<User %r (%d)>" % (self.nick,self.level)
+		def __repr__(self): return "<User %r (%d)>" % (self.nick,self.glevel)
 
 	class Channel(object):
 		users = []

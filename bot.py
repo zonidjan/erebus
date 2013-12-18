@@ -44,9 +44,9 @@ class Bot(object):
 		if pieces[1] == "PRIVMSG":
 			nick = pieces[0].split('!')[0][1:]
 			user = self.parent.user(nick)
-			chan = self.parent.channel(pieces[2])
+			target = pieces[2]
 			msg = ' '.join(pieces[3:])[1:]
-			self.parsemsg(user, chan, msg)
+			self.parsemsg(user, target, msg)
 
 		elif pieces[0] == "PING":
 			self.conn.send("PONG %s" % (pieces[1]))
@@ -68,18 +68,37 @@ class Bot(object):
 			else:
 				pass #TODO TODO TODO add to common chans!
 			
-	def parsemsg(self, user, chan, msg):
-		if msg[0] == self.parent.trigger:
-			msg = msg[1:]
-		else:
-			return
-
+	def parsemsg(self, user, target, msg):
+		chan = None
+		triggerused = msg[0] == self.parent.trigger
+		if triggerused: msg = msg[1:]
 		pieces = msg.split()
+
+		if target == self.nick:
+			chanword = pieces[1]
+			if chanword[0] == '#':
+				chan = self.parent.channel(chanword)
+				pieces.pop(1)
+
+		else: # message was sent to a channel
+			chan = self.parent.channel(target) #TODO check if bot's on channel --- in Erebus.channel() maybe?
+			if msg[0] == '*': # message may be addressed to bot by "*BOTNICK" trigger?
+				if pieces[0][1:].lower() == self.nick.lower():
+					pieces.pop(0) # command actually starts with next word
+					msg = ' '.join(pieces) # command actually starts with next word
+			elif not triggerused:
+				return # not to bot, don't process!
+
 		cmd = pieces[0].lower()
+
+		print "%r %r %r %r" % (cmd, user, target, msg)
 
 		if self.parent.hashook(cmd):
 			callback = self.parent.gethook(cmd)
-			if user.level >= callback.reqlevel:
+			if chan is None and callback.needchan:
+				self.msg(user, "You need to specify a channel for that command.")
+				return
+			if user.glevel >= callback.reqglevel: #TODO TODO TODO check reqclevel
 				callback(self, user, chan, *pieces[1:])
 				return
 
