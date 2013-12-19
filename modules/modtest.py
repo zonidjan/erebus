@@ -18,5 +18,5 @@ modstop = lib.modstop
 
 # module code
 @lib.hook('test')
-def cmd_test(bot, user, chan, *args):
+def cmd_test(bot, user, chan, realtarget, *args):
 	bot.msg(chan, "You said: !test %s" % (' '.join([str(arg) for arg in args])))

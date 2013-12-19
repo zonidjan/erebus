@@ -26,6 +26,8 @@ CREATE TABLE `bots` (
   `nick` varchar(30) NOT NULL,
   `user` varchar(10) NOT NULL DEFAULT 'erebus',
   `bind` varchar(15) DEFAULT NULL,
+  `authname` varchar(30) DEFAULT NULL,
+  `authpass` varchar(20) DEFAULT NULL,
   `active` tinyint(1) NOT NULL DEFAULT '1',
   `connected` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`nick`)
@@ -38,7 +40,7 @@ CREATE TABLE `bots` (
 
 LOCK TABLES `bots` WRITE;
 /*!40000 ALTER TABLE `bots` DISABLE KEYS */;
-INSERT INTO `bots` VALUES ('Erebus','erebus',NULL,1,0);
+INSERT INTO `bots` VALUES ('Erebus','erebus',NULL,NULL,NULL,1,0);
 /*!40000 ALTER TABLE `bots` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -67,6 +69,30 @@ LOCK TABLES `chans` WRITE;
 INSERT INTO `chans` VALUES ('#dimetest','Erebus',1);
 /*!40000 ALTER TABLE `chans` ENABLE KEYS */;
 UNLOCK TABLES;
+
+--
+-- Table structure for table `users`
+--
+
+DROP TABLE IF EXISTS `users`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `users` (
+  `auth` varchar(30) NOT NULL,
+  `level` tinyint(3) unsigned NOT NULL,
+  PRIMARY KEY (`auth`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `users`
+--
+
+LOCK TABLES `users` WRITE;
+/*!40000 ALTER TABLE `users` DISABLE KEYS */;
+INSERT INTO `users` VALUES ('DimeCadmium',100),('BiohZn',100);
+/*!40000 ALTER TABLE `users` ENABLE KEYS */;
+UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -77,4 +103,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2013-11-26 14:59:42
+-- Dump completed on 2013-12-19 16:28:56
