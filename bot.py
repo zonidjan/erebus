@@ -22,26 +22,20 @@ class Bot(object):
 			self.parent.newfd(self, self.conn.socket.fileno())
 
 	def getdata(self):
-		for line in self.conn.read():
-			print self.nick, '[I]', line
+		return self.conn.read()
 
-			if not self.conn.registered():
-				pieces = line.split()
-
-				if pieces[0] == "PING":
-					self.conn.send("PONG %s" % (pieces[1]))
-
-				elif pieces[1] == "001":
-					self.conn.registered(True)
-					for c in self.chans:
-						self.join(c)
-
-			else:
-				self.parse(line)
 	def parse(self, line):
 		pieces = line.split()
 
-		if pieces[1] == "PRIVMSG":
+		if not self.conn.registered() and pieces[0] == "NOTICE":
+				self.conn.register()
+
+		elif pieces[1] == "001":
+			self.conn.registered(True)
+			for c in self.chans:
+				self.join(c)
+
+		elif pieces[1] == "PRIVMSG":
 			nick = pieces[0].split('!')[0][1:]
 			user = self.parent.user(nick)
 			target = pieces[2]
@@ -75,10 +69,11 @@ class Bot(object):
 		pieces = msg.split()
 
 		if target == self.nick:
-			chanword = pieces[1]
-			if chanword[0] == '#':
-				chan = self.parent.channel(chanword)
-				pieces.pop(1)
+			if len(pieces) > 1:
+				chanword = pieces[1]
+				if chanword[0] == '#':
+					chan = self.parent.channel(chanword)
+					pieces.pop(1)
 
 		else: # message was sent to a channel
 			chan = self.parent.channel(target) #TODO check if bot's on channel --- in Erebus.channel() maybe?
@@ -90,8 +85,6 @@ class Bot(object):
 				return # not to bot, don't process!
 
 		cmd = pieces[0].lower()
-
-		print "%r %r %r %r" % (cmd, user, target, msg)
 
 		if self.parent.hashook(cmd):
 			callback = self.parent.gethook(cmd)
@@ -141,9 +134,12 @@ class BotConnection(object):
 		self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.socket.bind((self.bind, 0))
 		self.socket.connect((self.server, self.port))
-		self.send("NICK %s" % (self.parent.nick))
-		self.send("USER %s 0 * :%s" % (self.parent.user, self.parent.realname))
-		self.state = 1
+		return True
+	def register(self):
+		if self.state == 0:
+			self.send("NICK %s" % (self.parent.nick))
+			self.send("USER %s 0 * :%s" % (self.parent.user, self.parent.realname))
+			self.state = 1
 		return True
 
 	def registered(self, done=False):
@@ -164,6 +160,7 @@ class BotConnection(object):
 
 		while '\r\n' in self.buffer:
 			pieces = self.buffer.split('\r\n', 1)
+			print self.parent.nick, '[I]', pieces[0]
 			lines.append(pieces[0])
 			self.buffer = pieces[1]
 

@@ -20,7 +20,6 @@ class Erebus(object):
 		chans = []
 
 		def __init__(self, nick, auth=None):
-			print "parent.User(self, %r, %r)" % (nick, auth)
 			self.nick = nick
 			self.auth = auth
 			self.checklevel()
@@ -143,7 +142,6 @@ def setup():
 	main = Erebus(cfg.trigger)
 
 	autoloads = [mod for mod, yes in cfg.items('autoloads') if int(yes) == 1]
-	print autoloads
 	for mod in autoloads:
 		ctlmod.load(main, mod)
 
@@ -163,7 +161,8 @@ def setup():
 def loop():
 	poready = main.poll()
 	for fileno in poready:
-		main.fd(fileno).getdata()
+		for line in main.fd(fileno).getdata():
+			main.fd(fileno).parse(line)
 
 if __name__ == '__main__':
 	setup()
