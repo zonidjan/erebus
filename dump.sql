@@ -71,6 +71,31 @@ INSERT INTO `chans` VALUES ('#dimetest','Erebus',1);
 UNLOCK TABLES;
 
 --
+-- Table structure for table `chusers`
+--
+
+DROP TABLE IF EXISTS `chusers`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `chusers` (
+  `chan` varchar(100) NOT NULL,
+  `user` varchar(30) NOT NULL,
+  `level` int(11) NOT NULL,
+  PRIMARY KEY (`chan`,`user`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `chusers`
+--
+
+LOCK TABLES `chusers` WRITE;
+/*!40000 ALTER TABLE `chusers` DISABLE KEYS */;
+INSERT INTO `chusers` VALUES ('#dimetest','dimecadmium',10);
+/*!40000 ALTER TABLE `chusers` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `users`
 --
 
@@ -103,4 +128,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2013-12-19 16:28:56
+-- Dump completed on 2013-12-22 13:07:13
