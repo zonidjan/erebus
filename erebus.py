@@ -17,12 +17,12 @@ class Erebus(object):
 	chans = {}
 
 	class User(object):
-		chans = []
-
 		def __init__(self, nick, auth=None):
 			self.nick = nick
 			self.auth = auth
 			self.checklevel()
+
+			self.chans = []
 
 		def isauthed(self):
 			return self.auth is not None
@@ -45,16 +45,23 @@ class Erebus(object):
 					self.glevel = 0
 			return self.glevel
 
+		def join(self, chan):
+			self.chans.append(chan)
+		def part(self, chan):
+			self.chans.remove(chan)
+
 		def __str__(self): return self.nick
 		def __repr__(self): return "<User %r (%d)>" % (self.nick,self.glevel)
 
 	class Channel(object):
-		users = []
-		voices = []
-		ops = []
-
-		def __init__(self, name):
+		def __init__(self, name, bot, levels={}):
 			self.name = name
+			self.bot = bot
+			self.levels = levels
+
+			self.users = []
+			self.voices = []
+			self.ops = []
 
 		def userjoin(self, user, level=None):
 			if user not in self.users: self.users.append(user)
@@ -86,9 +93,9 @@ class Erebus(object):
 			self.potype = "select"
 			self.fdlist = []
 
-	def newbot(self, nick, user, bind, server, port, realname, chans):
+	def newbot(self, nick, user, bind, server, port, realname):
 		if bind is None: bind = ''
-		obj = bot.Bot(self, nick, user, bind, server, port, realname, chans)
+		obj = bot.Bot(self, nick, user, bind, server, port, realname)
 		self.bots[nick.lower()] = obj
 
 	def newfd(self, obj, fileno):
@@ -111,8 +118,16 @@ class Erebus(object):
 			user = self.User(nick)
 			self.users[nick] = user
 			return user
-	def channel(self, name): #TODO #get Channel() by name
-		return self.Channel(name.lower())
+	def channel(self, name): #get Channel() by name
+		if name.lower() in self.chans:
+			return self.chans[name.lower()]
+		else:
+			return None
+
+	def newchannel(self, bot, name, levels={}):
+		chan = self.Channel(name.lower(), bot, levels)
+		self.chans[name.lower()] = chan
+		return chan
 
 	def poll(self):
 		if self.potype == "poll":
@@ -151,11 +166,7 @@ def setup():
 	rows = c.fetchall()
 	c.close()
 	for row in rows:
-		c2 = main.db.cursor()
-		c2.execute("SELECT chname FROM chans WHERE bot = %s AND active = 1", (row['nick'],))
-		chans = [chdic['chname'] for chdic in c2.fetchall()]
-		c2.close()
-		main.newbot(row['nick'], row['user'], row['bind'], cfg.host, cfg.port, cfg.realname, chans)
+		main.newbot(row['nick'], row['user'], row['bind'], cfg.host, cfg.port, cfg.realname)
 	main.connectall()
 
 def loop():

@@ -9,12 +9,29 @@ import socket, sys
 
 #bots = {'erebus': bot.Bot(nick='Erebus', user='erebus', bind='', server='irc.quakenet.org', port=6667, realname='Erebus')}
 class Bot(object):
-	def __init__(self, parent, nick, user, bind, server, port, realname, chans):
+	def __init__(self, parent, nick, user, bind, server, port, realname):
 		self.parent = parent
 		self.nick = nick
 		self.user = user
 		self.realname = realname
-		self.chans = chans
+
+		self.chans = []
+
+		chcurs = self.parent.db.cursor()
+		chcurs.execute("SELECT chname FROM chans WHERE bot = %s AND active = 1", (self.nick,))
+		chans = chcurs.fetchall()
+		chcurs.close()
+
+		for chrow in chans:
+			uscurs = self.parent.db.cursor()
+			uscurs.execute("SELECT user, level FROM chusers WHERE chan = %s", (chrow['chname'],))
+			usrow = uscurs.fetchone()
+			levels = {}
+			while usrow is not None:
+				levels[usrow['user']] = -usrow['level']
+				usrow = uscurs.fetchone()
+			uscurs.close()
+			self.chans.append(self.parent.newchannel(self, chrow['chname'], levels))
 
 		self.conn = BotConnection(self, bind, server, port)
 	def connect(self):
@@ -33,7 +50,7 @@ class Bot(object):
 		elif pieces[1] == "001":
 			self.conn.registered(True)
 			for c in self.chans:
-				self.join(c)
+				self.join(c.name)
 
 		elif pieces[1] == "PRIVMSG":
 			nick = pieces[0].split('!')[0][1:]
@@ -60,7 +77,8 @@ class Bot(object):
 			if nick == self.nick:
 				self.conn.send("WHO %s %%ant,1" % (chan))
 			else:
-				pass #TODO TODO TODO add to common chans!
+				chan.userjoin(user)
+				user.join(chan)
 			
 	def parsemsg(self, user, target, msg):
 		chan = None
