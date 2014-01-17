@@ -109,14 +109,20 @@ class Erebus(object):
 		return self.bots[name.lower()]
 	def fd(self, fileno): #get Bot() by fd/fileno
 		return self.fds[fileno]
+	def randbot(self): #get Bot() randomly
+		for b in self.bots.itervalues(): return b #TODO
 
-	def user(self, nick):
+	def user(self, nick, justjoined=False):
 		nick = nick.lower()
 		if nick in self.users:
 			return self.users[nick]
 		else:
 			user = self.User(nick)
 			self.users[nick] = user
+
+			if justjoined:
+				self.randbot().conn.send("WHO %s %%ant,2" % (nick))
+
 			return user
 	def channel(self, name): #get Channel() by name
 		if name.lower() in self.chans:
