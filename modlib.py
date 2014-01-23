@@ -44,7 +44,7 @@ class modlib(object):
 		return True
 	def modstop(self, parent):
 		for cmd, func in self.hooks.iteritems():
-			self.parent.unhook(cmd)
+			self.parent.unhook(cmd, func)
 		return True
 
 	def hook(self, cmd, needchan=True, glevel=ANYONE, clevel=PUBLIC):
