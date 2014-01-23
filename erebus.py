@@ -164,6 +164,7 @@ def setup():
 
 	autoloads = [mod for mod, yes in cfg.items('autoloads') if int(yes) == 1]
 	for mod in autoloads:
+		print "Loading %s" % (mod)
 		ctlmod.load(main, mod)
 
 	main.db = MySQLdb.connect(host=cfg.dbhost, user=cfg.dbuser, passwd=cfg.dbpass, db=cfg.dbname, cursorclass=MySQLdb.cursors.DictCursor)

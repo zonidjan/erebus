@@ -111,7 +111,9 @@ class Bot(object):
 				return
 			if user.glevel >= callback.reqglevel:
 				#TODO TODO TODO check reqclevel
-				callback(self, user, chan, target, *pieces[1:])
+				cbret = callback(self, user, chan, target, *pieces[1:])
+				if cbret is NotImplemented:
+					self.msg(user, "Command not implemented.")
 				return
 
 		self.msg(user, "No such command, or you don't have access.")
