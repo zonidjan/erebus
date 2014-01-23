@@ -15,8 +15,8 @@ class error(object):
 class modlib(object):
 	# default (global) access levels
 	MANAGER = 100
-	ADMIN = 90
-	STAFF = 80
+	ADMIN = 75
+	STAFF = 50
 	AUTHED = 0
 	ANYONE = -1
 
@@ -28,6 +28,9 @@ class modlib(object):
 	KNOWN = -3
 	PUBLIC = -2 #anyone (use glevel to control auth-needed)
 
+	# messages
+	WRONGARGS = "Wrong number of arguments."
+
 	def __init__(self, name):
 		self.hooks = {}
 		self.parent = None
@@ -38,9 +41,11 @@ class modlib(object):
 		self.parent = parent
 		for cmd, func in self.hooks.iteritems():
 			self.parent.hook(cmd, func)
+		return True
 	def modstop(self, parent):
 		for cmd, func in self.hooks.iteritems():
-			self.parent.unhook(cmd, func)
+			self.parent.unhook(cmd)
+		return True
 
 	def hook(self, cmd, needchan=True, glevel=ANYONE, clevel=PUBLIC):
 		def realhook(func):
@@ -52,4 +57,24 @@ class modlib(object):
 			if self.parent is not None:
 				self.parent.hook(cmd, func)
 			return func
+		return realhook
+
+	def argsEQ(self, num):
+		def realhook(func):
+			def checkargs(bot, user, chan, realtarget, *args):
+				if len(args) == num:
+					return func(bot, user, chan, realtarget, *args)
+				else:
+					bot.msg(user, self.WRONGARGS)
+			return checkargs
+		return realhook
+
+	def argsGE(self, num):
+		def realhook(func):
+			def checkargs(bot, user, chan, realtarget, *args):
+				if len(args) >= num:
+					return func(bot, user, chan, realtarget, *args)
+				else:
+					bot.msg(user, self.WRONGARGS)
+			return checkargs
 		return realhook

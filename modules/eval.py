@@ -20,6 +20,7 @@ import sys
 
 
 @lib.hook('eval', needchan=False, glevel=lib.MANAGER)
+@lib.argsGE(1)
 def cmd_eval(bot, user, chan, realtarget, *args):
 	if chan is not None: replyto = chan
 	else: replyto = user
@@ -30,6 +31,7 @@ def cmd_eval(bot, user, chan, realtarget, *args):
 
 
 @lib.hook('exec', needchan=False, glevel=lib.MANAGER)
+@lib.argsGE(1)
 def cmd_exec(bot, user, chan, realtarget, *args):
 	if chan is not None: replyto = chan
 	else: replyto = user

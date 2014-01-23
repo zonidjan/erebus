@@ -8,7 +8,7 @@ modules = {}
 dependents = {}
 
 def isloaded(modname): return modname in modules
-def modhas(modname, attname): return getattr(self.modules[modname], attname, None) is not None
+def modhas(modname, attname): return getattr(modules[modname], attname, None) is not None
 
 def load(parent, modname):
 	if not isloaded(modname):
@@ -45,19 +45,19 @@ def unload(parent, modname):
 			unload(parent, dependent)
 		for dep in dependents[modname]:
 			dependents[dep].remove(modname)
-		self.modules[modname].modstop(parent)
+		return modules[modname].modstop(parent)
 	else:
 		return modlib.error('already unloaded')
 
 def reloadmod(parent, modname):
 	if isloaded(modname):
-		if modhas(modname, 'modrestart'): self.modules[modname].modrestart(parent)
-		else: self.modules[modname].modstop(parent)
+		if modhas(modname, 'modrestart'): modules[modname].modrestart(parent)
+		else: modules[modname].modstop(parent)
 
-		reload(self.modules[modname])
+		reload(modules[modname])
 
-		if modhas(modname, 'modrestarted'): self.modules[modname].modrestarted(parent)
-		else: self.modules[modname].modstart(parent)
+		if modhas(modname, 'modrestarted'): modules[modname].modrestarted(parent)
+		else: modules[modname].modstart(parent)
 
 	else:
 		load(parent, modname)
