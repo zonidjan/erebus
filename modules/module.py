@@ -46,4 +46,7 @@ def cmd_modreload(bot, user, chan, realtarget, *args):
 @lib.hook('modlist', needchan=False, glevel=lib.STAFF)
 @lib.argsEQ(0)
 def cmd_modlist(bot, user, chan, realtarget, *args):
-	return NotImplemented
+	mods = ctlmod.modules
+	for mod in mods.itervalues():
+		bot.msg(user, "- %s %r" % (mod.__name__, mod))
+	bot.msg(user, "Done.")
