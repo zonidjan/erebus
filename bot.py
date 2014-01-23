@@ -45,9 +45,15 @@ class Bot(object):
 		pieces = line.split()
 
 		if not self.conn.registered() and pieces[0] == "NOTICE":
-				self.conn.register()
+			self.conn.register()
+			return
 
-		elif pieces[1] == "001":
+		if self.parent.hasnumhook(pieces[1]):
+			hooks = self.parent.getnumhook(pieces[1])
+			for callback in hooks:
+				callback(self, line)
+
+		if pieces[1] == "001":
 			self.conn.registered(True)
 			for c in self.chans:
 				self.join(c.name)
@@ -105,16 +111,16 @@ class Bot(object):
 		cmd = pieces[0].lower()
 
 		if self.parent.hashook(cmd):
-			callback = self.parent.gethook(cmd)
-			if chan is None and callback.needchan:
-				self.msg(user, "You need to specify a channel for that command.")
-				return
-			if user.glevel >= callback.reqglevel:
-				#TODO TODO TODO check reqclevel
-				cbret = callback(self, user, chan, target, *pieces[1:])
-				if cbret is NotImplemented:
-					self.msg(user, "Command not implemented.")
-				return
+			for callback in self.parent.gethook(cmd):
+				if chan is None and callback.needchan:
+					self.msg(user, "You need to specify a channel for that command.")
+					continue
+				if user.glevel >= callback.reqglevel:
+					#TODO TODO TODO check reqclevel
+					cbret = callback(self, user, chan, target, *pieces[1:])
+					if cbret is NotImplemented:
+						self.msg(user, "Command not implemented.")
+					continue
 
 		self.msg(user, "No such command, or you don't have access.")
 

@@ -12,6 +12,7 @@ class Erebus(object):
 	bots = {}
 	fds = {}
 	mods = {}
+	numhandlers = {}
 	msghandlers = {}
 	users = {}
 	chans = {}
@@ -148,13 +149,30 @@ class Erebus(object):
 
 	#bind functions
 	def hook(self, word, handler):
-		self.msghandlers[word] = handler
-	def unhook(self, word):
-		del self.msghandlers[word]
+		try:
+			self.msghandlers[word].append(handler)
+		except:
+			self.msghandlers[word] = [handler]
+	def unhook(self, word, handler):
+		if word in self.msghandlers and handler in self.msghandlers[word]:
+			self.msghandlers[word].remove(handler)
 	def hashook(self, word):
-		return word in self.msghandlers
+		return word in self.msghandlers and len(self.msghandlers[word]) != 0
 	def gethook(self, word):
 		return self.msghandlers[word]
+
+	def hooknum(self, word, handler):
+		try:
+			self.numhandlers[word].append(handler)
+		except:
+			self.numhandlers[word] = [handler]
+	def unhooknum(self, word, handler):
+		if word in self.numhandlers and handler in self.numhandlers[word]:
+			self.numhandlers[word].remove(handler)
+	def hasnumhook(self, word):
+		return word in self.numhandlers and len(self.numhandlers[word]) != 0
+	def getnumhook(self, word):
+		return self.numhandlers[word]
 
 def setup():
 	global cfg, main
