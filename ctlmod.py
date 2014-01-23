@@ -15,6 +15,9 @@ def load(parent, modname):
 		mod = __import__(modname)
 		reload(mod)
 
+		if not hasattr(mod, 'modinfo'):
+			return modlib.error('no modinfo')
+
 		if 1 not in mod.modinfo['compatible']:
 			return modlib.error('API-incompatible')
 

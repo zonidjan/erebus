@@ -121,8 +121,8 @@ class Bot(object):
 					if cbret is NotImplemented:
 						self.msg(user, "Command not implemented.")
 					continue
-
-		self.msg(user, "No such command, or you don't have access.")
+		else:
+			self.msg(user, "No such command, or you don't have access.")
 
 	def msg(self, target, msg):
 		if isinstance(target, self.parent.User): self.conn.send("NOTICE %s :%s" % (target.nick, msg))
