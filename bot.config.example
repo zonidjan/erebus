@@ -1,6 +1,6 @@
 [erebus]
 realname = Erebus r1
-host = dk.quakenet.org
+host = irc.quakenet.org
 port = 6667
 
 dbhost = localhost
@@ -11,4 +11,5 @@ dbname = erebus
 trigger = !
 
 [autoloads]
-modtest = 1
+module = 1
+eval = 1
