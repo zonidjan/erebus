@@ -88,7 +88,10 @@ class Bot(object):
 			
 	def parsemsg(self, user, target, msg):
 		chan = None
-		triggerused = msg[0] == self.parent.trigger
+		try:
+			triggerused = msg[0] == self.parent.trigger
+		except IndexError: # Fix if you feel like it /BiohZn
+			triggerused = False
 		if triggerused: msg = msg[1:]
 		pieces = msg.split()
 
@@ -101,12 +104,15 @@ class Bot(object):
 
 		else: # message was sent to a channel
 			chan = self.parent.channel(target) #TODO check if bot's on channel --- in Erebus.channel() maybe?
-			if msg[0] == '*': # message may be addressed to bot by "*BOTNICK" trigger?
-				if pieces[0][1:].lower() == self.nick.lower():
-					pieces.pop(0) # command actually starts with next word
-					msg = ' '.join(pieces) # command actually starts with next word
-			elif not triggerused:
-				return # not to bot, don't process!
+			try:
+				if msg[0] == '*': # message may be addressed to bot by "*BOTNICK" trigger?
+					if pieces[0][1:].lower() == self.nick.lower():
+						pieces.pop(0) # command actually starts with next word
+						msg = ' '.join(pieces) # command actually starts with next word
+				elif not triggerused:
+					return # not to bot, don't process!
+			except IndexError:
+				return # Fix if you feel like it /BiohZn
 
 		cmd = pieces[0].lower()
 
