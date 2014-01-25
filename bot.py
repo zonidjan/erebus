@@ -88,10 +88,10 @@ class Bot(object):
 			
 	def parsemsg(self, user, target, msg):
 		chan = None
-		try:
-			triggerused = msg[0] == self.parent.trigger
-		except IndexError: # Fix if you feel like it /BiohZn
-			triggerused = False
+		if len(msg) == 0:
+			return
+
+		triggerused = msg[0] == self.parent.trigger
 		if triggerused: msg = msg[1:]
 		pieces = msg.split()
 
