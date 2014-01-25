@@ -22,6 +22,7 @@ import ctlmod
 import urllib2
 from BeautifulSoup import BeautifulSoup
 
+checkfor = "spotify"
 hostmask_regex = re.compile('^(.*)!(.*)@(.*)$')
 spotify_regex = ( re.compile(r'spotify:(?P<type>\w+):(?P<track_id>\w{22})'),
 									re.compile(r'http://open.spotify.com/(?P<type>\w+)/(?P<track_id>\w{22})') )
@@ -55,13 +56,16 @@ def privmsg_hook(bot, line):
 	sender = parser_hostmask(line[1:line.find(' ')])
 
 	try:
-		linetx = line.split(' ', 3)[3][1:]
+		linetx = line.split(None, 3)[3][1:]
 	except IndexError:
 		linetx = ''
 
+	if checkfor not in line:
+		return # doesn't concern us
+
 	for r in spotify_regex:
 		for type, track in r.findall(linetx):
-			url = '%s?uri=spotify:%s:%s' %(spotify_gateway, type, track)
+			url = '%s?uri=spotify:%s:%s' % (spotify_gateway, type, track)
 			xml = urllib2.urlopen(url).read()
 			soup = BeautifulSoup(xml)
 			lookup_type = soup.contents[2].name
