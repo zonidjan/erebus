@@ -18,7 +18,6 @@ modstop = lib.modstop
 # module code
 import sys
 
-
 @lib.hook('eval', needchan=False, glevel=lib.MANAGER)
 @lib.argsGE(1)
 def cmd_eval(bot, user, chan, realtarget, *args):

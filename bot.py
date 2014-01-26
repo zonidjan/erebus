@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# -*- coding: latin-1 -*-
 
 # Erebus IRC bot - Author: John Runyon
 # "Bot" and "BotConnection" classes (handling a specific "arm")
@@ -180,7 +181,7 @@ class BotConnection(object):
 
 	#TODO: rewrite send() to queue
 	def send(self, line):
-		print self.parent.nick, '[O]', line
+		print self.parent.nick, '[O]', str(line)
 		self.write(line)
 
 	def write(self, line):

@@ -1,10 +1,10 @@
-# Erebus IRC bot - Author: John Runyon
+# Erebus IRC bot - Author: Conny Sjoblom
 # Spotify URL Checker
 # This file is released into the public domain; see http://unlicense.org/
 
 # module info
 modinfo = {
-	'author': 'Conny Sjoblom (BiohZn)',
+	'author': 'Conny Sjoblom',
 	'license': 'public domain',
 	'compatible': [1], # compatible module API versions
 	'depends': [], # other modules required to work properly?
@@ -18,7 +18,6 @@ modstop = lib.modstop
 
 # module code
 import re
-import ctlmod
 import urllib2
 from BeautifulSoup import BeautifulSoup
 
