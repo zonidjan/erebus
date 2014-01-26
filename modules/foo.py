@@ -17,8 +17,6 @@ modstart = lib.modstart
 modstop = lib.modstop
 
 # module code
-import ctlmod
-
 @lib.hook('test')
 def cmd_test(bot, user, chan, realtarget, *args):
 	bot.msg(chan, "You said: !test %s" % (' '.join([str(arg) for arg in args])))

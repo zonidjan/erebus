@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# -*- coding: latin-1 -*-
 
 # Erebus IRC bot - Author: John Runyon
 # main startup code

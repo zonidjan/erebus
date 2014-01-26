@@ -3,4 +3,5 @@
 # Erebus IRC bot - Author: John Runyon
 # Startup script
 
-python -B "$(dirname $(readlink -f $0))/erebus.py"
+cd "$(dirname $(readlink -f $0))"
+PYTHONPATH=".:$PYTHONPATH" python -B erebus.py
