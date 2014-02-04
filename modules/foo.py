@@ -17,6 +17,9 @@ modstart = lib.modstart
 modstop = lib.modstop
 
 # module code
-@lib.hook('test')
-def cmd_test(bot, user, chan, realtarget, *args):
+@lib.hook('test', needchan=False)
+def cmd_gtest(bot, user, chan, realtarget, *args):
+	if chan is not None: replyto = chan
+	else: replyto = user
+
 	bot.msg(chan, "You said: %s" % (' '.join([str(arg) for arg in args])))
