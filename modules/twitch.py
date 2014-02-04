@@ -1,5 +1,5 @@
 # Erebus IRC bot - Author: Conny Sjoblom
-# Spotify URL Checker
+# Twitch URL Checker
 # This file is released into the public domain; see http://unlicense.org/
 
 # module info
@@ -20,7 +20,6 @@ modstop = lib.modstop
 import re
 import urllib2
 import json
-from BeautifulSoup import BeautifulSoup
 
 checkfor = "twitch"
 hostmask_regex = re.compile('^(.*)!(.*)@(.*)$')
