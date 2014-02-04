@@ -89,7 +89,8 @@ class Bot(object):
 				chanword = pieces[1]
 				if chanword[0] == '#':
 					chan = self.parent.channel(chanword)
-					pieces.pop(1)
+					if chan is not None: #if chan is still none, there's no bot on "chanword", and chanword is used as a parameter.
+						pieces.pop(1)
 
 		else: # message was sent to a channel
 			chan = self.parent.channel(target) #TODO check if bot's on channel --- in Erebus.channel() maybe?
