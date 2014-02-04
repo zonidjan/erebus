@@ -1,5 +1,5 @@
 # Erebus IRC bot - Author: Conny Sjoblom
-# Spotify URL Checker
+# Youtube URL Checker
 # This file is released into the public domain; see http://unlicense.org/
 
 # module info
@@ -66,7 +66,4 @@ def privmsg_hook(bot, line):
 			html_parser = HTMLParser.HTMLParser()
 			respdata = urllib2.urlopen(url).read()
 			soup = BeautifulSoup(respdata)
-			try:
-				bot.msg(line.split()[2], BeautifulSoup(soup.title.string, convertEntities=BeautifulSoup.HTML_ENTITIES))
-			except:
-				pass
+			bot.msg(line.split()[2], BeautifulSoup(soup.title.string, convertEntities=BeautifulSoup.HTML_ENTITIES))
