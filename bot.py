@@ -1,5 +1,4 @@
 #!/usr/bin/python
-# -*- coding: latin-1 -*-
 
 # Erebus IRC bot - Author: John Runyon
 # "Bot" and "BotConnection" classes (handling a specific "arm")
@@ -16,23 +15,12 @@ class Bot(object):
 		self.user = user
 		self.realname = realname
 
-		self.chans = []
+		curs = self.parent.db.cursor()
+		curs.execute("SELECT chname FROM chans WHERE bot = %s AND active = 1", (self.nick,))
+		chansres = curs.fetchall()
+		curs.close()
 
-		chcurs = self.parent.db.cursor()
-		chcurs.execute("SELECT chname FROM chans WHERE bot = %s AND active = 1", (self.nick,))
-		chans = chcurs.fetchall()
-		chcurs.close()
-
-		for chrow in chans:
-			uscurs = self.parent.db.cursor()
-			uscurs.execute("SELECT user, level FROM chusers WHERE chan = %s", (chrow['chname'],))
-			usrow = uscurs.fetchone()
-			levels = {}
-			while usrow is not None:
-				levels[usrow['user']] = -usrow['level']
-				usrow = uscurs.fetchone()
-			uscurs.close()
-			self.chans.append(self.parent.newchannel(self, chrow['chname'], levels))
+		self.chans = [self.parent.newchannel(self, row['chname']) for row in chansres]
 
 		self.conn = BotConnection(self, bind, server, port)
 	def connect(self):
@@ -121,15 +109,12 @@ class Bot(object):
 			for callback in self.parent.gethook(cmd):
 				if chan is None and callback.needchan:
 					self.msg(user, "You need to specify a channel for that command.")
-					continue
-				if user.glevel >= callback.reqglevel:
-					#TODO TODO TODO check reqclevel
+				elif user.glevel >= callback.reqglevel and (not callback.needchan or chan.levelof(user.auth) >= callback.reqclevel):
 					cbret = callback(self, user, chan, target, *pieces[1:])
 					if cbret is NotImplemented:
 						self.msg(user, "Command not implemented.")
-					continue
 		else:
-			self.msg(user, "No such command, or you don't have access.")
+			self.msg(user, "No such command.")
 
 	def msg(self, target, msg):
 		if isinstance(target, self.parent.User): self.conn.send("NOTICE %s :%s" % (target.nick, msg))

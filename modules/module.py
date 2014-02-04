@@ -1,5 +1,5 @@
 # Erebus IRC bot - Author: John Runyon
-# simple module example
+# module control through irc
 # This file is released into the public domain; see http://unlicense.org/
 
 # module info

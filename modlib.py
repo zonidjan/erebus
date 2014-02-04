@@ -21,12 +21,12 @@ class modlib(object):
 	ANYONE = -1
 
 	# (channel) access levels
-	OWNER = -10
-	MASTER = -8 #master is {-8,-9}
-	OP = -5 #op is {-5,-6,-7}
-	VOICE = -4
-	KNOWN = -3
-	PUBLIC = -2 #anyone (use glevel to control auth-needed)
+	OWNER = 5
+	MASTER = 4
+	OP = 3
+	VOICE = 2
+	KNOWN = 1
+	PUBLIC = 0 #anyone (use glevel to control auth-needed)
 
 	# messages
 	WRONGARGS = "Wrong number of arguments."

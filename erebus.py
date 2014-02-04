@@ -1,5 +1,4 @@
 #!/usr/bin/python
-# -*- coding: latin-1 -*-
 
 # Erebus IRC bot - Author: John Runyon
 # main startup code
@@ -31,7 +30,7 @@ class Erebus(object):
 
 		def authed(self, auth):
 			if auth == '0': auth = None
-			self.auth = auth
+			self.auth = auth.lower()
 			self.checklevel()
 
 		def checklevel(self):
@@ -56,14 +55,36 @@ class Erebus(object):
 		def __repr__(self): return "<User %r (%d)>" % (self.nick,self.glevel)
 
 	class Channel(object):
-		def __init__(self, name, bot, levels={}):
+		def __init__(self, name, bot):
 			self.name = name
 			self.bot = bot
-			self.levels = levels
+			self.levels = {}
 
 			self.users = []
 			self.voices = []
 			self.ops = []
+
+			c = main.db.cursor()
+			c.execute("SELECT user, level FROM chusers WHERE chan = %s", (self.name,))
+			row = c.fetchone()
+			while row is not None:
+				self.levels[row['user']] = row['level']
+				row = c.fetchone()
+
+
+		def levelof(self, auth):
+			auth = auth.lower()
+			if auth in self.levels:
+				return self.levels[auth]
+			else:
+				return 0
+
+		def setlevel(self, auth, level, savetodb=True):
+			auth = auth.lower()
+			if savetodb:
+				c = main.db.cursor()
+				c.execute("REPLACE INTO chusers (chan, user, level) VALUES (%s, %s, %s)", (self.name, auth, level))
+			self.levels[auth] = level
 
 		def userjoin(self, user, level=None):
 			if user not in self.users: self.users.append(user)
@@ -132,8 +153,8 @@ class Erebus(object):
 		else:
 			return None
 
-	def newchannel(self, bot, name, levels={}):
-		chan = self.Channel(name.lower(), bot, levels)
+	def newchannel(self, bot, name):
+		chan = self.Channel(name.lower(), bot)
 		self.chans[name.lower()] = chan
 		return chan
 
@@ -174,6 +195,9 @@ class Erebus(object):
 		return word in self.numhandlers and len(self.numhandlers[word]) != 0
 	def getnumhook(self, word):
 		return self.numhandlers[word]
+
+
+
 
 def setup():
 	global cfg, main
