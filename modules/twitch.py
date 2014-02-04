@@ -22,36 +22,10 @@ import urllib2
 import json
 
 checkfor = "twitch"
-hostmask_regex = re.compile('^(.*)!(.*)@(.*)$')
 url_regex = re.compile('(http|ftp|https):\/\/([\w\-_]+(?:(?:\.[\w\-_]+)+))([\w\-\.,@?^=%&amp;:/~\+#]*[\w\-\@?^=%&amp;/~\+#])?')
-def parser_hostmask(hostmask):
-	if isinstance(hostmask, dict):
-		return hostmask
-
-	nick = None
-	user = None
-	host = None
-
-	if hostmask is not None:
-		match = hostmask_regex.match(hostmask)
-
-		if not match:
-			nick = hostmask
-		else:
-			nick = match.group(1)
-			user = match.group(2)
-			host = match.group(3)
-
-	return {
-		'nick': nick,
-		'user': user,
-		'host': host
-	}
 
 @lib.hooknum("PRIVMSG")
 def privmsg_hook(bot, line):
-	sender = parser_hostmask(line[1:line.find(' ')])
-
 	try:
 		linetx = line.split(None, 3)[3][1:]
 	except IndexError:
