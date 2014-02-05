@@ -40,6 +40,6 @@ def privmsg_hook(bot, line):
 			respdata = urllib2.urlopen(url).read()
 			twitch = json.loads(respdata)
 			try:
-				bot.msg(line.split()[2], 'Twitch: %s (%s)' % (twitch[0]['channel']['status'], twitch[0]['channel']['meta_game']))
+				bot.msg(line.split()[2], 'Twitch: %s (%s playing %s)' % (twitch[0]['channel']['status'], twitch[0]['channel']['login'], twitch[0]['channel']['meta_game']))
 			except:
 				bot.msg(line.split()[2], 'Twitch: Channel offline.')
