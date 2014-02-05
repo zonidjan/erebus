@@ -1,9 +1,10 @@
-# Erebus IRC bot - Author: John Runyon
+# Erebus IRC bot - Author: Erebus Team
 # !EVAL and !EXEC commands
+# This file is released into the public domain; see http://unlicense.org/
 
 # module info
 modinfo = {
-	'author': 'John Runyon (DimeCadmium)',
+	'author': 'Erebus Team',
 	'license': 'public domain',
 	'compatible': [1],
 	'depends': [],
