@@ -1,10 +1,10 @@
-# Erebus IRC bot - Author: Conny Sjoblom
+# Erebus IRC bot - Author: Erebus Team
 # Youtube URL Checker
 # This file is released into the public domain; see http://unlicense.org/
 
 # module info
 modinfo = {
-	'author': 'Conny Sjoblom',
+	'author': 'Erebus Team',
 	'license': 'public domain',
 	'compatible': [1], # compatible module API versions
 	'depends': [], # other modules required to work properly?
