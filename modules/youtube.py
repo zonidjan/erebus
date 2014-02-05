@@ -38,17 +38,19 @@ def privmsg_hook(bot, line):
 	if checkfor not in line:
 		return # doesn't concern us
 
-	print "Meow"
 	for url in url_regex.findall(linetx):
 		if checkfor in url:
 			url_data = urlparse.urlparse(url)
 			query = urlparse.parse_qs(url_data.query)
 			video = query["v"][0]
 			api_url = 'http://gdata.youtube.com/feeds/api/videos/%s?alt=json&v=2' % video
-			respdata = urllib2.urlopen(api_url).read()
-			video_info = json.loads(respdata)
+			try:
+				respdata = urllib2.urlopen(api_url).read()
+				video_info = json.loads(respdata)
 
-			title = video_info['entry']['title']["$t"]
-			author = video_info['entry']['author'][0]['name']['$t']
+				title = video_info['entry']['title']["$t"]
+				author = video_info['entry']['author'][0]['name']['$t']
 
-			bot.msg(line.split()[2], "Youtube: %s (%s)" % (title, author))
+				bot.msg(line.split()[2], "Youtube: %s (%s)" % (title, author))
+			except:
+				pass
