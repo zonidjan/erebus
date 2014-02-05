@@ -25,7 +25,7 @@ import HTMLParser
 from BeautifulSoup import BeautifulSoup
 
 checkfor = "youtube"
-yturl_regex = re.compile(r'https?://(?:www\.)?youtube\.com/watch\?[a-zA-Z0-9=&]+')
+yturl_regex = re.compile(r'https?://(?:www\.)?youtube\.com/watch\?[a-zA-Z0-9=&_\-]+')
 
 @lib.hooknum("PRIVMSG")
 def privmsg_hook(bot, line):
