@@ -114,8 +114,6 @@ class Bot(object):
 					cbret = callback(self, user, chan, target, *pieces[1:])
 					if cbret is NotImplemented:
 						self.msg(user, "Command not implemented.")
-		else:
-			self.msg(user, "No such command.")
 
 	def msg(self, target, msg):
 		if isinstance(target, self.parent.User): self.conn.send("NOTICE %s :%s" % (target.nick, msg))
