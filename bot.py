@@ -116,6 +116,8 @@ class Bot(object):
 						self.msg(user, "Command not implemented.")
 
 	def msg(self, target, msg):
+		if target is None or msg is None: return
+
 		if isinstance(target, self.parent.User): self.conn.send("NOTICE %s :%s" % (target.nick, msg))
 		elif isinstance(target, self.parent.Channel): self.conn.send("PRIVMSG %s :%s" % (target.name, msg))
 		elif isinstance(target, basestring):
