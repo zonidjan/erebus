@@ -22,7 +22,8 @@ import json
 import requests
 
 coin_regex = (
-  re.compile(r'([0-9., ]+[0-9]+) (BTC|bitcoin|doge|dogecoin|ltc|litecoin)'), # Fix regex
+#  re.compile(r'([0-9., ]+[0-9]+) (BTC|bitcoin|doge|dogecoin|ltc|litecoin)'), # Fix regex
+	re.compile(r'([0-9.\s]+)\s(btc|bitcoin|doge|dogecoin|ltc|litecoin)'),
 )
 
 url = 'http://www.cryptocoincharts.info/v2/api/tradingPairs'
