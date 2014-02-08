@@ -127,7 +127,7 @@ def privmsg_hook(bot, line):
 						bot.msg(chan, "%s DOGE = %s EUR" % (amount, price))
 					except:
 						bot.msg(chan, "Invalid amount.")
-						
-					
+
+
 				print amount
 				print coin
