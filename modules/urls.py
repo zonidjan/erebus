@@ -10,6 +10,8 @@ modinfo = {
 	'depends': [], # other modules required to work properly?
 }
 
+# http://embed.ly/tools/generator
+
 # preamble
 import modlib
 lib = modlib.modlib(__name__)
@@ -149,3 +151,4 @@ def gottwitch(url):
 				bot.msg(line.split()[2], 'Twitch: %s (%s playing %s)' % (twitch[0]['channel']['status'], twitch[0]['channel']['login'], twitch[0]['channel']['meta_game']))
 			except:
 				bot.msg(line.split()[2], 'Twitch: Channel offline.')
+

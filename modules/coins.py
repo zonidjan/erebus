@@ -22,8 +22,11 @@ import json
 import requests
 
 coin_regex = (
-#  re.compile(r'([0-9., ]+[0-9]+) (BTC|bitcoin|doge|dogecoin|ltc|litecoin)'), # Fix regex
-	re.compile(r'([0-9.\s]+)\s(btc|bitcoin|doge|dogecoin|ltc|litecoin)'),
+	re.compile(r'([0-9.,\s]+)\s(btc|bitcoin|doge|dogecoin|ltc|litecoin)'),
+)
+
+cur_regex = (
+	re.compile(r'([0-9.,\s]+)\s([a-zA-Z]{3})\sin\s([a-zA-Z]{3})'),
 )
 
 url = 'http://www.cryptocoincharts.info/v2/api/tradingPairs'
@@ -88,9 +91,22 @@ def privmsg_hook(bot, line):
 
 	chan = line.split()[2]
 
+	if 'in' in line:
+		for r in cur_regex:
+			for a, f, t in r.findall(linetx):
+
+				# https://www.google.com/finance/converter?a=1.2&from=USD&to=EUR
+
+				a = a.replace(",", ".")
+				a = a.replace(" ", "")
+				print a
+				print f
+				print t
+
 	if 'btc' in line or 'bitcoin' in line or 'doge' in line or 'dogecoin' in line:
 		for r in coin_regex:
 			for amount, coin in r.findall(linetx):
+				amount = amount.replace(",", ".")
 				amount = amount.replace(" ", "")
 				if 'btc' in coin or 'bitcoin' in coin:
 					try:
