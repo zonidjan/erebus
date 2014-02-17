@@ -99,9 +99,6 @@ def privmsg_hook(bot, line):
 
 				a = a.replace(",", ".")
 				a = a.replace(" ", "")
-				print a
-				print f
-				print t
 
 	if 'btc' in line or 'bitcoin' in line or 'doge' in line or 'dogecoin' in line:
 		for r in coin_regex:
@@ -127,7 +124,3 @@ def privmsg_hook(bot, line):
 						bot.msg(chan, "%s DOGE = %s EUR" % (amount, price))
 					except:
 						bot.msg(chan, "Invalid amount.")
-
-
-				print amount
-				print coin
