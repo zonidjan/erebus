@@ -151,6 +151,6 @@ def gottwitch(uri):
 def goturl(url):
 	try:
 		soup = BeautifulSoup(urllib2.urlopen(url))
-		return soup.title.string
+		return "Title: %s" % soup.title.string
 	except:
 		return "Bad URL"
