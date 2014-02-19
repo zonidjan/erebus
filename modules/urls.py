@@ -34,7 +34,7 @@ youtube_regex = (
 	re.compile(r'https?://(?:www\.)?youtube\.com/watch\?[a-zA-Z0-9=&_\-]+'),
 )
 twitch_regex = (
-	re.compile(r'https?://(?:www\.)?twitch.tv/(.*)\w{1,}'),
+	re.compile(r'https?:\/\/(?:www\.)?twitch.tv\/([A-Za-z0-9]*)'),
 )
 
 def parser_hostmask(hostmask):
