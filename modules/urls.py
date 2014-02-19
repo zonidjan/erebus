@@ -150,7 +150,7 @@ def gottwitch(uri):
 
 def goturl(url):
 	try:
-		soup = BeautifulSoup(urllib2.urlopen(url))
+		soup = BeautifulSoup(urllib2.urlopen(url, timeout=2))
 		return "Title: %s" % soup.title.string
 	except:
-		return "Bad URL"
+		return "Invalid URL/Timeout"
