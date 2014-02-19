@@ -61,6 +61,19 @@ def parser_hostmask(hostmask):
 		'host': host
 	}
 
+class SmartRedirectHandler(urllib2.HTTPRedirectHandler):
+	def http_error_301(self, req, fp, code, msg, headers):
+		result = urllib2.HTTPRedirectHandler.http_error_301(
+				self, req, fp, code, msg, headers)
+		result.status = code
+		return result
+
+	def http_error_302(self, req, fp, code, msg, headers):
+		result = urllib2.HTTPRedirectHandler.http_error_302(
+				self, req, fp, code, msg, headers)
+		result.status = code
+		return result
+
 @lib.hooknum("PRIVMSG")
 def privmsg_hook(bot, textline):
 	user = parser_hostmask(textline[1:textline.find(' ')])
@@ -73,7 +86,6 @@ def privmsg_hook(bot, textline):
 
 	for match in url_regex.findall(line):
 		if match:
-			print match
 			if 'open.spotify.com' in match or 'spotify:' in match:
 				for r in spotify_regex:
 					for sptype, track in r.findall(match):
@@ -149,8 +161,10 @@ def gottwitch(uri):
 			return 'Twitch: Channel offline.'
 
 def goturl(url):
+	request = urllib2.Request(url)
+	opener = urllib2.build_opener(SmartRedirectHandler())
 	try:
-		soup = BeautifulSoup(urllib2.urlopen(url, timeout=2))
-		return "Title: %s" % soup.title.string
+		soup = BeautifulSoup(opener.open(request, timeout=2))
+		return 'Title: %s' % soup.title.string
 	except:
-		return "Invalid URL/Timeout"
+		return 'Invalid URL/Timeout'
