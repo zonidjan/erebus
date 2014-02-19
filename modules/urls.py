@@ -149,5 +149,8 @@ def gottwitch(uri):
 			return 'Twitch: Channel offline.'
 
 def goturl(url):
-	soup = BeautifulSoup(urllib2.urlopen(url))
-	return soup.title.string
+	try:
+		soup = BeautifulSoup(urllib2.urlopen(url))
+		return soup.title.string
+	except:
+		return "Bad URL"
