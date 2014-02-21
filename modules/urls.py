@@ -89,20 +89,20 @@ def privmsg_hook(bot, textline):
 			if 'open.spotify.com' in match or 'spotify:' in match:
 				for r in spotify_regex:
 					for sptype, track in r.findall(match):
-						bot.msg(chan, unescape(gotspotify(sptype, track)))
+						bot.msg(chan, gotspotify(sptype, track))
 
 			elif 'youtube.com' in match or 'youtu.be' in match:
 				for r in youtube_regex:
 					for url in r.findall(match):
-						bot.msg(chan, unescape(gotyoutube(url)))
+						bot.msg(chan, gotyoutube(url))
 
 			elif 'twitch.tv' in match:
 				for r in twitch_regex:
 					for uri in r.findall(match):
-						bot.msg(chan, unescape(gottwitch(uri)))
+						bot.msg(chan, gottwitch(uri))
 
 			else:
-				bot.msg(chan, unescape(goturl(match)))
+				bot.msg(chan, goturl(match))
 
 def unescape(line):
 	return html_parser.unescape(line)
@@ -124,13 +124,13 @@ def gotspotify(type, track):
 		minutes = int(length)/60
 		seconds =  int(length)%60
 
-		return 'Track: %s - %s / %s %s:%.2d %2d%%' % (artist_name, name, album_name, minutes, seconds, popularity)
+		return unescape('Track: %s - %s / %s %s:%.2d %2d%%' % (artist_name, name, album_name, minutes, seconds, popularity))
 
 	elif lookup_type == 'album':
 		album_name = soup.find('album').find('name').string
 		artist_name = soup.find('artist').find('name').string
 		released = soup.find('released').string
-		return 'Album: %s - %s - %s' % (artist_name, album_name, released)
+		return unescape('Album: %s - %s - %s' % (artist_name, album_name, released))
 
 	else:
 		return 'Unsupported type.'
@@ -147,7 +147,7 @@ def gotyoutube(url):
 		title = video_info['entry']['title']["$t"]
 		author = video_info['entry']['author'][0]['name']['$t']
 
-		return "Youtube: %s (%s)" % (title, author)
+		return unescape("Youtube: %s (%s)" % (title, author))
 	except:
 		pass
 
@@ -156,7 +156,7 @@ def gottwitch(uri):
 		respdata = urllib2.urlopen(url).read()
 		twitch = json.loads(respdata)
 		try:
-			return 'Twitch: %s (%s playing %s)' % (twitch[0]['channel']['status'], twitch[0]['channel']['login'], twitch[0]['channel']['meta_game'])
+			return unescape('Twitch: %s (%s playing %s)' % (twitch[0]['channel']['status'], twitch[0]['channel']['login'], twitch[0]['channel']['meta_game']))
 		except:
 			return 'Twitch: Channel offline.'
 
@@ -165,6 +165,6 @@ def goturl(url):
 	opener = urllib2.build_opener(SmartRedirectHandler())
 	try:
 		soup = BeautifulSoup(opener.open(request, timeout=2))
-		return 'Title: %s' % soup.title.string
+		return unescape('Title: %s' % (soup.title.string))
 	except:
 		return 'Invalid URL/Timeout'
