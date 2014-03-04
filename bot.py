@@ -61,8 +61,7 @@ class Bot(object):
 			qt = pieces[3]
 			nick = pieces[4]
 			auth = pieces[5]
-			if auth != '0':
-				self.parent.user(nick).authed(auth)
+			self.parent.user(nick).authed(auth)
 
 		elif pieces[1] == "JOIN":
 			nick = pieces[0].split('!')[0][1:]

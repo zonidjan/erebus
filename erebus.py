@@ -29,8 +29,8 @@ class Erebus(object):
 			return self.auth is not None
 
 		def authed(self, auth):
-			if auth == '0': auth = None
-			self.auth = auth.lower()
+			if auth == '0': self.auth = None
+			else: self.auth = auth.lower()
 			self.checklevel()
 
 		def checklevel(self):
@@ -198,6 +198,24 @@ class Erebus(object):
 
 
 
+class MyCursor(MySQLdb.cursors.DictCursor):
+	def execute(self, *args, **kwargs):
+		print "[SQL] [#] MyCursor.execute(self, %s, %s)" % (', '.join([repr(i) for i in args]), ', '.join([str(key)+"="+repr(kwargs[key]) for key in kwargs]))
+		try:
+			super(self.__class__, self).execute(*args, **kwargs)
+		except MySQLdb.MySQLError as e:
+			print "[SQL] [!] MySQL error! %r" % (e)
+			try:
+				dbsetup()
+				super(self.__class__, self).execute(*args, **kwargs)
+			except MySQLdb.MySQLError as e:
+				print "[SQL] [!!!] DOUBLE MySQL error! %r" % (e)
+				print "* [!!!] Giving up."
+				sys.exit()
+
+
+def dbsetup():
+	main.db = MySQLdb.connect(host=cfg.dbhost, user=cfg.dbuser, passwd=cfg.dbpass, db=cfg.dbname, cursorclass=MyCursor)
 
 def setup():
 	global cfg, main
@@ -210,7 +228,7 @@ def setup():
 		print "Loading %s" % (mod)
 		ctlmod.load(main, mod)
 
-	main.db = MySQLdb.connect(host=cfg.dbhost, user=cfg.dbuser, passwd=cfg.dbpass, db=cfg.dbname, cursorclass=MySQLdb.cursors.DictCursor)
+	dbsetup()
 	c = main.db.cursor()
 	c.execute("SELECT nick, user, bind FROM bots WHERE active = 1")
 	rows = c.fetchall()
