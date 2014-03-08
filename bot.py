@@ -16,11 +16,10 @@ class Bot(object):
 		self.realname = realname
 
 		curs = self.parent.db.cursor()
-		curs.execute("SELECT chname FROM chans WHERE bot = %s AND active = 1", (self.nick,))
-		chansres = curs.fetchall()
-		curs.close()
-
-		self.chans = [self.parent.newchannel(self, row['chname']) for row in chansres]
+		if curs.execute("SELECT chname FROM chans WHERE bot = %s AND active = 1", (self.nick,)):
+			chansres = curs.fetchall()
+			curs.close()
+			self.chans = [self.parent.newchannel(self, row['chname']) for row in chansres]
 
 		self.conn = BotConnection(self, bind, server, port)
 	def connect(self):

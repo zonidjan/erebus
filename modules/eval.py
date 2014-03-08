@@ -26,6 +26,7 @@ def cmd_eval(bot, user, chan, realtarget, *args):
 	else: replyto = user
 
 	try: ret = eval(' '.join(args))
+	except SystemExit: raise
 	except: bot.msg(replyto, "Error (%s): %s" % (sys.exc_info()[0], sys.exc_info()[1]))
 	else: bot.msg(replyto, "Done: %r" % (ret))
 
@@ -37,5 +38,6 @@ def cmd_exec(bot, user, chan, realtarget, *args):
 	else: replyto = user
 
 	try: exec ' '.join(args)
+	except SystemExit: raise
 	except: bot.msg(replyto, "Error: %s %s" % (sys.exc_info()[0], sys.exc_info()[1]))
 	else: bot.msg(replyto, "Done.")

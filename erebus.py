@@ -5,7 +5,7 @@
 
 #TODO: tons
 
-import os, sys, select, MySQLdb, MySQLdb.cursors
+import os, sys, select, MySQLdb, MySQLdb.cursors, time
 import bot, config, ctlmod
 
 class Erebus(object):
@@ -38,10 +38,12 @@ class Erebus(object):
 				self.glevel = -1
 			else:
 				c = main.db.cursor()
-				c.execute("SELECT level FROM users WHERE auth = %s", (self.auth,))
-				row = c.fetchone()
-				if row is not None:
-					self.glevel = row['level']
+				if c.execute("SELECT level FROM users WHERE auth = %s", (self.auth,)):
+					row = c.fetchone()
+					if row is not None:
+						self.glevel = row['level']
+					else:
+						self.glevel = 0
 				else:
 					self.glevel = 0
 			return self.glevel
@@ -65,11 +67,11 @@ class Erebus(object):
 			self.ops = []
 
 			c = main.db.cursor()
-			c.execute("SELECT user, level FROM chusers WHERE chan = %s", (self.name,))
-			row = c.fetchone()
-			while row is not None:
-				self.levels[row['user']] = row['level']
+			if c.execute("SELECT user, level FROM chusers WHERE chan = %s", (self.name,)):
 				row = c.fetchone()
+				while row is not None:
+					self.levels[row['user']] = row['level']
+					row = c.fetchone()
 
 
 		def levelof(self, auth):
@@ -83,8 +85,11 @@ class Erebus(object):
 			auth = auth.lower()
 			if savetodb:
 				c = main.db.cursor()
-				c.execute("REPLACE INTO chusers (chan, user, level) VALUES (%s, %s, %s)", (self.name, auth, level))
-			self.levels[auth] = level
+				if c.execute("REPLACE INTO chusers (chan, user, level) VALUES (%s, %s, %s)", (self.name, auth, level)):
+					self.levels[auth] = level
+					return True
+				else:
+					return False
 
 		def userjoin(self, user, level=None):
 			if user not in self.users: self.users.append(user)
@@ -205,16 +210,13 @@ class MyCursor(MySQLdb.cursors.DictCursor):
 			super(self.__class__, self).execute(*args, **kwargs)
 		except MySQLdb.MySQLError as e:
 			print "[SQL] [!] MySQL error! %r" % (e)
-			try:
-				dbsetup()
-				super(self.__class__, self).execute(*args, **kwargs)
-			except MySQLdb.MySQLError as e:
-				print "[SQL] [!!!] DOUBLE MySQL error! %r" % (e)
-				print "* [!!!] Giving up."
-				sys.exit()
+			dbsetup()
+			return False
+		return True
 
 
 def dbsetup():
+	main.db = None
 	main.db = MySQLdb.connect(host=cfg.dbhost, user=cfg.dbuser, passwd=cfg.dbpass, db=cfg.dbname, cursorclass=MyCursor)
 
 def setup():
@@ -230,11 +232,11 @@ def setup():
 
 	dbsetup()
 	c = main.db.cursor()
-	c.execute("SELECT nick, user, bind FROM bots WHERE active = 1")
-	rows = c.fetchall()
-	c.close()
-	for row in rows:
-		main.newbot(row['nick'], row['user'], row['bind'], cfg.host, cfg.port, cfg.realname)
+	if c.execute("SELECT nick, user, bind FROM bots WHERE active = 1"):
+		rows = c.fetchall()
+		c.close()
+		for row in rows:
+			main.newbot(row['nick'], row['user'], row['bind'], cfg.host, cfg.port, cfg.realname)
 	main.connectall()
 
 def loop():
