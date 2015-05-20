@@ -18,6 +18,7 @@ modstop = lib.modstop
 
 # module code
 import sys
+import ctlmod
 
 @lib.hook('eval', needchan=False, glevel=lib.MANAGER)
 @lib.argsGE(1)

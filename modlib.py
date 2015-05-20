@@ -54,7 +54,7 @@ class modlib(object):
 		for num, func in self.numhooks.iteritems():
 			self.parent.unhooknum(num, func)
 		for chan, func in self.chanhooks.iteritems():
-			self.parent.hookchan(chan, func)
+			self.parent.unhookchan(chan, func)
 		return True
 
 	def hooknum(self, num):

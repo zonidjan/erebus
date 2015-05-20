@@ -14,6 +14,7 @@ class Erebus(object):
 	mods = {}
 	numhandlers = {}
 	msghandlers = {}
+	chanhandlers = {}
 	users = {}
 	chans = {}
 
@@ -203,9 +204,9 @@ class Erebus(object):
 
 	def hookchan(self, chan, handler):
 		try:
-			self.chanhandlers[word].append(handler)
+			self.chanhandlers[chan].append(handler)
 		except:
-			self.chanhandlers[word] = [handler]
+			self.chanhandlers[chan] = [handler]
 	def unhookchan(self, chan, handler):
 		if chan in self.chanhandlers and handler in self.chanhandlers[chan]:
 			self.chanhandlers[chan].remove(handler)

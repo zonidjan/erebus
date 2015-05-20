@@ -14,8 +14,7 @@ modinfo = {
 import modlib
 lib = modlib.modlib(__name__)
 def modstart(parent, *args, **kwargs):
-	global state
-	state = TriviaState("/home/jrunyon/erebus/modules/trivia.json", parent) #TODO
+	state.parent = parent
 	return lib.modstart(parent, *args, **kwargs)
 def modstop(*args, **kwargs):
 	global state
@@ -26,10 +25,11 @@ def modstop(*args, **kwargs):
 import json, random
 
 class TriviaState(object):
-	def __init__(self, questionfile, parent):
-		self.parent = parent
+	def __init__(self, questionfile):
 		self.questionfile = questionfile
 		self.db = json.load(open(questionfile, "r"))
+		self.chan = self.db['chan']
+		self.curq = None
 
 	def __del__(self):
 		json.dump(self.db, open(self.questionfile, "w"), indent=4, separators=(',',': '))
@@ -37,21 +37,24 @@ class TriviaState(object):
 	def nextquestion(self):
 		nextq = random.choice(self.db['questions'])
 		self.curq = nextq
-		self.parent.msg(self.chan, "Next up: %s" % (nextq['question']))
+		self.parent.channel(self.chan).bot.msg(self.chan, "Next up: %s" % (nextq['question']))
 
 	def checkanswer(self, answer):
-		if isinstance(self.curq['answer'], basestring):
+		if self.curq is None:
+			return False
+		elif isinstance(self.curq['answer'], basestring):
 			return answer.lower() == self.curq['answer']
 		else: # assume it's a list or something.
 			return answer.lower() in self.curq['answer']
 	
 	def addpoint(self, _user, count=1):
+		_user = str(_user)
 		user = _user.lower()
 		if user in self.db['users']:
 			self.db['users'][user]['points'] += count
 		else:
 			self.db['users'][user] = {'points': count, 'realnick': _user, 'rank': len(self.db['ranks'])}
-			self.db['ranks']append(user)
+			self.db['ranks'].append(user)
 
 		oldrank = self.db['users'][user]['rank']
 		while oldrank != 0:
@@ -65,29 +68,31 @@ class TriviaState(object):
 		return self.db['users'][user]['points']
 
 	def points(self, user):
-		user = user.lower()
+		user = str(user).lower()
 		if user in self.db['users']:
 			return self.db['users'][user]['points']
 		else:
 			return 0
 
 	def rank(self, user):
+		user = str(user)
 		return self.db['users'][user]['rank']
 	
 	def targetuser(self, user): return "TODO" #TODO
 	def targetpoints(self, user): return 0 #TODO
 
+state = TriviaState("/home/jrunyon/erebus/modules/trivia.json") #TODO
+
 @lib.hookchan(state.db['chan'])
 def trivia_checkanswer(bot, user, chan, *args):
-	global state
 	line = ' '.join([str(arg) for arg in args])
+	bot.msg('dimecadmium', line)
 	if state.checkanswer(line):
 		bot.msg(chan, "\00308%s\003 has it! The answer was \00308%s\003. Current points: %d. Rank: %d. Target: %s (%d)." % (user, line, state.addpoint(user), state.rank(user), state.targetuser(user), state.targetpoints(user)))
-	state.nextquestion()
+		state.nextquestion()
 
 @lib.hook('points')
 def cmd_points(bot, user, chan, realtarget, *args):
-	global state
 	if chan is not None: replyto = chan
 	else: replyto = user
 
@@ -99,7 +104,6 @@ def cmd_points(bot, user, chan, realtarget, *args):
 @lib.hook('give', clevel=lib.OP)
 @lib.argsGE(1)
 def cmd_give(bot, user, chan, realtarget, *args):
-	global state
 	if len(args) > 1 and args[1] != 1:
 		bot.msg(user, "Giving more than one point is not yet implemented.")
 		return NotImplemented
@@ -111,8 +115,7 @@ def cmd_give(bot, user, chan, realtarget, *args):
 @lib.hook('rank')
 @lib.argsEQ(1)
 def cmd_rank(bot, user, chan, realtarget, *args):
-	global state
 	if chan is not None: replyto = chan
 	else: replyto = user
 
-	bot.msg(replyto, "%s is in %d place." % (args[0], state.rank(args[0]))
+	bot.msg(replyto, "%s is in %d place." % (args[0], state.rank(args[0])))
