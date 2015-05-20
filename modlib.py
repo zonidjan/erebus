@@ -34,6 +34,7 @@ class modlib(object):
 	def __init__(self, name):
 		self.hooks = {}
 		self.numhooks = {}
+		self.chanhooks = {}
 		self.parent = None
 
 		self.name = name
@@ -44,12 +45,16 @@ class modlib(object):
 			self.parent.hook(cmd, func)
 		for num, func in self.numhooks.iteritems():
 			self.parent.hooknum(num, func)
+		for chan, func in self.chanhooks.iteritems():
+			self.parent.hookchan(chan, func)
 		return True
 	def modstop(self, parent):
 		for cmd, func in self.hooks.iteritems():
 			self.parent.unhook(cmd, func)
 		for num, func in self.numhooks.iteritems():
 			self.parent.unhooknum(num, func)
+		for chan, func in self.chanhooks.iteritems():
+			self.parent.hookchan(chan, func)
 		return True
 
 	def hooknum(self, num):
@@ -57,6 +62,14 @@ class modlib(object):
 			self.numhooks[num] = func
 			if self.parent is not None:
 				self.parent.hooknum(num, func)
+			return func
+		return realhook
+
+	def hookchan(self, chan, glevel=ANYONE, clevel=PUBLIC):
+		def realhook(func):
+			self.chanhooks[chan] = func
+			if self.parent is not None:
+				self.parent.hookchan(chan, func)
 			return func
 		return realhook
 

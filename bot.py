@@ -98,7 +98,13 @@ class Bot(object):
 						pieces.pop(0) # command actually starts with next word
 						msg = ' '.join(pieces) # command actually starts with next word
 				elif not triggerused:
-					return # not to bot, don't process!
+					if self.parents.haschanhook(target.lower()):
+						for callback in self.parent.getchanhook(target.lower()):
+							cbret = callback(self, user, chan, *pieces[1:])
+							if cbret is NotImplemented:
+								self.msg(user, "Command not implemented.")
+					else:
+						return # not to bot, don't process!
 			except IndexError:
 				return # Fix if you feel like it /BiohZn
 

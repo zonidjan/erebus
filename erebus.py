@@ -201,6 +201,18 @@ class Erebus(object):
 	def getnumhook(self, word):
 		return self.numhandlers[word]
 
+	def hookchan(self, chan, handler):
+		try:
+			self.chanhandlers[word].append(handler)
+		except:
+			self.chanhandlers[word] = [handler]
+	def unhookchan(self, chan, handler):
+		if chan in self.chanhandlers and handler in self.chanhandlers[chan]:
+			self.chanhandlers[chan].remove(handler)
+	def haschanhook(self, chan):
+		return chan in self.chanhandlers and len(self.chanhandlers[chan]) != 0
+	def getchanhook(self, chan):
+		return self.chanhandlers[chan]
 
 
 class MyCursor(MySQLdb.cursors.DictCursor):
