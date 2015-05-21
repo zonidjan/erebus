@@ -53,6 +53,9 @@ class Erebus(object):
 			self.chans.append(chan)
 		def part(self, chan):
 			self.chans.remove(chan)
+		def quit(self):
+			for chan in self.chans:
+				self.chans.remove(chan)
 
 		def __str__(self): return self.nick
 		def __repr__(self): return "<User %r (%d)>" % (self.nick,self.glevel)
@@ -141,12 +144,12 @@ class Erebus(object):
 	def randbot(self): #get Bot() randomly
 		for b in self.bots.itervalues(): return b #TODO
 
-	def user(self, nick, justjoined=False):
-		nick = nick.lower()
+	def user(self, _nick, justjoined=False):
+		nick = _nick.lower()
 		if nick in self.users:
 			return self.users[nick]
 		else:
-			user = self.User(nick)
+			user = self.User(_nick)
 			self.users[nick] = user
 
 			if justjoined:
