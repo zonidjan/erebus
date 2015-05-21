@@ -72,7 +72,25 @@ class Bot(object):
 				user = self.parent.user(nick, justjoined=True)
 				chan.userjoin(user)
 				user.join(chan)
+
+		elif pieces[1] == "PART":
+			nick = pieces[0].split('!')[0][1:]
+			chan = self.parent.channel(pieces[2])
 			
+			if nick != self.nick:
+				self.parent.user(nick).part(chan)
+				chan.userpart(self.parent.user(nick))
+
+		elif pieces[1] == "QUIT":
+			nick = pieces[0].split('!')[0][1:]
+			if nick != self.nick:
+				self.parent.user(nick).quit()
+				del self.parent.users[nick.lower()]
+
+		elif pieces[1] == "MODE": #TODO
+			pass
+
+	
 	def parsemsg(self, user, target, msg):
 		chan = None
 		if len(msg) == 0:
@@ -103,6 +121,7 @@ class Bot(object):
 							cbret = callback(self, user, chan, *pieces)
 							if cbret is NotImplemented:
 								self.msg(user, "Command not implemented.")
+						return
 					else:
 						return # not to bot, don't process!
 			except IndexError:
