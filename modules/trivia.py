@@ -31,7 +31,13 @@ def modstop(*args, **kwargs):
 	return lib.modstop(*args, **kwargs)
 
 # module code
-import json, random
+import json, random, threading, re
+
+def findnth(haystack, needle, n): #http://stackoverflow.com/a/1884151
+	parts = haystack.split(needle, n+1)
+	if len(parts)<=n+1:
+		return -1
+	return len(haystack)-len(parts[-1])-len(needle)
 
 class TriviaState(object):
 	def __init__(self, questionfile):
@@ -40,12 +46,50 @@ class TriviaState(object):
 		self.chan = self.db['chan']
 		self.curq = None
 		self.nextq = None
+		self.steptimer = None
+		self.hintstr = None
+		self.hintanswer = None
+		self.revealpossibilities = None
 
 	def __del__(self):
+		if threading is not None and threading._Timer is not None and isinstance(self.steptimer, threading._Timer):
+			self.steptimer.cancel()
 		if json is not None and json.dump is not None:
 			json.dump(self.db, open(self.questionfile, "w"), indent=4, separators=(',',': '))
 
+	def nexthint(self, hintnum):
+		if self.hintanswer is None:
+			if isinstance(self.curq['answer'], basestring): self.hintanswer = self.curq['answer']
+			else: self.hintanswer = random.choice(self.curq['answer'])
+		answer = self.hintanswer
+
+		if self.hintstr is None or self.revealpossibilities is None:
+			self.hintstr = list(re.sub(r'[a-zA-Z0-9]', '*', answer))
+			self.revealpossibilities = range(''.join(self.hintstr).count('*'))
+
+		reveal = int(len(self.hintstr) * (7/24.0))
+		for i in range(reveal):
+			revealcount = random.choice(self.revealpossibilities)
+			revealloc = findnth(''.join(self.hintstr), '*', revealcount)
+			self.revealpossibilities.remove(revealcount)
+			self.hintstr[revealloc] = answer[revealloc]
+		self.parent.channel(self.chan).bot.msg(self.chan, "Here's a hint: %s" % (''.join(self.hintstr)))
+
+		if hintnum < 3:
+			self.steptimer = threading.Timer(15.0, self.nexthint, args=[hintnum+1])
+			self.steptimer.start()
+		else:
+			self.steptimer = threading.Timer(15.0, self.nextquestion)
+			self.steptimer.start()
+
 	def nextquestion(self):
+		if isinstance(self.steptimer, threading._Timer):
+			self.steptimer.cancel()
+		self.hintstr = None
+		self.hintanswer = None
+		self.revealpossibilities = None
+
+
 		if state.nextq is not None:
 			nextq = state.nextq
 			self.curq = nextq
@@ -59,6 +103,9 @@ class TriviaState(object):
 		for qword in qary:
 			qtext += "\00300,01"+qword+"\00301,01"+chr(random.randrange(32,126))
 		self.parent.channel(self.chan).bot.msg(self.chan, qtext)
+
+		self.steptimer = threading.Timer(15.0, self.nexthint, args=[1])
+		self.steptimer.start()
 
 	def checkanswer(self, answer):
 		if self.curq is None:
@@ -177,6 +224,8 @@ def cmd_stop(bot, user, chan, realtarget, *args):
 
 	if state.curq is not None:
 		state.curq = None
+		if isinstance(state.steptimer, threading._Timer):
+			state.steptimer.cancel()
 		bot.msg(chan, "Game ended by %s" % (user))
 	else:
 		bot.msg(replyto, "Game isn't running.")
