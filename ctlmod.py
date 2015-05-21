@@ -48,7 +48,9 @@ def unload(parent, modname):
 			unload(parent, dependent)
 		for dep in dependents[modname]:
 			dependents[dep].remove(modname)
-		return modules[modname].modstop(parent)
+		ret = modules[modname].modstop(parent)
+		del modules[modname]
+		return ret
 	else:
 		return modlib.error('already unloaded')
 
