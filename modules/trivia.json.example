@@ -1,0 +1,11 @@
+{
+	"chan": "##.test",
+    "ranks": [],
+    "users": {},
+    "questions": [
+        {
+            "answer": ["dimecadmium","wibble","i am"],
+            "question": "Who is da boss?"
+        }
+    ]
+}
