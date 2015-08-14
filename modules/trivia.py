@@ -3,13 +3,16 @@
 # This file is released into the public domain; see http://unlicense.org/
 
 #TODO:
-#	timers (stop game/skip question/hinting)
+#	stop game after X unanswered questions
 #	bonus points
 #	ability to REDUCE users points
 #	dynamic questions
 #	v2
 #		team play
 #		statistics
+
+HINTTIMER = 2.0
+HINTNUM = 3
 
 # module info
 modinfo = {
@@ -26,6 +29,7 @@ def modstart(parent, *args, **kwargs):
 	state.parent = parent
 	return lib.modstart(parent, *args, **kwargs)
 def modstop(*args, **kwargs):
+	stop()
 	global state
 	del state
 	return lib.modstop(*args, **kwargs)
@@ -57,6 +61,11 @@ class TriviaState(object):
 		if json is not None and json.dump is not None:
 			json.dump(self.db, open(self.questionfile, "w"), indent=4, separators=(',',': '))
 
+	def getchan(self):
+		return self.parent.channel(self.chan)
+	def getbot(self):
+		return self.getchan().bot
+
 	def nexthint(self, hintnum):
 		if self.hintanswer is None:
 			if isinstance(self.curq['answer'], basestring): self.hintanswer = self.curq['answer']
@@ -75,14 +84,17 @@ class TriviaState(object):
 			self.hintstr[revealloc] = answer[revealloc]
 		self.parent.channel(self.chan).bot.msg(self.chan, "Here's a hint: %s" % (''.join(self.hintstr)))
 
-		if hintnum < 3:
-			self.steptimer = threading.Timer(15.0, self.nexthint, args=[hintnum+1])
+		if hintnum < HINTNUM:
+			self.steptimer = threading.Timer(HINTTIMER, self.nexthint, args=[hintnum+1])
 			self.steptimer.start()
 		else:
-			self.steptimer = threading.Timer(15.0, self.nextquestion)
+			self.steptimer = threading.Timer(HINTTIMER, self.nextquestion, args=[True])
 			self.steptimer.start()
 
-	def nextquestion(self):
+	def nextquestion(self, qskipped=False):
+		if qskipped:
+			self.getbot().msg(self.getchan(), "Fail! The correct answer was: %s" % (self.hintanswer))
+
 		if isinstance(self.steptimer, threading._Timer):
 			self.steptimer.cancel()
 		self.hintstr = None
@@ -102,9 +114,9 @@ class TriviaState(object):
 		qary = nextq['question'].split(None)
 		for qword in qary:
 			qtext += "\00300,01"+qword+"\00301,01"+chr(random.randrange(32,126))
-		self.parent.channel(self.chan).bot.msg(self.chan, qtext)
+		self.getbot().msg(self.chan, qtext)
 
-		self.steptimer = threading.Timer(15.0, self.nexthint, args=[1])
+		self.steptimer = threading.Timer(HINTTIMER, self.nexthint, args=[1])
 		self.steptimer.start()
 
 	def checkanswer(self, answer):
@@ -146,22 +158,31 @@ class TriviaState(object):
 
 	def rank(self, user):
 		user = str(user).lower()
-		return self.db['users'][user]['rank']+1
+		if user in self.db['users']:
+			return self.db['users'][user]['rank']+1
+		else:
+			return len(self.db['users'])+1
 	
 	def targetuser(self, user):
 		user = str(user).lower()
-		rank = self.db['users'][user]['rank']
-		if rank == 0:
-			return "you're in the lead!"
+		if user in self.db['users']:
+			rank = self.db['users'][user]['rank']
+			if rank == 0:
+				return "you're in the lead!"
+			else:
+				return self.db['ranks'][rank-1]
 		else:
-			return self.db['ranks'][rank-1]
+			return self.db['ranks'][-1]
 	def targetpoints(self, user):
 		user = str(user).lower()
-		rank = self.db['users'][user]['rank']
-		if rank == 0:
-			return "N/A"
+		if user in self.db['users']:
+			rank = self.db['users'][user]['rank']
+			if rank == 0:
+				return "N/A"
+			else:
+				return self.db['users'][self.db['ranks'][rank-1]]['points']
 		else:
-			return self.db['users'][self.db['ranks'][rank-1]]['points']
+			return self.db['users'][self.db['ranks'][-1]]['points']
 
 state = TriviaState("/home/jrunyon/erebus/modules/trivia.json") #TODO get path from config
 
@@ -191,6 +212,9 @@ def cmd_give(bot, user, chan, realtarget, *args):
 	else:
 		numpoints = 1
 	balance = state.addpoint(whoto, numpoints)
+
+	if numpoints < 0:
+		state.db['ranks'].sort(key=lambda nick: state.db['users'][nick]['points'], reverse=True)
 	bot.msg(chan, "%s gave %s %d points. New balance: %d" % (user, whoto, numpoints, balance))
 
 @lib.hook('setnext', clevel=lib.OP)
@@ -219,16 +243,19 @@ def cmd_start(bot, user, chan, realtarget, *args):
 
 @lib.hook('stop', clevel=lib.KNOWN)
 def cmd_stop(bot, user, chan, realtarget, *args):
-	if chan == realtarget: replyto = chan
-	else: replyto = user
+	if stop():
+		bot.msg(state.chan, "Game stopped by %s" % (user))
+	else:
+		bot.msg(user, "Game isn't running.")
 
+def stop():
 	if state.curq is not None:
 		state.curq = None
 		if isinstance(state.steptimer, threading._Timer):
 			state.steptimer.cancel()
-		bot.msg(chan, "Game ended by %s" % (user))
+		return True
 	else:
-		bot.msg(replyto, "Game isn't running.")
+		return False
 
 @lib.hook('rank')
 def cmd_rank(bot, user, chan, realtarget, *args):
@@ -238,4 +265,15 @@ def cmd_rank(bot, user, chan, realtarget, *args):
 	if len(args) != 0: who = args[0]
 	else: who = user
 
-	bot.msg(replyto, "%s is in %d place." % (who, state.rank(who)))
+	bot.msg(replyto, "%s is in %d place. Target is: %s (%d points)." % (who, state.rank(who), state.targetuser(who), state.targetpoints(who)))
+
+@lib.hook('top10')
+def cmd_top10(bot, user, chan, realtarget, *args):
+	if chan == realtarget: replyto = chan
+	else: replyto = user
+
+	replylist = []
+	for nick in state.db['ranks'][0:10]:
+		user = state.db['users'][nick]
+		replylist.append("%s (%d)" % (user['realnick'], user['points']))
+	bot.msg(replyto, ', '.join(replylist))

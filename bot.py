@@ -67,7 +67,7 @@ class Bot(object):
 			chan = self.parent.channel(pieces[2])
 
 			if nick == self.nick:
-				self.conn.send("WHO %s %%ant,1" % (chan))
+				self.conn.send("WHO %s c%%ant,1" % (chan))
 			else:
 				user = self.parent.user(nick, justjoined=True)
 				chan.userjoin(user)

@@ -11,7 +11,6 @@ import bot, config, ctlmod
 class Erebus(object):
 	bots = {}
 	fds = {}
-	mods = {}
 	numhandlers = {}
 	msghandlers = {}
 	chanhandlers = {}
@@ -153,7 +152,7 @@ class Erebus(object):
 			self.users[nick] = user
 
 			if justjoined:
-				self.randbot().conn.send("WHO %s %%ant,2" % (nick))
+				self.randbot().conn.send("WHO %s n%%ant,2" % (nick))
 
 			return user
 	def channel(self, name): #get Channel() by name
@@ -177,6 +176,9 @@ class Erebus(object):
 		for bot in self.bots.itervalues():
 			if bot.conn.state == 0:
 				bot.connect()
+
+	def module(self, name):
+		return ctlmod.modules[name]
 
 	#bind functions
 	def hook(self, word, handler):
