@@ -34,7 +34,7 @@ def modstop(*args, **kwargs):
 	return lib.modstop(*args, **kwargs)
 
 # module code
-import json, random, threading, re
+import json, random, threading, re, time
 
 def findnth(haystack, needle, n): #http://stackoverflow.com/a/1884151
 	parts = haystack.split(needle, n+1)
@@ -76,12 +76,12 @@ class TriviaState(object):
 			else: self.hintanswer = random.choice(self.curq['answer'])
 		answer = self.hintanswer
 
-		if self.hintstr is None or self.revealpossibilities is None:
+		if self.hintstr is None or self.revealpossibilities is None or self.reveal is None:
 			self.hintstr = list(re.sub(r'[a-zA-Z0-9]', '*', answer))
 			self.revealpossibilities = range(''.join(self.hintstr).count('*'))
+			self.reveal = int(''.join(self.hintstr).count('*') * (7/24.0))
 
-		reveal = int(len(self.hintstr) * (7/24.0))
-		for i in range(reveal):
+		for i in range(self.reveal):
 			revealcount = random.choice(self.revealpossibilities)
 			revealloc = findnth(''.join(self.hintstr), '*', revealcount)
 			self.revealpossibilities.remove(revealcount)
@@ -116,7 +116,7 @@ class TriviaState(object):
 		self.closeshop()
 		self.__init__(self.questionfile, self.parent)
 
-	def nextquestion(self, qskipped=False):
+	def nextquestion(self, qskipped=False, iteration=0):
 		if self.gameover == True:
 			return self.doGameOver()
 		if qskipped:
@@ -128,21 +128,31 @@ class TriviaState(object):
 		self.hintanswer = None
 		self.hintsgiven = 0
 		self.revealpossibilities = None
+		self.reveal = None
 
 
 		if state.nextq is not None:
 			nextq = state.nextq
-			self.curq = nextq
 			state.nextq = None
 		else:
 			nextq = random.choice(self.db['questions'])
-			self.curq = nextq
+
+		if nextq['question'][0] == "!":
+			nextq = specialQuestion(nextq)
+
+		if iteration < 10 and 'lastasked' in nextq and nextq['lastasked'] - time.time() < 24*60*60:
+			return self.nextquestion(iteration=iteration+1) #short-circuit to pick another question
+		nextq['lastasked'] = time.time()
+
+		nextq['answer'] = nextq['answer'].lower()
 
 		qtext = "\00300,01Next up: "
 		qary = nextq['question'].split(None)
 		for qword in qary:
 			qtext += "\00300,01"+qword+"\00301,01"+chr(random.randrange(32,126))
 		self.getbot().msg(self.chan, qtext)
+
+		self.curq = nextq
 
 		self.steptimer = threading.Timer(HINTTIMER, self.nexthint, args=[1])
 		self.steptimer.start()
@@ -248,6 +258,9 @@ def cmd_give(bot, user, chan, realtarget, *args):
 def cmd_setnext(bot, user, chan, realtarget, *args):
 	line = ' '.join([str(arg) for arg in args])
 	linepieces = line.split('*')
+	if len(linepieces) < 2:
+		bot.msg(user, "Error: need <question>*<answer>")
+		return
 	question = linepieces[0].strip()
 	answer = linepieces[1].strip()
 	state.nextq = {'question':question,'answer':answer}
@@ -327,3 +340,25 @@ def cmd_triviahelp(bot, user, chan, realtarget, *args):
 			bot.msg(user, "SETNEXT <q>*<a>           (>=OP    )")
 			if bot.parent.channel(state.db['chan']).levelof(user.auth) >= lib.MASTER:
 				bot.msg(user, "SETTARGET <points>        (>=MASTER)")
+
+
+def specialQuestion(oldq):
+	newq = {'question': oldq['question'], 'answer': oldq['answer']}
+	qtype = oldq['question'].upper()
+
+	if qtype == "!MONTH":
+		newq['question'] = "What month is it currently (in UTC)?"
+		newq['answer'] = time.strftime("%B").lower()
+	elif qtype == "!MATH+":
+		randnum1 = random.randrange(0, 11)
+		randnum2 = random.randrange(0, 11)
+		newq['question'] = "What is %d + %d?" % (randnum1, randnum2)
+		newq['answer'] = spellout(randnum1+randnum2)
+	return newq
+
+def spellout(num):
+	return [
+		"zero", "one", "two", "three", "four", "five", "six", "seven", "eight", 
+		"nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen",
+		"sixteen", "seventeen", "eighteen", "nineteen", "twenty"
+	][num]

@@ -1,4 +1,5 @@
 {
+	"target": 500,
 	"chan": "##.test",
     "ranks": [],
     "users": {},
