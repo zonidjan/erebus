@@ -231,7 +231,7 @@ def trivia_checkanswer(bot, user, chan, *args):
 			bot.msg(chan, "\00308%s\003 got an extra point for getting it before the hints! New score: %d." % (user, state.addpoint(user)))
 		state.nextquestion()
 
-@lib.hook('points')
+@lib.hook('points', needchan=False)
 def cmd_points(bot, user, chan, realtarget, *args):
 	if chan == realtarget: replyto = chan
 	else: replyto = user
@@ -241,7 +241,7 @@ def cmd_points(bot, user, chan, realtarget, *args):
 
 	bot.msg(replyto, "%s has %d points." % (who, state.points(who)))
 
-@lib.hook('give', clevel=lib.OP)
+@lib.hook('give', clevel=lib.OP, needchan=False)
 @lib.argsGE(1)
 def cmd_give(bot, user, chan, realtarget, *args):
 	whoto = args[0]
@@ -253,7 +253,7 @@ def cmd_give(bot, user, chan, realtarget, *args):
 
 	bot.msg(chan, "%s gave %s %d points. New balance: %d" % (user, whoto, numpoints, balance))
 
-@lib.hook('setnext', clevel=lib.OP)
+@lib.hook('setnext', clevel=lib.OP, needchan=False)
 @lib.argsGE(1)
 def cmd_setnext(bot, user, chan, realtarget, *args):
 	line = ' '.join([str(arg) for arg in args])
@@ -266,11 +266,11 @@ def cmd_setnext(bot, user, chan, realtarget, *args):
 	state.nextq = {'question':question,'answer':answer}
 	bot.msg(user, "Done.")
 
-@lib.hook('skip', clevel=lib.KNOWN)
+@lib.hook('skip', clevel=lib.KNOWN, needchan=False)
 def cmd_skip(bot, user, chan, realtarget, *args):
 	state.nextquestion()
 
-@lib.hook('start')
+@lib.hook('start', needchan=False)
 def cmd_start(bot, user, chan, realtarget, *args):
 	if chan == realtarget: replyto = chan
 	else: replyto = user
@@ -280,7 +280,7 @@ def cmd_start(bot, user, chan, realtarget, *args):
 	else:
 		bot.msg(replyto, "Game is already started!")
 
-@lib.hook('stop', clevel=lib.KNOWN)
+@lib.hook('stop', clevel=lib.KNOWN, needchan=False)
 def cmd_stop(bot, user, chan, realtarget, *args):
 	if stop():
 		bot.msg(state.chan, "Game stopped by %s" % (user))
@@ -296,7 +296,7 @@ def stop():
 	else:
 		return False
 
-@lib.hook('rank')
+@lib.hook('rank', needchan=False)
 def cmd_rank(bot, user, chan, realtarget, *args):
 	if chan == realtarget: replyto = chan
 	else: replyto = user
@@ -306,7 +306,7 @@ def cmd_rank(bot, user, chan, realtarget, *args):
 
 	bot.msg(replyto, "%s is in %d place (%s points). Target is: %s (%s points)." % (who, state.rank(who), state.points(who), state.targetuser(who), state.targetpoints(who)))
 
-@lib.hook('top10')
+@lib.hook('top10', needchan=False)
 def cmd_top10(bot, user, chan, realtarget, *args):
 	if len(state.db['ranks']) == 0:
 		return bot.msg(state.db['chan'], "No one is ranked!")
@@ -317,7 +317,7 @@ def cmd_top10(bot, user, chan, realtarget, *args):
 		replylist.append("%s (%s)" % (user['realnick'], user['points']))
 	bot.msg(state.db['chan'], ', '.join(replylist))
 
-@lib.hook('settarget', clevel=lib.MASTER)
+@lib.hook('settarget', clevel=lib.MASTER, needchan=False)
 def cmd_settarget(bot, user, chan, realtarget, *args):
 	try:
 		state.db['target'] = int(args[0])
@@ -325,7 +325,7 @@ def cmd_settarget(bot, user, chan, realtarget, *args):
 	except:
 		bot.msg(user, "Failed to set target.")
 
-@lib.hook('triviahelp')
+@lib.hook('triviahelp', needchan=False)
 def cmd_triviahelp(bot, user, chan, realtarget, *args):
 	bot.msg(user, "POINTS [<user>]")
 	bot.msg(user, "START")
