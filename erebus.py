@@ -5,10 +5,13 @@
 
 #TODO: tons
 
-import os, sys, select, MySQLdb, MySQLdb.cursors, time
+import os, sys, select, MySQLdb, MySQLdb.cursors, time, random
 import bot, config, ctlmod
 
 class Erebus(object):
+	APIVERSION = 1
+	RELEASE = 0
+
 	bots = {}
 	fds = {}
 	numhandlers = {}
@@ -143,7 +146,7 @@ class Erebus(object):
 	def fd(self, fileno): #get Bot() by fd/fileno
 		return self.fds[fileno]
 	def randbot(self): #get Bot() randomly
-		for b in self.bots.itervalues(): return b #TODO
+		return random.choice(self.bots)
 
 	def user(self, _nick, justjoined=False):
 		nick = _nick.lower()

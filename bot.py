@@ -101,6 +101,11 @@ class Bot(object):
 		pieces = msg.split()
 
 		if target == self.nick:
+			if msg[0] == "\001": #ctcp
+				msg = msg.strip("\001")
+				if msg == "VERSION":
+					self.msg(user, "\001VERSION Erebus v%d.%d - http://github.com/zonidjan/erebus" % (self.parent.APIVERSION, self.parent.RELEASE))
+				return
 			if len(pieces) > 1:
 				chanword = pieces[1]
 				if chanword[0] == '#':
@@ -121,11 +126,9 @@ class Bot(object):
 							cbret = callback(self, user, chan, *pieces)
 							if cbret is NotImplemented:
 								self.msg(user, "Command not implemented.")
-						return
-					else:
-						return # not to bot, don't process!
+					return # not to bot, don't process!
 			except IndexError:
-				return # Fix if you feel like it /BiohZn
+				return # "message" is empty
 
 		cmd = pieces[0].lower()
 

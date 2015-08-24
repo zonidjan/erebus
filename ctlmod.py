@@ -18,7 +18,7 @@ def load(parent, modname):
 		if not hasattr(mod, 'modinfo'):
 			return modlib.error('no modinfo')
 
-		if 1 not in mod.modinfo['compatible']:
+		if parent.APIVERSION not in mod.modinfo['compatible']:
 			return modlib.error('API-incompatible')
 
 		modules[modname] = mod
