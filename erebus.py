@@ -78,6 +78,8 @@ class Erebus(object):
 
 
 		def levelof(self, auth):
+			if auth is None:
+				return 0
 			auth = auth.lower()
 			if auth in self.levels:
 				return self.levels[auth]
