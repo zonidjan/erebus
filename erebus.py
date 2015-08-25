@@ -120,8 +120,9 @@ class Erebus(object):
 		def __str__(self): return self.name
 		def __repr__(self): return "<Channel %r>" % (self.name)
 
-	def __init__(self, trigger):
-		self.trigger = trigger
+	def __init__(self, cfg):
+		self.cfg = cfg
+		self.trigger = cfg.trigger
 		if os.name == "posix":
 			self.potype = "poll"
 			self.po = select.poll()
@@ -146,7 +147,7 @@ class Erebus(object):
 	def fd(self, fileno): #get Bot() by fd/fileno
 		return self.fds[fileno]
 	def randbot(self): #get Bot() randomly
-		return random.choice(self.bots)
+		return self.bots[random.choice(self.bots.keys())]
 
 	def user(self, _nick, justjoined=False):
 		nick = _nick.lower()
@@ -246,7 +247,7 @@ def setup():
 	global cfg, main
 
 	cfg = config.Config('bot.config')
-	main = Erebus(cfg.trigger)
+	main = Erebus(cfg)
 
 	autoloads = [mod for mod, yes in cfg.items('autoloads') if int(yes) == 1]
 	for mod in autoloads:

@@ -25,6 +25,12 @@ class Config(object):
 	def items(self, section='erebus'):
 		return self.config.items(section)
 
+	def get(self, section, key):
+		return self.config.get(section, key)
+
+	def set(self, section, key, value):
+		self.config.set(section, key, value)
+
 	def write(self):
 		with open(self.filename, 'wb') as configfile:
 			self.config.write(configfile)

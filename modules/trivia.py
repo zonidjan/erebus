@@ -9,8 +9,9 @@
 #		team play
 #		statistics
 
-HINTTIMER = 15.0
-HINTNUM = 3
+HINTTIMER = 15.0                  # how long between hints
+HINTNUM = 3                       # how many hints to give
+MAXMISSEDQUESTIONS = 5            # how many missed questions before game stops
 
 # module info
 modinfo = {
@@ -27,14 +28,20 @@ def modstart(parent, *args, **kwargs):
 	state.parent = parent
 	return lib.modstart(parent, *args, **kwargs)
 def modstop(*args, **kwargs):
+	global state
 	stop()
 	state.closeshop()
-	global state
 	del state
 	return lib.modstop(*args, **kwargs)
 
 # module code
 import json, random, threading, re, time
+
+try:
+	import twitter
+	hastwitter = True
+except ImportError:
+	hastwitter = False
 
 def findnth(haystack, needle, n): #http://stackoverflow.com/a/1884151
 	parts = haystack.split(needle, n+1)
@@ -56,6 +63,7 @@ class TriviaState(object):
 		self.hintsgiven = 0
 		self.revealpossibilities = None
 		self.gameover = False
+		self.missedquestions = 0
 
 	def __del__(self):
 		self.closeshop()
@@ -71,9 +79,6 @@ class TriviaState(object):
 		return self.getchan().bot
 
 	def nexthint(self, hintnum):
-		if self.hintanswer is None:
-			if isinstance(self.curq['answer'], basestring): self.hintanswer = self.curq['answer']
-			else: self.hintanswer = random.choice(self.curq['answer'])
 		answer = self.hintanswer
 
 		if self.hintstr is None or self.revealpossibilities is None or self.reveal is None:
@@ -101,6 +106,7 @@ class TriviaState(object):
 		def msg(line): self.getbot().msg(self.getchan(), line)
 		def person(num): return self.db['users'][self.db['ranks'][num]]['realnick']
 		def pts(num): return self.db['users'][self.db['ranks'][num]]['points']
+		winner = person(0)
 		try:
 			msg("\00312THE GAME IS OVER!!!")
 			msg("THE WINNER IS: %s (%s)" % (person(0), pts(0)))
@@ -108,12 +114,20 @@ class TriviaState(object):
 			msg("3RD PLACE: %s (%s)" % (person(2), pts(2)))
 			[msg("%dth place: %s (%s)" % (i+1, person(i), pts(i))) for i in range(3,10)]
 		except IndexError: pass
-		except Exception as e:
-			msg("DERP! %r" % (e))
+		except Exception as e: msg("DERP! %r" % (e))
+
 		self.db['users'] = {}
 		self.db['ranks'] = []
 		stop()
 		self.closeshop()
+
+		if hastwitter:
+			t = twitter.Twitter(auth=twitter.OAuth(self.getbot().parent.cfg.get('trivia', 'token'),
+				self.getbot().parent.cfg.get('trivia', 'token_sec'),
+				self.getbot().parent.cfg.get('trivia', 'con'),
+				self.getbot().parent.cfg.get('trivia', 'con_sec')))
+			t.statuses.update(status="Round is over! The winner was %s" % (winner))
+
 		self.__init__(self.questionfile, self.parent)
 
 	def nextquestion(self, qskipped=False, iteration=0):
@@ -121,15 +135,21 @@ class TriviaState(object):
 			return self.doGameOver()
 		if qskipped:
 			self.getbot().msg(self.getchan(), "Fail! The correct answer was: %s" % (self.hintanswer))
+			self.missedquestions += 1
+		else:
+			self.missedquestions = 0
 
 		if isinstance(self.steptimer, threading._Timer):
 			self.steptimer.cancel()
+
 		self.hintstr = None
-		self.hintanswer = None
 		self.hintsgiven = 0
 		self.revealpossibilities = None
 		self.reveal = None
 
+		if self.missedquestions > MAXMISSEDQUESTIONS:
+			stop()
+			self.getbot().msg(self.getchan(), "%d questions unanswered! Stopping the game.")
 
 		if state.nextq is not None:
 			nextq = state.nextq
@@ -153,6 +173,9 @@ class TriviaState(object):
 		self.getbot().msg(self.chan, qtext)
 
 		self.curq = nextq
+
+		if isinstance(self.curq['answer'], basestring): self.hintanswer = self.curq['answer']
+		else: self.hintanswer = random.choice(self.curq['answer'])
 
 		self.steptimer = threading.Timer(HINTTIMER, self.nexthint, args=[1])
 		self.steptimer.start()
@@ -268,7 +291,7 @@ def cmd_setnext(bot, user, chan, realtarget, *args):
 
 @lib.hook('skip', clevel=lib.KNOWN, needchan=False)
 def cmd_skip(bot, user, chan, realtarget, *args):
-	state.nextquestion()
+	state.nextquestion(True)
 
 @lib.hook('start', needchan=False)
 def cmd_start(bot, user, chan, realtarget, *args):
@@ -290,8 +313,10 @@ def cmd_stop(bot, user, chan, realtarget, *args):
 def stop():
 	if state.curq is not None:
 		state.curq = None
-		if isinstance(state.steptimer, threading._Timer):
+		try:
 			state.steptimer.cancel()
+		except Exception as e:
+			print "!!! steptimer.cancel(): e"
 		return True
 	else:
 		return False
