@@ -1,4 +1,17 @@
+== trivia ==
+v1:
+	ability to modify parameters (HINTNUM, etc) & store in db instead of code
+	voting for next round target points
+v2:
+	multi-channel
+	team play
+	statistics
+
+== other ==
+module for user management
+module for channel management
+
+
+== ?????? ==
 - Store User and Channel objects
 - Add no-such-command error to Bot().parsemsg
-- Add level checking to Bot().parsemsg
-- Add PM-to-bot support

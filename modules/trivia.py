@@ -2,13 +2,6 @@
 # trivia module
 # This file is released into the public domain; see http://unlicense.org/
 
-#TODO:
-#	stop game after X unanswered questions
-#	bonus points
-#	v2
-#		team play
-#		statistics
-
 HINTTIMER = 15.0                  # how long between hints
 HINTNUM = 3                       # how many hints to give
 MAXMISSEDQUESTIONS = 5            # how many missed questions before game stops
