@@ -3,3 +3,4 @@
 *.bak
 bot.config
 .*.swp
+*.json
