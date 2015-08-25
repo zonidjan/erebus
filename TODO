@@ -16,10 +16,12 @@ module for channel management
 - Store User and Channel objects
 - Add no-such-command error to Bot().parsemsg
 
+
+== wibble ==
 main features
 
-progressive clues
-anti-cheat mechanism (copy/paste random characters)
+[X] progressive clues
+[X] anti-cheat mechanism (copy/paste random characters)
 team play (Create/edit/addplayer/removeplayer) needs password & email address for team captain
 stats. lots of them. (per round/lifetime stats, fastest, biggest streak, team stats, etc)
 question management system done via irc AND web interface
@@ -30,6 +32,6 @@ channel & user management (bans/kicks/ops/voice/etc)
 additional features
 
 error reporting system (one exists with hashie but it sucked and no one checked it)
-dynamic question/answers (simple maths e.g. n+7=randomnumber(4-9), what day of the week was it yesterday)
-twitter notifications of new rounds
-multiple answers (how can you cook an egg? boil|fry|poach|scramble)
+[X] dynamic question/answers (simple maths e.g. n+7=randomnumber(4-9), what day of the week was it yesterday)
+[X] twitter notifications of new rounds
+[X] multiple answers (how can you cook an egg? boil|fry|poach|scramble)
