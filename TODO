@@ -35,3 +35,4 @@ error reporting system (one exists with hashie but it sucked and no one checked 
 [X] dynamic question/answers (simple maths e.g. n+7=randomnumber(4-9), what day of the week was it yesterday)
 [X] twitter notifications of new rounds
 [X] multiple answers (how can you cook an egg? boil|fry|poach|scramble)
+list aggregation (able to change different question lists currently in use. i.e. tv/movies/music/general/etc categories)
