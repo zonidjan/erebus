@@ -19,7 +19,7 @@ module: userinfo (store f.e. country code, for other modules)
 v1
 	ability to modify parameters (HINTNUM, etc) & store in db instead of code
 	voting for next round target points
-	question management system done via irc AND web interface
+	question management system done via irc AND web interface (search/add/delete/edit)
 	automatic periodically displaying top 10 by country (assigned countries by stored player stats)
 
 
@@ -31,3 +31,4 @@ v2
 	error reporting system (one exists with hashie but it sucked and no one checked it)
 	question categories (able to change different question lists currently in use. i.e. tv/movies/music/general/etc categories)
 	auto topic changes for last round won (configurable by a text file or similar)
+	small challenges for preset targets (e.g. 1st to 20 points/most points in 10 mins) player vs player, team vs team, free for all)
