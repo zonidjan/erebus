@@ -36,3 +36,5 @@ error reporting system (one exists with hashie but it sucked and no one checked 
 [X] twitter notifications of new rounds
 [X] multiple answers (how can you cook an egg? boil|fry|poach|scramble)
 list aggregation (able to change different question lists currently in use. i.e. tv/movies/music/general/etc categories)
+automatic periodically displaying top 10 by country (assigned countries by stored player stats)
+auto topic changes for last round won (configurable by a text file or similar)
