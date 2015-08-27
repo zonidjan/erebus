@@ -130,9 +130,9 @@ class Erebus(object):
 			self.potype = "select"
 			self.fdlist = []
 
-	def newbot(self, nick, user, bind, server, port, realname):
+	def newbot(self, nick, user, bind, authname, authpass, server, port, realname):
 		if bind is None: bind = ''
-		obj = bot.Bot(self, nick, user, bind, server, port, realname)
+		obj = bot.Bot(self, nick, user, bind, authname, authpass, server, port, realname)
 		self.bots[nick.lower()] = obj
 
 	def newfd(self, obj, fileno):
@@ -256,11 +256,11 @@ def setup():
 
 	dbsetup()
 	c = main.db.cursor()
-	if c.execute("SELECT nick, user, bind FROM bots WHERE active = 1"):
+	if c.execute("SELECT nick, user, bind, authname, authpass FROM bots WHERE active = 1"):
 		rows = c.fetchall()
 		c.close()
 		for row in rows:
-			main.newbot(row['nick'], row['user'], row['bind'], cfg.host, cfg.port, cfg.realname)
+			main.newbot(row['nick'], row['user'], row['bind'], row['authname'], row['authpass'], cfg.host, cfg.port, cfg.realname)
 	main.connectall()
 
 def loop():

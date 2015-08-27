@@ -9,11 +9,14 @@ import socket, sys
 
 #bots = {'erebus': bot.Bot(nick='Erebus', user='erebus', bind='', server='irc.quakenet.org', port=6667, realname='Erebus')}
 class Bot(object):
-	def __init__(self, parent, nick, user, bind, server, port, realname):
+	def __init__(self, parent, nick, user, bind, authname, authpass, server, port, realname):
 		self.parent = parent
 		self.nick = nick
 		self.user = user
 		self.realname = realname
+
+		self.authname = authname
+		self.authpass = authpass
 
 		curs = self.parent.db.cursor()
 		if curs.execute("SELECT chname FROM chans WHERE bot = %s AND active = 1", (self.nick,)):
@@ -43,6 +46,9 @@ class Bot(object):
 
 		if pieces[1] == "001":
 			self.conn.registered(True)
+			self.conn.send("MODE %s +x" % (pieces[2]))
+			if self.authname is not None and self.authpass is not None:
+				self.conn.send("AUTH %s %s" % (self.authname, self.authpass))
 			for c in self.chans:
 				self.join(c.name)
 
