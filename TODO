@@ -1,15 +1,8 @@
-== trivia ==
-v1:
-	ability to modify parameters (HINTNUM, etc) & store in db instead of code
-	voting for next round target points
-v2:
-	multi-channel
-	team play
-	statistics
-
 == other ==
-module for user management
-module for channel management
+module: user (global access) management
+module: channel access management
+module: chanop (kick/ban/etc)
+module: userinfo (store f.e. country code, for other modules)
 
 
 == ?????? ==
@@ -17,24 +10,24 @@ module for channel management
 - Add no-such-command error to Bot().parsemsg
 
 
-== wibble ==
-main features
-
-[X] progressive clues
-[X] anti-cheat mechanism (copy/paste random characters)
-team play (Create/edit/addplayer/removeplayer) needs password & email address for team captain
-stats. lots of them. (per round/lifetime stats, fastest, biggest streak, team stats, etc)
-question management system done via irc AND web interface
-live high score table on webpage (stats accessible)
-channel & user management (bans/kicks/ops/voice/etc)
-
-
-additional features
-
-error reporting system (one exists with hashie but it sucked and no one checked it)
+== trivia ==
 [X] dynamic question/answers (simple maths e.g. n+7=randomnumber(4-9), what day of the week was it yesterday)
 [X] twitter notifications of new rounds
 [X] multiple answers (how can you cook an egg? boil|fry|poach|scramble)
-list aggregation (able to change different question lists currently in use. i.e. tv/movies/music/general/etc categories)
-automatic periodically displaying top 10 by country (assigned countries by stored player stats)
-auto topic changes for last round won (configurable by a text file or similar)
+[X] progressive clues
+[X] anti-cheat mechanism (copy/paste random characters)
+v1
+	ability to modify parameters (HINTNUM, etc) & store in db instead of code
+	voting for next round target points
+	question management system done via irc AND web interface
+	automatic periodically displaying top 10 by country (assigned countries by stored player stats)
+
+
+v2
+	multi-channel
+	team play (Create/edit/addplayer/removeplayer) needs password & email address for team captain
+	stats. lots of them. (per round/lifetime stats, fastest, biggest streak, team stats, etc)
+	live high score table on webpage (stats accessible)
+	error reporting system (one exists with hashie but it sucked and no one checked it)
+	question categories (able to change different question lists currently in use. i.e. tv/movies/music/general/etc categories)
+	auto topic changes for last round won (configurable by a text file or similar)
