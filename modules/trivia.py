@@ -2,9 +2,9 @@
 # trivia module
 # This file is released into the public domain; see http://unlicense.org/
 
-HINTTIMER = 15.0                  # how long between hints
+HINTTIMER = 10.0                  # how long between hints
 HINTNUM = 3                       # how many hints to give
-MAXMISSEDQUESTIONS = 5            # how many missed questions before game stops
+MAXMISSEDQUESTIONS = 25           # how many missed questions before game stops
 
 # module info
 modinfo = {
@@ -64,7 +64,7 @@ class TriviaState(object):
 		if threading is not None and threading._Timer is not None and isinstance(self.steptimer, threading._Timer):
 			self.steptimer.cancel()
 		if json is not None and json.dump is not None:
-			json.dump(self.db, open(self.questionfile, "w"), indent=4, separators=(',',': '))
+			json.dump(self.db, open(self.questionfile, "w"))#, indent=4, separators=(',', ': '))
 
 	def getchan(self):
 		return self.parent.channel(self.chan)
@@ -84,7 +84,7 @@ class TriviaState(object):
 			revealloc = findnth(''.join(self.hintstr), '*', revealcount)
 			self.revealpossibilities.remove(revealcount)
 			self.hintstr[revealloc] = answer[revealloc]
-		self.parent.channel(self.chan).bot.msg(self.chan, "Here's a hint: %s" % (''.join(self.hintstr)))
+		self.parent.channel(self.chan).bot.msg(self.chan, "\00304,01Here's a hint: %s" % (''.join(self.hintstr)))
 
 		self.hintsgiven += 1
 
@@ -127,7 +127,7 @@ class TriviaState(object):
 		if self.gameover == True:
 			return self.doGameOver()
 		if qskipped:
-			self.getbot().msg(self.getchan(), "Fail! The correct answer was: %s" % (self.hintanswer))
+			self.getbot().msg(self.getchan(), "\00304Fail! The correct answer was: %s" % (self.hintanswer))
 			self.missedquestions += 1
 		else:
 			self.missedquestions = 0
@@ -159,10 +159,10 @@ class TriviaState(object):
 
 		nextq['answer'] = nextq['answer'].lower()
 
-		qtext = "\00300,01Next up: "
+		qtext = "\00304,01Next up: "
 		qary = nextq['question'].split(None)
 		for qword in qary:
-			qtext += "\00300,01"+qword+"\00301,01"+chr(random.randrange(32,126))
+			qtext += "\00304,01"+qword+"\00301,01"+chr(random.randrange(0x61,0x7A)) #a-z
 		self.getbot().msg(self.chan, qtext)
 
 		self.curq = nextq
@@ -190,7 +190,10 @@ class TriviaState(object):
 			self.db['users'][user] = {'points': count, 'realnick': _user, 'rank': len(self.db['ranks'])}
 			self.db['ranks'].append(user)
 
-		state.db['ranks'].sort(key=lambda nick: state.db['users'][nick]['points'], reverse=True)
+		self.db['ranks'].sort(key=lambda nick: state.db['users'][nick]['points'], reverse=True)
+		for i in range(0, len(self.db['ranks'])):
+			nick = self.db['ranks'][i]
+			self.db['users'][nick]['rank'] = i
 
 		if self.db['users'][user]['points'] >= state.db['target']:
 			self.gameover = True
@@ -242,9 +245,9 @@ state = TriviaState("/home/jrunyon/erebus/modules/trivia.json") #TODO get path f
 def trivia_checkanswer(bot, user, chan, *args):
 	line = ' '.join([str(arg) for arg in args])
 	if state.checkanswer(line):
-		bot.msg(chan, "\00308%s\003 has it! The answer was \00308%s\003. New score: %d. Rank: %d. Target: %s (%s)." % (user, line, state.addpoint(user), state.rank(user), state.targetuser(user), state.targetpoints(user)))
+		bot.msg(chan, "\00312%s\003 has it! The answer was \00312%s\003. New score: %d. Rank: %d. Target: %s (%s)." % (user, line, state.addpoint(user), state.rank(user), state.targetuser(user), state.targetpoints(user)))
 		if state.hintsgiven == 0:
-			bot.msg(chan, "\00308%s\003 got an extra point for getting it before the hints! New score: %d." % (user, state.addpoint(user)))
+			bot.msg(chan, "\00312%s\003 got an extra point for getting it before the hints! New score: %d." % (user, state.addpoint(user)))
 		state.nextquestion()
 
 @lib.hook('points', needchan=False)
@@ -296,7 +299,8 @@ def cmd_start(bot, user, chan, realtarget, *args):
 	else:
 		bot.msg(replyto, "Game is already started!")
 
-@lib.hook('stop', clevel=lib.KNOWN, needchan=False)
+#FIXME @lib.hook('stop', clevel=lib.KNOWN, needchan=False)
+@lib.hook('stop', needchan=False) #FIXME
 def cmd_stop(bot, user, chan, realtarget, *args):
 	if stop():
 		bot.msg(state.chan, "Game stopped by %s" % (user))
@@ -358,6 +362,11 @@ def cmd_triviahelp(bot, user, chan, realtarget, *args):
 			bot.msg(user, "SETNEXT <q>*<a>           (>=OP    )")
 			if bot.parent.channel(state.db['chan']).levelof(user.auth) >= lib.MASTER:
 				bot.msg(user, "SETTARGET <points>        (>=MASTER)")
+
+@lib.hooknum(417)
+def num_417(bot, textline):
+	bot.msg(state.db['chan'], "Whoops, it looks like that question didn't quite go through! (E:417). Let's try another...")
+	state.nextquestion(False)
 
 
 def specialQuestion(oldq):
