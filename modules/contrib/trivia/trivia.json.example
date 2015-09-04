@@ -1,4 +1,7 @@
 {
+	"hintnum": 3,
+	"hinttimer": 20.0,
+	"maxmissedquestions": 10,
 	"target": 500,
 	"chan": "##.test",
     "ranks": [],
@@ -7,6 +10,14 @@
         {
             "answer": ["dimecadmium","wibble","i am"],
             "question": "Who is da boss?"
-        }
+        },
+		{
+			"answer": "dynamic current month",
+			"question: "!MONTH"
+		},
+		{
+			"answer": "dynamic random math problem",
+			"question": "!MATH+"
+		}
     ]
 }

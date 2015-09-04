@@ -2,10 +2,6 @@
 # trivia module
 # This file is released into the public domain; see http://unlicense.org/
 
-HINTTIMER = 10.0                  # how long between hints
-HINTNUM = 3                       # how many hints to give
-MAXMISSEDQUESTIONS = 25           # how many missed questions before game stops
-
 # module info
 modinfo = {
 	'author': 'Erebus Team',
@@ -88,11 +84,11 @@ class TriviaState(object):
 
 		self.hintsgiven += 1
 
-		if hintnum < HINTNUM:
-			self.steptimer = threading.Timer(HINTTIMER, self.nexthint, args=[hintnum+1])
+		if hintnum < self.db['hintnum']:
+			self.steptimer = threading.Timer(self.db['hinttimer'], self.nexthint, args=[hintnum+1])
 			self.steptimer.start()
 		else:
-			self.steptimer = threading.Timer(HINTTIMER, self.nextquestion, args=[True])
+			self.steptimer = threading.Timer(self.db['hinttimer'], self.nextquestion, args=[True])
 			self.steptimer.start()
 
 	def doGameOver(self):
@@ -140,7 +136,7 @@ class TriviaState(object):
 		self.revealpossibilities = None
 		self.reveal = None
 
-		if self.missedquestions > MAXMISSEDQUESTIONS:
+		if self.missedquestions > self.db['maxmissedquestions']:
 			stop()
 			self.getbot().msg(self.getchan(), "%d questions unanswered! Stopping the game.")
 
@@ -170,7 +166,7 @@ class TriviaState(object):
 		if isinstance(self.curq['answer'], basestring): self.hintanswer = self.curq['answer']
 		else: self.hintanswer = random.choice(self.curq['answer'])
 
-		self.steptimer = threading.Timer(HINTTIMER, self.nexthint, args=[1])
+		self.steptimer = threading.Timer(self.db['hinttimer'], self.nexthint, args=[1])
 		self.steptimer.start()
 
 	def checkanswer(self, answer):
@@ -347,21 +343,83 @@ def cmd_settarget(bot, user, chan, realtarget, *args):
 	except:
 		bot.msg(user, "Failed to set target.")
 
+@lib.hook('maxmissed', clevel=lib.MASTER, needchan=False)
+def cmd_maxmissed(bot, user, chan, realtarget, *args):
+	try:
+		state.db['maxmissedquestions'] = int(args[0])
+		bot.msg(state.db['chan'], "Max missed questions before round ends has been changed to %s." % (state.db['maxmissedquestions']))
+	except:
+		bot.msg(user, "Failed to set maxmissed.")
+
+@lib.hook('hinttimer', clevel=lib.MASTER, needchan=False)
+def cmd_hinttimer(bot, user, chan, realtarget, *args):
+	try:
+		state.db['hinttimer'] = float(args[0])
+		bot.msg(state.db['chan'], "Time between hints has been changed to %s." % (state.db['hinttimer']))
+	except:
+		bot.msg(user, "Failed to set hint timer.")
+
+@lib.hook('hintnum', clevel=lib.MASTER, needchan=False)
+def cmd_hintnum(bot, user, chan, realtarget, *args):
+	try:
+		state.db['hintnum'] = int(args[0])
+		bot.msg(state.db['chan'], "Max number of hints has been changed to %s." % (state.db['hintnum']))
+	except:
+		bot.msg(user, "Failed to set hintnum.")
+
+@lib.hook('findq', clevel=lib.KNOWN, needchan=False)
+def cmd_findquestion(bot, user, chan, realtarget, *args):
+	matches = [str(i) for i in range(len(state.db['questions'])) if state.db['questions'][i]['question'] == ' '.join(args)] #FIXME: looser equality check
+	if len(matches) > 1:
+		bot.msg(user, "Multiple matches: %s" % (', '.join(matches)))
+	elif len(matches) == 1:
+		bot.msg(user, "One match: %s" % (matches[0]))
+	else:
+		bot.msg(user, "No match.")
+
+@lib.hook('delq', clevel=lib.OP, needchan=False)
+@lib.hook('deleteq', clevel=lib.OP, needchan=False)
+def cmd_deletequestion(bot, user, chan, realtarget, *args):
+	try:
+		backup = state.db['questions'][int(args[0])]
+		del state.db['questions'][int(args[0])]
+		bot.msg(user, "Deleted %s*%s" % (backup['question'], backup['answer']))
+	except:
+		bot.msg(user, "Couldn't delete that question.")
+
+@lib.hook('addq', clevel=lib.OP, needchan=False)
+def cmd_addquestion(bot, user, chan, realtarget, *args):
+	line = ' '.join([str(arg) for arg in args])
+	linepieces = line.split('*')
+	if len(linepieces) < 2:
+		bot.msg(user, "Error: need <question>*<answer>")
+		return
+	question = linepieces[0].strip()
+	answer = linepieces[1].strip()
+	state.db['questions'].append({'question':question,'answer':answer})
+	bot.msg(user, "Done. Question is #%s" % (len(state.db['questions'])-1))
+
+
 @lib.hook('triviahelp', needchan=False)
 def cmd_triviahelp(bot, user, chan, realtarget, *args):
-	bot.msg(user, "POINTS [<user>]")
-	bot.msg(user, "START")
-	bot.msg(user, "RANK [<user>]")
-	bot.msg(user, "TOP10")
-
+	bot.msg(user,             "START")
+	bot.msg(user,             "TOP10")
+	bot.msg(user,             "POINTS    [<user>]")
+	bot.msg(user,             "RANK      [<user>]")
 	if bot.parent.channel(state.db['chan']).levelof(user.auth) >= lib.KNOWN:
-		bot.msg(user, "SKIP                      (>=KNOWN )")
-		bot.msg(user, "STOP                      (>=KNOWN )")
+		bot.msg(user,         "SKIP                        (>=KNOWN )")
+		bot.msg(user,         "STOP                        (>=KNOWN )")
+		bot.msg(user,         "FINDQ     <question>     (>=KNOWN )")
 		if bot.parent.channel(state.db['chan']).levelof(user.auth) >= lib.OP:
-			bot.msg(user, "GIVE <user> [<points>]    (>=OP    )")
-			bot.msg(user, "SETNEXT <q>*<a>           (>=OP    )")
+			bot.msg(user,     "GIVE      <user> [<points>] (>=OP    )")
+			bot.msg(user,     "SETNEXT   <q>*<a>           (>=OP    )")
+			bot.msg(user,     "ADDQ      <q>*<a>           (>=OP    )")
+			bot.msg(user,     "DELETEQ   <q>*<a>           (>=OP    )  [aka DELQ]")
 			if bot.parent.channel(state.db['chan']).levelof(user.auth) >= lib.MASTER:
-				bot.msg(user, "SETTARGET <points>        (>=MASTER)")
+				bot.msg(user, "SETTARGET <points>          (>=MASTER)")
+				bot.msg(user, "MAXMISSED <questions>       (>=MASTER)")
+				bot.msg(user, "HINTTIMER <float seconds>   (>=MASTER)")
+				bot.msg(user, "HINTNUM   <hints>           (>=MASTER)")
 
 @lib.hooknum(417)
 def num_417(bot, textline):
