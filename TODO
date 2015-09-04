@@ -1,8 +1,11 @@
 == other ==
+module: help (generic help system)
 module: user (global access) management
 module: channel access management
 module: chanop (kick/ban/etc)
 module: userinfo (store f.e. country code, for other modules)
+
+modlib: allow lib.hook with a first argument list or tuple (aliases)
 
 
 == ?????? ==
@@ -16,11 +19,13 @@ module: userinfo (store f.e. country code, for other modules)
 [X] multiple answers (how can you cook an egg? boil|fry|poach|scramble)
 [X] progressive clues
 [X] anti-cheat mechanism (copy/paste random characters)
+[X] ability to modify parameters (HINTNUM, etc) & store in db instead of code
+[X] question management system done via irc
 v1
-	ability to modify parameters (HINTNUM, etc) & store in db instead of code
 	voting for next round target points
-	question management system done via irc AND web interface (search/add/delete/edit)
-	automatic periodically displaying top 10 by country (assigned countries by stored player stats)
+
+depends on userinfo:
+		automatic periodically displaying top 10 by country (assigned countries by stored player stats)
 
 
 v2
@@ -32,3 +37,4 @@ v2
 	question categories (able to change different question lists currently in use. i.e. tv/movies/music/general/etc categories)
 	auto topic changes for last round won (configurable by a text file or similar)
 	small challenges for preset targets (e.g. 1st to 20 points/most points in 10 mins) player vs player, team vs team, free for all)
+	question management system done via web
