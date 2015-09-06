@@ -138,6 +138,8 @@ class TriviaState(object):
 		self.db['target'] = votelist[-1][0]
 		self.pointvote = None
 
+		self.nextquestion() #start the game!
+
 	def nextquestion(self, qskipped=False, iteration=0):
 		if self.gameover == True:
 			return self.doGameOver()
@@ -361,8 +363,24 @@ def cmd_settarget(bot, user, chan, realtarget, *args):
 	try:
 		state.db['target'] = int(args[0])
 		bot.msg(state.db['chan'], "Target has been changed to %s points!" % (state.db['target']))
+
+		if state.votetimer is not None:
+			state.votetimer.cancel()
+			state.votetimer = None
+			bot.msg(state.db['chan'], "Vote has been cancelled!")
 	except:
 		bot.msg(user, "Failed to set target.")
+
+@lib.hook('vote', needchan=False)
+def cmd_vote(bot, user, chan, realtarget, *args):
+	if state.votetimer is not None:
+		if int(args[0]) in state.voteamounts:
+			state.voteamounts[int(args[0])] += 1
+			bot.msg(user, "Your vote has been recorded.")
+		else:
+			bot.msg(user, "Sorry - that's not an option!")
+	else:
+		bot.msg(user, "There's no vote in progress.")
 
 @lib.hook('maxmissed', clevel=lib.MASTER, needchan=False)
 def cmd_maxmissed(bot, user, chan, realtarget, *args):

@@ -1,4 +1,6 @@
 {
+	"votetimer": 300,
+	"targetoptions": [500,1000,1337,1500],
 	"hintnum": 3,
 	"hinttimer": 20.0,
 	"maxmissedquestions": 10,
