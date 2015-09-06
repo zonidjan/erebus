@@ -27,10 +27,8 @@ def modstop(*args, **kwargs):
 import json, random, threading, re, time
 
 try:
-	import twitter
-	hastwitter = True
-except ImportError:
-	hastwitter = False
+	import twitter 
+except: pass # doesn't matter if we don't have twitter, updating the status just will fall through the try-except if so...
 
 def findnth(haystack, needle, n): #http://stackoverflow.com/a/1884151
 	parts = haystack.split(needle, n+1)
@@ -39,7 +37,7 @@ def findnth(haystack, needle, n): #http://stackoverflow.com/a/1884151
 	return len(haystack)-len(parts[-1])-len(needle)
 
 class TriviaState(object):
-	def __init__(self, questionfile, parent=None):
+	def __init__(self, questionfile, parent=None, pointvote=False):
 		self.parent = parent
 		self.questionfile = questionfile
 		self.db = json.load(open(questionfile, "r"))
@@ -53,6 +51,15 @@ class TriviaState(object):
 		self.revealpossibilities = None
 		self.gameover = False
 		self.missedquestions = 0
+
+		if pointvote:
+			self.getchan().msg("Vote for the next round target points! Options: %s. Vote using !vote <choice>" % (', '.join([str(x) for x in self.db['targetoptions']])))
+			self.getchan().msg("You have %s seconds." % (self.db['votetimer']))
+			self.voteamounts = dict([(x, 0) for x in self.db['targetoptions']]) # make a dict {pointsoptionA: 0, pointsoptionB: 0, ...}
+			self.pointvote = threading.Timer(self.db['votetimer'], self.endPointVote)
+			self.pointvote.start()
+		else:
+			self.pointvote = None
 
 	def __del__(self):
 		self.closeshop()
@@ -110,20 +117,32 @@ class TriviaState(object):
 		stop()
 		self.closeshop()
 
-		if hastwitter:
+		try:
 			t = twitter.Twitter(auth=twitter.OAuth(self.getbot().parent.cfg.get('trivia', 'token'),
 				self.getbot().parent.cfg.get('trivia', 'token_sec'),
 				self.getbot().parent.cfg.get('trivia', 'con'),
 				self.getbot().parent.cfg.get('trivia', 'con_sec')))
 			t.statuses.update(status="Round is over! The winner was %s" % (winner))
+		except: pass #don't care if errors happen updating twitter.
 
-		self.__init__(self.questionfile, self.parent)
+		self.__init__(self.questionfile, self.parent, True)
+
+	def endPointVote(self):
+		self.getchan().msg("Voting has ended!")
+		votelist = sorted(self.voteamounts.items(), key=lambda item: item[1]) #sort into list of tuples: [(option, number_of_votes), ...]
+		for i in range(len(votelist)-1):
+			item = votelist[i]
+			self.getchan().msg("%s place: %s (%s votes)" % (len(votelist)-i, item[0], item[1]))
+		self.getchan().msg("Aaaaand! The next round will be to \002%s\002 points! (%s votes)" % (votelist[-1][0], votelist[-1][1]))
+
+		self.db['target'] = votelist[-1][0]
+		self.pointvote = None
 
 	def nextquestion(self, qskipped=False, iteration=0):
 		if self.gameover == True:
 			return self.doGameOver()
 		if qskipped:
-			self.getbot().msg(self.getchan(), "\00304Fail! The correct answer was: %s" % (self.hintanswer))
+			self.getchan().msg("\00304Fail! The correct answer was: %s" % (self.hintanswer))
 			self.missedquestions += 1
 		else:
 			self.missedquestions = 0
@@ -177,16 +196,16 @@ class TriviaState(object):
 		else: # assume it's a list or something.
 			return answer.lower() in self.curq['answer']
 
-	def addpoint(self, _user, count=1):
-		_user = str(_user)
-		user = _user.lower()
+	def addpoint(self, user_obj, count=1):
+		user_nick = str(user_obj)
+		user = user_nick.lower() # save this separately as we use both
 		if user in self.db['users']:
 			self.db['users'][user]['points'] += count
 		else:
-			self.db['users'][user] = {'points': count, 'realnick': _user, 'rank': len(self.db['ranks'])}
+			self.db['users'][user] = {'points': count, 'realnick': user_nick, 'rank': len(self.db['ranks'])}
 			self.db['ranks'].append(user)
 
-		self.db['ranks'].sort(key=lambda nick: state.db['users'][nick]['points'], reverse=True)
+		self.db['ranks'].sort(key=lambda nick: state.db['users'][nick]['points'], reverse=True) #re-sort ranks, rather than dealing with anything more efficient
 		for i in range(0, len(self.db['ranks'])):
 			nick = self.db['ranks'][i]
 			self.db['users'][nick]['rank'] = i
@@ -290,8 +309,10 @@ def cmd_start(bot, user, chan, realtarget, *args):
 	if chan == realtarget: replyto = chan
 	else: replyto = user
 
-	if state.curq is None:
+	if state.curq is None and state.pointvote is None:
 		state.nextquestion()
+	elif state.pointvote is not None:
+		bot.msg(replyto, "There's a vote in progress!")
 	else:
 		bot.msg(replyto, "Game is already started!")
 

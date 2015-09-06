@@ -21,11 +21,10 @@ modlib: allow lib.hook with a first argument list or tuple (aliases)
 [X] anti-cheat mechanism (copy/paste random characters)
 [X] ability to modify parameters (HINTNUM, etc) & store in db instead of code
 [X] question management system done via irc
-v1
-	voting for next round target points
+[X] voting for next round target points
 
 depends on userinfo:
-		automatic periodically displaying top 10 by country (assigned countries by stored player stats)
+	automatic periodically displaying top 10 by country (assigned countries by stored player stats)
 
 
 v2
