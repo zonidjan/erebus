@@ -64,7 +64,7 @@ def reloadmod(parent, modname):
 		else: modules[modname].modstop(parent)
 
 		try:
-			return reload(modules[modname])
+			reload(modules[modname])
 		except BaseException as e:
 			return modlib.error(e)
 
