@@ -12,8 +12,12 @@ def modhas(modname, attname): return getattr(modules[modname], attname, None) is
 
 def load(parent, modname):
 	if not isloaded(modname):
-		mod = __import__(modname)
-		reload(mod)
+		try:
+			mod = __import__(modname)
+			reload(mod)
+		except BaseException as e: #we don't want even sys.exit() to crash us (in case of malicious module) so use BaseException
+			return modlib.error(e)
+			
 
 		if not hasattr(mod, 'modinfo'):
 			return modlib.error('no modinfo')
@@ -61,7 +65,7 @@ def reloadmod(parent, modname):
 
 		try:
 			return reload(modules[modname])
-		except BaseException, e:
+		except BaseException as e:
 			return modlib.error(e)
 
 		if modhas(modname, 'modrestarted'): modules[modname].modrestarted(parent)
