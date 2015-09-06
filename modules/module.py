@@ -41,7 +41,10 @@ def cmd_modunload(bot, user, chan, realtarget, *args):
 @lib.argsEQ(1)
 def cmd_modreload(bot, user, chan, realtarget, *args):
 	okay = ctlmod.reloadmod(bot.parent, args[0])
-	bot.msg(user, "Reloaded %s" % (args[0]))
+	if okay:
+		bot.msg(user, "Reloaded %s" % (args[0]))
+	else:
+		bot.msg(user, "Error occurred: %r" % (okay))
 
 @lib.hook('modlist', needchan=False, glevel=lib.STAFF)
 @lib.argsEQ(0)

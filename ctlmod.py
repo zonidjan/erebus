@@ -59,13 +59,17 @@ def reloadmod(parent, modname):
 		if modhas(modname, 'modrestart'): modules[modname].modrestart(parent)
 		else: modules[modname].modstop(parent)
 
-		reload(modules[modname])
+		try:
+			return reload(modules[modname])
+		except BaseException, e:
+			return modlib.error(e)
 
 		if modhas(modname, 'modrestarted'): modules[modname].modrestarted(parent)
 		else: modules[modname].modstart(parent)
 
 	else:
-		load(parent, modname)
+		return load(parent, modname)
+
 
 def loadall(parent, modlist):
 	for m in modlist: load(parent, m)

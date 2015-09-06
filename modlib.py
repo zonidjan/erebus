@@ -10,7 +10,7 @@ class error(object):
 	def __repr__(self):
 		return '<modlib.error %r>' % self.errormsg
 	def __str__(self):
-		return self.errormsg
+		return str(self.errormsg)
 
 class modlib(object):
 	# default (global) access levels
