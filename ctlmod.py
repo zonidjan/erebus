@@ -14,7 +14,7 @@ def load(parent, modname):
 	if not isloaded(modname):
 		try:
 			mod = __import__(modname)
-			reload(mod)
+			reload(mod) #in case it's been previously loaded.
 		except BaseException as e: #we don't want even sys.exit() to crash us (in case of malicious module) so use BaseException
 			return modlib.error(e)
 			
@@ -68,9 +68,10 @@ def reloadmod(parent, modname):
 		except BaseException as e:
 			return modlib.error(e)
 
-		if modhas(modname, 'modrestarted'): modules[modname].modrestarted(parent)
-		else: modules[modname].modstart(parent)
+		if modhas(modname, 'modrestarted'): ret = modules[modname].modrestarted(parent)
+		else: ret = modules[modname].modstart(parent)
 
+		return ret
 	else:
 		return load(parent, modname)
 
