@@ -1,4 +1,7 @@
 {
+	"hofformat":"<TABLE BORDER='3' CELLSPACING='1' CELLPADDING='3' valign=center BORDERCOLOR='#999999' width=80%><TR><td width=33%><STRONG>Date:</STRONG> %(date)s</TD><td width=33%><STRONG>Round duration:</STRONG> %(duration)s</TD><td width=33%><STRONG>Target Score:</strong> %(targetscore)s</TD></TR><TR><td width=33%><FONT COLOR='#FFD700'>First: <strong>%(firstperson)s (%(firstscore)s)</strong></FONT></TD><td width=33%><FONT COLOR='#99999'>Second: <STRONG>%(secondperson)s (%(secondscore)s)</STRONG></FONT></TD><td width=33%><FONT COLOR='#996633'>Third: <STRONG>%(thirdperson)s (%(thirdscore)s)</STRONG></FONT></TD></TR></TABLE><br><br>",
+	"hoflines": 1,
+	"hofpath": null,
 	"votetimer": 300,
 	"targetoptions": [500,1000,1337,1500],
 	"hintnum": 3,

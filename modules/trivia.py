@@ -24,7 +24,7 @@ def modstop(*args, **kwargs):
 	return lib.modstop(*args, **kwargs)
 
 # module code
-import json, random, threading, re, time
+import json, random, threading, re, time, datetime
 
 try:
 	import twitter 
@@ -51,6 +51,9 @@ class TriviaState(object):
 		self.revealpossibilities = None
 		self.gameover = False
 		self.missedquestions = 0
+
+		if 'starttime' not in self.db or self.db['starttime'] is None:
+			self.db['starttime'] = time.time()
 
 		if pointvote:
 			self.getchan().msg("Vote for the next round target points! Options: %s. Vote using !vote <choice>" % (', '.join([str(x) for x in self.db['targetoptions']])))
@@ -99,9 +102,9 @@ class TriviaState(object):
 			self.steptimer.start()
 
 	def doGameOver(self):
-		def msg(line): self.getbot().msg(self.getchan(), line)
+		msg = self.getchan().msg
 		def person(num): return self.db['users'][self.db['ranks'][num]]['realnick']
-		def pts(num): return self.db['users'][self.db['ranks'][num]]['points']
+		def pts(num): return str(self.db['users'][self.db['ranks'][num]]['points'])
 		winner = person(0)
 		try:
 			msg("\00312THE GAME IS OVER!!!")
@@ -111,6 +114,9 @@ class TriviaState(object):
 			[msg("%dth place: %s (%s)" % (i+1, person(i), pts(i))) for i in range(3,10)]
 		except IndexError: pass
 		except Exception as e: msg("DERP! %r" % (e))
+
+		if self.db['hofpath'] is not None and self.db['hofpath'] != '':
+			self.writeHof()
 
 		self.db['users'] = {}
 		self.db['ranks'] = []
@@ -126,6 +132,40 @@ class TriviaState(object):
 		except: pass #don't care if errors happen updating twitter.
 
 		self.__init__(self.questionfile, self.parent, True)
+
+	def writeHof(self):
+		def person(num):
+			try: return self.db['users'][self.db['ranks'][num]]['realnick']
+			except: return "none"
+		def pts(num):
+			try: return str(self.db['users'][self.db['ranks'][num]]['points'])
+			except: return 0
+
+		try:
+			f = open(self.db['hofpath'], 'rb+')
+			for i in range(self.db['hoflines']): #skip this many lines
+				f.readline()
+			insertpos = f.tell()
+			fcontents = f.read()
+			f.seek(insertpos)
+			f.write((self.db['hofformat']+"\n") % {
+				'date': time.strftime("%F", time.gmtime()),
+				'duration': str(datetime.timedelta(seconds=time.time()-self.db['starttime'])),
+				'targetscore': self.db['target'],
+				'firstperson': person(0),
+				'firstscore': pts(0),
+				'secondperson': person(1),
+				'secondscore': pts(1),
+				'thirdperson': person(2),
+				'thirdscore': pts(2),
+			})
+			f.write(fcontents)
+			return True
+		except Exception as e:
+			raise e
+			return False
+		finally:
+			f.close()
 
 	def endPointVote(self):
 		self.getchan().msg("Voting has ended!")
@@ -364,16 +404,17 @@ def cmd_settarget(bot, user, chan, realtarget, *args):
 		state.db['target'] = int(args[0])
 		bot.msg(state.db['chan'], "Target has been changed to %s points!" % (state.db['target']))
 
-		if state.votetimer is not None:
-			state.votetimer.cancel()
-			state.votetimer = None
+		if state.pointvote is not None:
+			state.pointvote.cancel()
+			state.pointvote = None
 			bot.msg(state.db['chan'], "Vote has been cancelled!")
-	except:
+	except Exception as e:
+		print e
 		bot.msg(user, "Failed to set target.")
 
 @lib.hook('vote', needchan=False)
 def cmd_vote(bot, user, chan, realtarget, *args):
-	if state.votetimer is not None:
+	if state.pointvote is not None:
 		if int(args[0]) in state.voteamounts:
 			state.voteamounts[int(args[0])] += 1
 			bot.msg(user, "Your vote has been recorded.")
@@ -472,7 +513,7 @@ def specialQuestion(oldq):
 
 	if qtype == "!MONTH":
 		newq['question'] = "What month is it currently (in UTC)?"
-		newq['answer'] = time.strftime("%B").lower()
+		newq['answer'] = time.strftime("%B", time.gmtime()).lower()
 	elif qtype == "!MATH+":
 		randnum1 = random.randrange(0, 11)
 		randnum2 = random.randrange(0, 11)
