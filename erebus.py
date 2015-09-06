@@ -80,6 +80,9 @@ class Erebus(object):
 					row = c.fetchone()
 
 
+		def msg(self, *args, **kwargs):
+			self.bot.msg(self.name, *args, **kwargs)
+
 		def levelof(self, auth):
 			if auth is None:
 				return 0
