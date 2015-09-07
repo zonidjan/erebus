@@ -7,6 +7,8 @@ module: userinfo (store f.e. country code, for other modules)
 
 modlib: allow lib.hook with a first argument list or tuple (aliases)
 
+ctlmod: needs to print out a traceback. traceback.print_exc().
+
 
 == ?????? ==
 - Store User and Channel objects
