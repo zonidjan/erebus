@@ -14,7 +14,8 @@ modinfo = {
 import modlib
 lib = modlib.modlib(__name__)
 def modstart(parent, *args, **kwargs):
-	state.parent = parent
+	state.gotParent(parent)
+	lib.hookchan(state.db['chan'])(trivia_checkanswer) # we need parent for this. so it goes here.
 	return lib.modstart(parent, *args, **kwargs)
 def modstop(*args, **kwargs):
 	global state
@@ -37,10 +38,14 @@ def findnth(haystack, needle, n): #http://stackoverflow.com/a/1884151
 	return len(haystack)-len(parts[-1])-len(needle)
 
 class TriviaState(object):
-	def __init__(self, questionfile, parent=None, pointvote=False):
+	def __init__(self, parent=None, pointvote=False):
+		if parent is not None:
+			self.gotParent(parent, pointvote)
+
+	def gotParent(self, parent, pointvote=False):
 		self.parent = parent
-		self.questionfile = self.getbot().parent.cfg.get('trivia', 'jsonpath')
-		self.db = json.load(open(questionfile, "r"))
+		self.questionfile = self.parent.cfg.get('trivia', 'jsonpath')
+		self.db = json.load(open(self.questionfile, "r"))
 		self.chan = self.db['chan']
 		self.curq = None
 		self.nextq = None
@@ -131,7 +136,7 @@ class TriviaState(object):
 			t.statuses.update(status="Round is over! The winner was %s" % (winner))
 		except: pass #don't care if errors happen updating twitter.
 
-		self.__init__(self.questionfile, self.parent, True)
+		self.__init__(self.parent, True)
 
 	def writeHof(self):
 		def person(num):
@@ -296,9 +301,9 @@ class TriviaState(object):
 		else:
 			return self.db['users'][self.db['ranks'][-1]]['points']
 
-state = TriviaState("/home/jrunyon/erebus/modules/trivia.json") #TODO get path from config
+state = TriviaState()
 
-@lib.hookchan(state.db['chan'])
+# we have to hook this in modstart, since we don't know the channel until then.
 def trivia_checkanswer(bot, user, chan, *args):
 	line = ' '.join([str(arg) for arg in args])
 	if state.checkanswer(line):
