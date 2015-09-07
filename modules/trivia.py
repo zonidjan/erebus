@@ -39,7 +39,7 @@ def findnth(haystack, needle, n): #http://stackoverflow.com/a/1884151
 class TriviaState(object):
 	def __init__(self, questionfile, parent=None, pointvote=False):
 		self.parent = parent
-		self.questionfile = questionfile
+		self.questionfile = self.getbot().parent.cfg.get('trivia', 'jsonpath')
 		self.db = json.load(open(questionfile, "r"))
 		self.chan = self.db['chan']
 		self.curq = None

@@ -13,3 +13,11 @@ trigger = !
 [autoloads]
 module = 1
 eval = 1
+
+[trivia]
+jsonpath = /bla/foo/bar/modules/contrib/trivia/trivia.json.example
+con = twitter consumer
+con_sec = twitter consumer secret
+token = twitter token
+token_sec = twitter token secret
+
