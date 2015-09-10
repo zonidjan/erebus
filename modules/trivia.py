@@ -363,8 +363,7 @@ def cmd_start(bot, user, chan, realtarget, *args):
 	else:
 		bot.msg(replyto, "Game is already started!")
 
-#FIXME @lib.hook('stop', clevel=lib.KNOWN, needchan=False)
-@lib.hook('stop', needchan=False) #FIXME
+@lib.hook('stop', clevel=lib.KNOWN, needchan=False)
 def cmd_stop(bot, user, chan, realtarget, *args):
 	if stop():
 		bot.msg(state.chan, "Game stopped by %s" % (user))
@@ -454,7 +453,7 @@ def cmd_hintnum(bot, user, chan, realtarget, *args):
 
 @lib.hook('findq', clevel=lib.KNOWN, needchan=False)
 def cmd_findquestion(bot, user, chan, realtarget, *args):
-	matches = [str(i) for i in range(len(state.db['questions'])) if state.db['questions'][i]['question'] == ' '.join(args)] #FIXME: looser equality check
+	matches = [str(i) for i in range(len(state.db['questions'])) if state.db['questions'][i]['question'] == ' '.join(args)] #TODO looser equality check
 	if len(matches) > 1:
 		bot.msg(user, "Multiple matches: %s" % (', '.join(matches)))
 	elif len(matches) == 1:

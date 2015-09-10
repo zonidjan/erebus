@@ -3,8 +3,6 @@
 # Erebus IRC bot - Author: John Runyon
 # "Bot" and "BotConnection" classes (handling a specific "arm")
 
-#TODO: error checking
-
 import socket, sys
 
 #bots = {'erebus': bot.Bot(nick='Erebus', user='erebus', bind='', server='irc.quakenet.org', port=6667, realname='Erebus')}
@@ -93,7 +91,7 @@ class Bot(object):
 				self.parent.user(nick).quit()
 				del self.parent.users[nick.lower()]
 
-		elif pieces[1] == "MODE": #TODO
+		elif pieces[1] == "MODE": #TODO parse for ops/voices (at least)
 			pass
 
 	
@@ -120,7 +118,7 @@ class Bot(object):
 						pieces.pop(1)
 
 		else: # message was sent to a channel
-			chan = self.parent.channel(target) #TODO check if bot's on channel --- in Erebus.channel() maybe?
+			chan = self.parent.channel(target)
 			try:
 				if msg[0] == '*': # message may be addressed to bot by "*BOTNICK" trigger?
 					if pieces[0][1:].lower() == self.nick.lower():
