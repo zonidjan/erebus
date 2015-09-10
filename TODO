@@ -28,6 +28,8 @@ ctlmod: needs to print out a traceback. traceback.print_exc().
 depends on userinfo:
 	automatic periodically displaying top 10 by country (assigned countries by stored player stats)
 
+v1
+	automatically change topic
 
 v2
 	multi-channel
