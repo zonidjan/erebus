@@ -12,11 +12,14 @@ def modhas(modname, attname): return getattr(modules[modname], attname, None) is
 
 def load(parent, modname):
 	if not isloaded(modname):
+		sys.path.insert(0, 'modules')
 		try:
 			mod = __import__(modname)
 			reload(mod) #in case it's been previously loaded.
 		except BaseException as e: #we don't want even sys.exit() to crash us (in case of malicious module) so use BaseException
 			return modlib.error(e)
+		finally:
+			del sys.path[0] #remove ./modules from path, in case there's a name conflict
 			
 
 		if not hasattr(mod, 'modinfo'):
