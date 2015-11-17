@@ -206,9 +206,9 @@ class TriviaState(object):
 			stop()
 			self.getbot().msg(self.getchan(), "%d questions unanswered! Stopping the game.")
 
-		if state.nextq is not None:
-			nextq = state.nextq
-			state.nextq = None
+		if self.nextq is not None:
+			nextq = self.nextq
+			self.nextq = None
 		else:
 			nextq = random.choice(self.db['questions'])
 
@@ -252,12 +252,12 @@ class TriviaState(object):
 			self.db['users'][user] = {'points': count, 'realnick': user_nick, 'rank': len(self.db['ranks'])}
 			self.db['ranks'].append(user)
 
-		self.db['ranks'].sort(key=lambda nick: state.db['users'][nick]['points'], reverse=True) #re-sort ranks, rather than dealing with anything more efficient
+		self.db['ranks'].sort(key=lambda nick: self.db['users'][nick]['points'], reverse=True) #re-sort ranks, rather than dealing with anything more efficient
 		for i in range(0, len(self.db['ranks'])):
 			nick = self.db['ranks'][i]
 			self.db['users'][nick]['rank'] = i
 
-		if self.db['users'][user]['points'] >= state.db['target']:
+		if self.db['users'][user]['points'] >= self.db['target']:
 			self.gameover = True
 
 		return self.db['users'][user]['points']
