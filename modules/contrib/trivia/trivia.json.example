@@ -12,17 +12,8 @@
     "ranks": [],
     "users": {},
     "questions": [
-        {
-            "answer": ["dimecadmium","wibble","i am"],
-            "question": "Who is da boss?"
-        },
-		{
-			"answer": "dynamic current month",
-			"question": "!MONTH"
-		},
-		{
-			"answer": "dynamic random math problem",
-			"question": "!MATH+"
-		}
+		["Who is da boss?", ["dimecadmium","wibble","i am"]],
+		["!MONTH", "dynamic current month"],
+		["!MATH+", "dynamic random addition problem"],
     ]
 }

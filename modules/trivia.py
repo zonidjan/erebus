@@ -212,25 +212,28 @@ class TriviaState(object):
 		else:
 			nextq = random.choice(self.db['questions'])
 
-		if nextq['question'][0] == "!":
+		if nextq[0][0] == "!":
 			nextq = specialQuestion(nextq)
 
-		if iteration < 10 and 'lastasked' in nextq and nextq['lastasked'] - time.time() < 24*60*60:
+		if len(nextq) > 2 and nextq[2] - time.time() < 7*24*60*60 and iteration < 10:
 			return self.nextquestion(iteration=iteration+1) #short-circuit to pick another question
-		nextq['lastasked'] = time.time()
+		if len(nextq) > 2:
+			nextq[2] = time.time()
+		else:
+			nextq.append(time.time())
 
-		nextq['answer'] = nextq['answer'].lower()
+		nextq[1] = nextq[1].lower()
 
 		qtext = "\00304,01Next up: "
-		qary = nextq['question'].split(None)
+		qary = nextq[0].split(None)
 		for qword in qary:
 			qtext += "\00304,01"+qword+"\00301,01"+chr(random.randrange(0x61,0x7A)) #a-z
 		self.getbot().msg(self.chan, qtext)
 
 		self.curq = nextq
 
-		if isinstance(self.curq['answer'], basestring): self.hintanswer = self.curq['answer']
-		else: self.hintanswer = random.choice(self.curq['answer'])
+		if isinstance(self.curq[1], basestring): self.hintanswer = self.curq[1]
+		else: self.hintanswer = random.choice(self.curq[1])
 
 		self.steptimer = threading.Timer(self.db['hinttimer'], self.nexthint, args=[1])
 		self.steptimer.start()
@@ -238,10 +241,10 @@ class TriviaState(object):
 	def checkanswer(self, answer):
 		if self.curq is None:
 			return False
-		elif isinstance(self.curq['answer'], basestring):
-			return answer.lower() == self.curq['answer']
+		elif isinstance(self.curq[1], basestring):
+			return answer.lower() == self.curq[1]
 		else: # assume it's a list or something.
-			return answer.lower() in self.curq['answer']
+			return answer.lower() in self.curq[1]
 
 	def addpoint(self, user_obj, count=1):
 		user_nick = str(user_obj)
@@ -339,7 +342,7 @@ def cmd_setnextid(bot, user, chan, realtarget, *args):
 	try:
 		qid = int(args[0])
 		state.nextq = state.db['questions'][qid]
-		bot.msg(user, "Done. Next question is: %s" % (state.nextq['question']))
+		bot.msg(user, "Done. Next question is: %s" % (state.nextq[0]))
 	except Exception as e:
 		bot.msg(user, "Error: %s" % (e))
 
@@ -353,7 +356,7 @@ def cmd_setnext(bot, user, chan, realtarget, *args):
 		return
 	question = linepieces[0].strip()
 	answer = linepieces[1].strip()
-	state.nextq = {'question':question,'answer':answer}
+	state.nextq = [question, answer]
 	bot.msg(user, "Done.")
 
 @lib.hook('skip', glevel=1, needchan=False)
@@ -465,7 +468,7 @@ def cmd_hintnum(bot, user, chan, realtarget, *args):
 
 @lib.hook('findq', glevel=1, needchan=False)
 def cmd_findquestion(bot, user, chan, realtarget, *args):
-	matches = [str(i) for i in range(len(state.db['questions'])) if state.db['questions'][i]['question'] == ' '.join(args)] #TODO looser equality check
+	matches = [str(i) for i in range(len(state.db['questions'])) if state.db['questions'][i][0] == ' '.join(args)] #TODO looser equality check
 	if len(matches) > 1:
 		bot.msg(user, "Multiple matches: %s" % (', '.join(matches)))
 	elif len(matches) == 1:
@@ -479,7 +482,7 @@ def cmd_deletequestion(bot, user, chan, realtarget, *args):
 	try:
 		backup = state.db['questions'][int(args[0])]
 		del state.db['questions'][int(args[0])]
-		bot.msg(user, "Deleted %s*%s" % (backup['question'], backup['answer']))
+		bot.msg(user, "Deleted %s*%s" % (backup[0], backup[1]))
 	except:
 		bot.msg(user, "Couldn't delete that question.")
 
@@ -492,7 +495,7 @@ def cmd_addquestion(bot, user, chan, realtarget, *args):
 		return
 	question = linepieces[0].strip()
 	answer = linepieces[1].strip()
-	state.db['questions'].append({'question':question,'answer':answer})
+	state.db['questions'].append([question, answer])
 	bot.msg(user, "Done. Question is #%s" % (len(state.db['questions'])-1))
 
 
@@ -530,17 +533,17 @@ def num_417(bot, textline):
 
 
 def specialQuestion(oldq):
-	newq = {'question': oldq['question'], 'answer': oldq['answer']}
-	qtype = oldq['question'].upper()
+	newq = [oldq[0], oldq[1]]
+	qtype = oldq[0].upper()
 
 	if qtype == "!MONTH":
-		newq['question'] = "What month is it currently (in UTC)?"
-		newq['answer'] = time.strftime("%B", time.gmtime()).lower()
+		newq[0] = "What month is it currently (in UTC)?"
+		newq[1] = time.strftime("%B", time.gmtime()).lower()
 	elif qtype == "!MATH+":
 		randnum1 = random.randrange(0, 11)
 		randnum2 = random.randrange(0, 11)
-		newq['question'] = "What is %d + %d?" % (randnum1, randnum2)
-		newq['answer'] = spellout(randnum1+randnum2)
+		newq[0] = "What is %d + %d?" % (randnum1, randnum2)
+		newq[1] = spellout(randnum1+randnum2)
 	return newq
 
 def spellout(num):
