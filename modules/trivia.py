@@ -198,6 +198,8 @@ class TriviaState(object):
 			self.missedquestions += 1
 		else:
 			self.missedquestions = 0
+			if 'topicformat' in self.db and self.db['topicformat'] is not None:
+				self.getbot().conn.send("TOPIC %s" % (self.db['chan']))
 
 		if isinstance(self.steptimer, threading._Timer):
 			self.steptimer.cancel()
@@ -561,6 +563,24 @@ def cmd_triviahelp(bot, user, chan, realtarget, *args):
 def num_417(bot, textline):
 	bot.msg(state.db['chan'], "Whoops, it looks like that question didn't quite go through! (E:417). Let's try another...")
 	state.nextquestion(qskipped=False, skipwait=True)
+
+@lib.hooknum(332)
+def num_TOPIC(bot, textline):
+	pieces = textline.split(None, 4)
+	chan = pieces[3]
+	if chan != state.db['chan']:
+		return
+	gottopic = pieces[4][1:]
+
+	formatted = state.db['topicformat'] % {
+		'chan': state.db['chan'],
+		'top': state.db['users'][state.db['ranks'][0]]['realnick'],
+		'top3': '/'.join([state.db['users'][state.db['ranks'][x]]['realnick'] for x in range(3) if x < len(state.db['ranks'])]),
+		'topscore': state.db['users'][state.db['ranks'][0]]['points'],
+		'target': state.db['target'],
+	}
+	if gottopic != formatted:
+		state.getbot().conn.send("TOPIC %s :%s" % (state.db['chan'], formatted))
 
 
 def specialQuestion(oldq):
