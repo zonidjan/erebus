@@ -14,19 +14,20 @@ class error(object):
 
 class modlib(object):
 	# default (global) access levels
-	MANAGER = 100
-	ADMIN = 75
-	STAFF = 50
-	AUTHED = 0
-	ANYONE = -1
+	OWNER   = 100
+	MANAGER =  99
+	ADMIN   =  75
+	STAFF   =  50
+	AUTHED  =   0
+	ANYONE  =  -1
 
 	# (channel) access levels
-	OWNER = 5
-	MASTER = 4
-	OP = 3
-	VOICE = 2
-	KNOWN = 1
-	PUBLIC = 0 #anyone (use glevel to control auth-needed)
+	OWNER   =   5
+	MASTER  =   4
+	OP      =   3
+	VOICE   =   2
+	KNOWN   =   1
+	PUBLIC  =   0 #anyone (use glevel to control auth-needed)
 
 	# messages
 	WRONGARGS = "Wrong number of arguments."
