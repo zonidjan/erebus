@@ -49,6 +49,7 @@ class TriviaState(object):
 		self.chan = self.db['chan']
 		self.curq = None
 		self.nextq = None
+		self.nextquestiontimer = None
 		self.steptimer = None
 		self.hintstr = None
 		self.hintanswer = None
@@ -72,8 +73,12 @@ class TriviaState(object):
 	def __del__(self):
 		self.closeshop()
 	def closeshop(self):
-		if threading is not None and threading._Timer is not None and isinstance(self.steptimer, threading._Timer):
-			self.steptimer.cancel()
+		if threading is not None and threading._Timer is not None:
+			if isinstance(self.steptimer, threading._Timer):
+				self.steptimer.cancel()
+			if isinstance(self.nextquestiontimer, threading._Timer):
+				self.nextquestiontimer.cancel()
+				self.nextquestiontimer = None
 		if json is not None and json.dump is not None:
 			json.dump(self.db, open(self.questionfile, "w"))#, indent=4, separators=(',', ': '))
 
@@ -185,7 +190,7 @@ class TriviaState(object):
 
 		self.nextquestion() #start the game!
 
-	def nextquestion(self, qskipped=False, iteration=0):
+	def nextquestion(self, qskipped=False, iteration=0, skipwait=False):
 		if self.gameover == True:
 			return self.doGameOver()
 		if qskipped:
@@ -196,6 +201,9 @@ class TriviaState(object):
 
 		if isinstance(self.steptimer, threading._Timer):
 			self.steptimer.cancel()
+		if isinstance(self.nextquestiontimer, threading._Timer):
+			self.nextquestiontimer.cancel()
+			self.nextquestiontimer = None
 
 		self.hintstr = None
 		self.hintsgiven = 0
@@ -206,6 +214,15 @@ class TriviaState(object):
 			stop()
 			self.getbot().msg(self.getchan(), "%d questions unanswered! Stopping the game.")
 
+		if skipwait:
+			self._nextquestion(qskipped, iteration)
+		else:
+			print "making timer"
+			self.nextquestiontimer = threading.Timer(self.db['questionpause'], self._nextquestion, args=[qskipped, iteration])
+			self.nextquestiontimer.start()
+
+	def _nextquestion(self, qskipped, iteration):
+		print "_"
 		if self.nextq is not None:
 			nextq = self.nextq
 			self.nextq = None
@@ -216,7 +233,7 @@ class TriviaState(object):
 			nextq = specialQuestion(nextq)
 
 		if len(nextq) > 2 and nextq[2] - time.time() < 7*24*60*60 and iteration < 10:
-			return self.nextquestion(iteration=iteration+1) #short-circuit to pick another question
+			return self._nextquestion(iteration=iteration+1) #short-circuit to pick another question
 		if len(nextq) > 2:
 			nextq[2] = time.time()
 		else:
@@ -361,15 +378,15 @@ def cmd_setnext(bot, user, chan, realtarget, *args):
 
 @lib.hook('skip', glevel=1, needchan=False)
 def cmd_skip(bot, user, chan, realtarget, *args):
-	state.nextquestion(True)
+	state.nextquestion(qskipped=True, skipwait=True)
 
 @lib.hook('start', needchan=False)
 def cmd_start(bot, user, chan, realtarget, *args):
 	if chan == realtarget: replyto = chan
 	else: replyto = user
 
-	if state.curq is None and state.pointvote is None:
-		state.nextquestion()
+	if state.curq is None and state.pointvote is None and state.nextquestiontimer is None:
+		state.nextquestion(skipwait=True)
 	elif state.pointvote is not None:
 		bot.msg(replyto, "There's a vote in progress!")
 	else:
@@ -390,6 +407,11 @@ def stop():
 				state.steptimer.cancel()
 			except Exception as e:
 				print "!!! steptimer.cancel(): %s %r" % (e,e)
+			try:
+				state.nextquestiontimer.cancel()
+				state.nextquestiontimer = None
+			except Exception as e:
+				print "!!! nextquestiontimer.cancel(): %s %r" % (e,e)
 			return True
 		else:
 			return False
@@ -466,6 +488,14 @@ def cmd_hintnum(bot, user, chan, realtarget, *args):
 	except:
 		bot.msg(user, "Failed to set hintnum.")
 
+@lib.hook('questionpause', glevel=lib.ADMIN, needchan=False)
+def cmd_questionpause(bot, user, chan, realtarget, *args):
+	try:
+		state.db['questionpause'] = float(args[0])
+		bot.msg(state.db['chan'], "Pause between questions has been changed to %s." % (state.db['questionpause']))
+	except:
+		bot.msg(user, "Failed to set questionpause.")
+
 @lib.hook('findq', glevel=1, needchan=False)
 def cmd_findquestion(bot, user, chan, realtarget, *args):
 	matches = [str(i) for i in range(len(state.db['questions'])) if state.db['questions'][i][0] == ' '.join(args)] #TODO looser equality check
@@ -504,32 +534,33 @@ def cmd_triviahelp(bot, user, chan, realtarget, *args):
 	if user.glevel == 0:
 		bot.msg(user,         "START")
 		bot.msg(user,         "TOP10")
-		bot.msg(user,         "POINTS    [<user>]")
-		bot.msg(user,         "RANK      [<user>]")
+		bot.msg(user,         "POINTS        [<user>]")
+		bot.msg(user,         "RANK          [<user>]")
 	else:
-		bot.msg(user,         "START                       (ANYONE )")
-		bot.msg(user,         "TOP10                       (ANYONE )")
-		bot.msg(user,         "POINTS    [<user>]          (ANYONE )")
-		bot.msg(user,         "RANK      [<user>]          (ANYONE )")
+		bot.msg(user,         "START                           (ANYONE )")
+		bot.msg(user,         "TOP10                           (ANYONE )")
+		bot.msg(user,         "POINTS        [<user>]          (ANYONE )")
+		bot.msg(user,         "RANK          [<user>]          (ANYONE )")
 	if user.glevel >= 1:
-		bot.msg(user,         "SKIP                        (>=KNOWN)")
-		bot.msg(user,         "STOP                        (>=KNOWN)")
-		bot.msg(user,         "FINDQ     <question>        (>=KNOWN)")
+		bot.msg(user,         "SKIP                            (>=KNOWN)")
+		bot.msg(user,         "STOP                            (>=KNOWN)")
+		bot.msg(user,         "FINDQ         <question>        (>=KNOWN)")
 		if user.glevel >= lib.STAFF:
-			bot.msg(user,     "GIVE      <user> [<points>] (>=STAFF)")
-			bot.msg(user,     "SETNEXT   <q>*<a>           (>=STAFF)")
-			bot.msg(user,     "ADDQ      <q>*<a>           (>=STAFF)")
-			bot.msg(user,     "DELETEQ   <q>*<a>           (>=STAFF)  [aka DELQ]")
+			bot.msg(user,     "GIVE          <user> [<points>] (>=STAFF)")
+			bot.msg(user,     "SETNEXT       <q>*<a>           (>=STAFF)")
+			bot.msg(user,     "ADDQ          <q>*<a>           (>=STAFF)")
+			bot.msg(user,     "DELETEQ       <q>*<a>           (>=STAFF)  [aka DELQ]")
 			if user.glevel >= lib.ADMIN:
-				bot.msg(user, "SETTARGET <points>          (>=ADMIN)")
-				bot.msg(user, "MAXMISSED <questions>       (>=ADMIN)")
-				bot.msg(user, "HINTTIMER <float seconds>   (>=ADMIN)")
-				bot.msg(user, "HINTNUM   <hints>           (>=ADMIN)")
+				bot.msg(user, "SETTARGET     <points>          (>=ADMIN)")
+				bot.msg(user, "MAXMISSED     <questions>       (>=ADMIN)")
+				bot.msg(user, "HINTTIMER     <float seconds>   (>=ADMIN)")
+				bot.msg(user, "HINTNUM       <hints>           (>=ADMIN)")
+				bot.msg(user, "QUESTIONPAUSE <float seconds>   (>=ADMIN)")
 
 @lib.hooknum(417)
 def num_417(bot, textline):
 	bot.msg(state.db['chan'], "Whoops, it looks like that question didn't quite go through! (E:417). Let's try another...")
-	state.nextquestion(False)
+	state.nextquestion(qskipped=False, skipwait=True)
 
 
 def specialQuestion(oldq):

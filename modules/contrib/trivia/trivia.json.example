@@ -7,6 +7,7 @@
 	"hintnum": 3,
 	"hinttimer": 20.0,
 	"maxmissedquestions": 10,
+	"questionpause": 5.0,
 	"target": 500,
 	"chan": "##.test",
     "ranks": [],
