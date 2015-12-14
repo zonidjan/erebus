@@ -175,8 +175,6 @@ class Bot(object):
 	def __repr__(self): return "<Bot %r>" % (self.nick)
 
 class BotConnection(object):
-	state = 0 # 0=disconnected, 1=registering, 2=connected
-
 	def __init__(self, parent, bind, server, port):
 		self.parent = parent
 		self.buffer = ''
@@ -185,6 +183,8 @@ class BotConnection(object):
 		self.bind = bind
 		self.server = server
 		self.port = int(port)
+
+		self.state = 0 # 0=disconnected, 1=registering, 2=connected
 
 	def connect(self):
 		self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -205,17 +205,17 @@ class BotConnection(object):
 	#TODO: rewrite send() to queue
 	def send(self, line):
 		print self.parent.nick, '[O]', str(line)
-		self.write(line)
+		self._write(line)
 
-	def write(self, line):
+	def _write(self, line):
 		self.socket.sendall(line+"\r\n")
 
 	def read(self):
 		self.buffer += self.socket.recv(8192)
 		lines = []
 
-		while '\r\n' in self.buffer:
-			pieces = self.buffer.split('\r\n', 1)
+		while "\r\n" in self.buffer:
+			pieces = self.buffer.split("\r\n", 1)
 			print self.parent.nick, '[I]', pieces[0]
 			lines.append(pieces[0])
 			self.buffer = pieces[1]

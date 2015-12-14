@@ -153,7 +153,7 @@ class Erebus(object):
 	def fd(self, fileno): #get Bot() by fd/fileno
 		return self.fds[fileno]
 	def randbot(self): #get Bot() randomly
-		return random.choice(self.bots)
+		return self.bots[random.choice(self.bots.keys())]
 
 	def user(self, _nick, justjoined=False):
 		nick = _nick.lower()
