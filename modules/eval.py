@@ -27,7 +27,7 @@ def module(name):
 @lib.hook('eval', needchan=False, glevel=lib.MANAGER)
 @lib.argsGE(1)
 def cmd_eval(bot, user, chan, realtarget, *args):
-	if chan is not None: replyto = chan
+	if realtarget == chan.name: replyto = chan
 	else: replyto = user
 
 	try: ret = eval(' '.join(args))
@@ -39,7 +39,7 @@ def cmd_eval(bot, user, chan, realtarget, *args):
 @lib.hook('exec', needchan=False, glevel=lib.MANAGER)
 @lib.argsGE(1)
 def cmd_exec(bot, user, chan, realtarget, *args):
-	if chan is not None: replyto = chan
+	if realtarget == chan.name: replyto = chan
 	else: replyto = user
 
 	try: exec ' '.join(args)
