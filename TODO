@@ -25,9 +25,8 @@ ctlmod: needs to print out a traceback. traceback.print_exc().
 [X] question management system done via irc
 [X] voting for next round target points
 [X] automatically change topic
-
-depends on userinfo:
-	automatic periodically displaying top 10 by country (assigned countries by stored player stats)
+[X] automatic periodically displaying top 10 by country (assigned countries by stored player stats)
+    	implemented as part of !top10 and TOPIC instead
 
 v2
 	multi-channel
