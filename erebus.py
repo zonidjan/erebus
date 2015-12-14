@@ -26,6 +26,9 @@ class Erebus(object):
 
 			self.chans = []
 
+		def msg(self, *args, **kwargs):
+			main.randbot.msg(self, *args, **kwargs)
+
 		def isauthed(self):
 			return self.auth is not None
 
@@ -56,6 +59,8 @@ class Erebus(object):
 		def quit(self):
 			for chan in self.chans:
 				self.chans.remove(chan)
+		def nick(self, newnick):
+			self.nick = newnick
 
 		def __str__(self): return self.nick
 		def __repr__(self): return "<User %r (%d)>" % (self.nick,self.glevel)
@@ -148,7 +153,7 @@ class Erebus(object):
 	def fd(self, fileno): #get Bot() by fd/fileno
 		return self.fds[fileno]
 	def randbot(self): #get Bot() randomly
-		return self.bots[random.choice(self.bots.keys())]
+		return random.choice(self.bots)
 
 	def user(self, _nick, justjoined=False):
 		nick = _nick.lower()
