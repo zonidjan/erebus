@@ -91,6 +91,13 @@ class Bot(object):
 				self.parent.user(nick).quit()
 				del self.parent.users[nick.lower()]
 
+		elif pieces[1] == "NICK":
+			oldnick = pieces[0].split('!')[0][1:]
+			newnick = pieces[2][1:]
+			self.parent.users[newnick.lower()] = self.parent.users[oldnick.lower()]
+			del self.parent.users[oldnick.lower()]
+			self.parent.user(newnick).nick(newnick)
+
 		elif pieces[1] == "MODE": #TODO parse for ops/voices (at least)
 			pass
 
