@@ -25,8 +25,11 @@ class Config(object):
 	def items(self, section='erebus'):
 		return self.config.items(section)
 
-	def get(self, section, key):
-		return self.config.get(section, key)
+	def get(self, section, key, default=None):
+		try:
+			return self.config.get(section, key)
+		except:
+			return default
 
 	def set(self, section, key, value):
 		self.config.set(section, key, value)
