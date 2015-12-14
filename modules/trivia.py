@@ -19,9 +19,11 @@ def modstart(parent, *args, **kwargs):
 	return lib.modstart(parent, *args, **kwargs)
 def modstop(*args, **kwargs):
 	global state
-	stop()
-	state.closeshop()
-	del state
+	try:
+		stop()
+		state.closeshop()
+		del state
+	except Exception: pass
 	return lib.modstop(*args, **kwargs)
 
 # module code
@@ -37,6 +39,10 @@ def findnth(haystack, needle, n): #http://stackoverflow.com/a/1884151
 		return -1
 	return len(haystack)-len(parts[-1])-len(needle)
 
+def person(num): return state.db['users'][state.db['ranks'][num]]['realnick']
+def pts(num): return str(state.db['users'][state.db['ranks'][num]]['points'])
+def country(num, default="??"): return lib.mod('userinfo').get(person(num), 'country', default=default)
+
 class TriviaState(object):
 	def __init__(self, parent=None, pointvote=False):
 		if parent is not None:
@@ -44,7 +50,7 @@ class TriviaState(object):
 
 	def gotParent(self, parent, pointvote=False):
 		self.parent = parent
-		self.questionfile = self.parent.cfg.get('trivia', 'jsonpath')
+		self.questionfile = self.parent.cfg.get('trivia', 'jsonpath', default="./modules/trivia.json")
 		self.db = json.load(open(self.questionfile, "r"))
 		self.chan = self.db['chan']
 		self.curq = None
@@ -113,8 +119,6 @@ class TriviaState(object):
 
 	def doGameOver(self):
 		msg = self.getchan().msg
-		def person(num): return self.db['users'][self.db['ranks'][num]]['realnick']
-		def pts(num): return str(self.db['users'][self.db['ranks'][num]]['points'])
 		winner = person(0)
 		try:
 			msg("\00312THE GAME IS OVER!!!")
@@ -219,12 +223,10 @@ class TriviaState(object):
 		if skipwait:
 			self._nextquestion(qskipped, iteration)
 		else:
-			print "making timer"
 			self.nextquestiontimer = threading.Timer(self.db['questionpause'], self._nextquestion, args=[qskipped, iteration])
 			self.nextquestiontimer.start()
 
 	def _nextquestion(self, qskipped, iteration):
-		print "_"
 		if self.nextq is not None:
 			nextq = self.nextq
 			self.nextq = None
@@ -336,7 +338,7 @@ def trivia_checkanswer(bot, user, chan, *args):
 
 @lib.hook('points', needchan=False)
 def cmd_points(bot, user, chan, realtarget, *args):
-	if chan == realtarget: replyto = chan
+	if realtarget == chan.name: replyto = chan
 	else: replyto = user
 
 	if len(args) != 0: who = args[0]
@@ -384,7 +386,7 @@ def cmd_skip(bot, user, chan, realtarget, *args):
 
 @lib.hook('start', needchan=False)
 def cmd_start(bot, user, chan, realtarget, *args):
-	if chan == realtarget: replyto = chan
+	if realtarget == chan.name: replyto = chan
 	else: replyto = user
 
 	if state.curq is None and state.pointvote is None and state.nextquestiontimer is None:
@@ -422,7 +424,7 @@ def stop():
 
 @lib.hook('rank', needchan=False)
 def cmd_rank(bot, user, chan, realtarget, *args):
-	if chan == realtarget: replyto = chan
+	if realtarget == chan.name: replyto = chan
 	else: replyto = user
 
 	if len(args) != 0: who = args[0]
@@ -435,11 +437,11 @@ def cmd_top10(bot, user, chan, realtarget, *args):
 	if len(state.db['ranks']) == 0:
 		return bot.msg(state.db['chan'], "No one is ranked!")
 
-	replylist = []
-	for nick in state.db['ranks'][0:10]:
-		user = state.db['users'][nick]
-		replylist.append("%s (%s)" % (user['realnick'], user['points']))
-	bot.msg(state.db['chan'], ', '.join(replylist))
+	max = len(state.db['ranks'])
+	if max > 10:
+		max = 10
+	replylist = ', '.join(["%s (%s) %s" % (person(x), country(x, "unknown"), pts(x)) for x in range(max)])
+	bot.msg(state.db['chan'], "Top %d: %s" % (max, replylist))
 
 @lib.hook('settarget', glevel=lib.ADMIN, needchan=False)
 def cmd_settarget(bot, user, chan, realtarget, *args):
@@ -533,7 +535,7 @@ def cmd_addquestion(bot, user, chan, realtarget, *args):
 
 @lib.hook('triviahelp', needchan=False)
 def cmd_triviahelp(bot, user, chan, realtarget, *args):
-	if user.glevel == 0:
+	if user.glevel <= 0:
 		bot.msg(user,         "START")
 		bot.msg(user,         "TOP10")
 		bot.msg(user,         "POINTS        [<user>]")
@@ -574,9 +576,23 @@ def num_TOPIC(bot, textline):
 
 	formatted = state.db['topicformat'] % {
 		'chan': state.db['chan'],
-		'top': state.db['users'][state.db['ranks'][0]]['realnick'],
-		'top3': '/'.join([state.db['users'][state.db['ranks'][x]]['realnick'] for x in range(3) if x < len(state.db['ranks'])]),
-		'topscore': state.db['users'][state.db['ranks'][0]]['points'],
+		'top1': "%s (%s)" % (person(0), pts(0)),
+		'top3': '/'.join([
+			"%s (%s)" % (person(x), pts(x))
+			for x in range(3) if x < len(state.db['ranks'])
+		]),
+		'top3c': ' '.join([
+			"%s (%s, %s)" % (person(x), pts(x), country(x))
+			for x in range(3) if x < len(state.db['ranks'])
+		]),
+		'top10': ' '.join([
+			"%s (%s)" % (person(x), pts(x))
+			for x in range(10) if x < len(state.db['ranks'])
+		]),
+		'top10c': ' '.join([
+			"%s (%s, %s)" % (person(x), pts(x), country(x))
+			for x in range(10) if x < len(state.db['ranks'])
+		]),
 		'target': state.db['target'],
 	}
 	if gottopic != formatted:
