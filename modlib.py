@@ -60,9 +60,9 @@ class modlib(object):
 
 	def hooknum(self, num):
 		def realhook(func):
-			self.numhooks[num] = func
+			self.numhooks[str(num)] = func
 			if self.parent is not None:
-				self.parent.hooknum(num, func)
+				self.parent.hooknum(str(num), func)
 			return func
 		return realhook
 
@@ -85,6 +85,12 @@ class modlib(object):
 				self.parent.hook(cmd, func)
 			return func
 		return realhook
+
+	def mod(self, modname):
+		if self.parent is not None:
+			return self.parent.module(modname)
+		else:
+			return error('unknown parent')
 
 	def argsEQ(self, num):
 		def realhook(func):
