@@ -228,12 +228,15 @@ class TriviaState(object):
 
 	def _nextquestion(self, qskipped, iteration):
 		if self.nextq is not None:
+			nextqid = None
 			nextq = self.nextq
 			self.nextq = None
 		else:
-			nextq = random.choice(self.db['questions'])
+			nextqid = random.randrange(0, len(self.db['questions']))
+			nextq = self.db['questions'][nextqid]
 
 		if nextq[0][0] == "!":
+			nextqid = None
 			nextq = specialQuestion(nextq)
 
 		if len(nextq) > 2 and nextq[2] - time.time() < 7*24*60*60 and iteration < 10:
@@ -246,6 +249,8 @@ class TriviaState(object):
 		nextq[1] = nextq[1].lower()
 
 		qtext = "\00304,01Next up: "
+		if nextqid is not None:
+			qtext += "(%d) " % (nextqid)
 		qary = nextq[0].split(None)
 		for qword in qary:
 			qtext += "\00304,01"+qword+"\00301,01"+chr(random.randrange(0x61,0x7A)) #a-z
@@ -422,6 +427,41 @@ def stop():
 	except NameError:
 		pass
 
+@lib.hook('badq', needchan=False)
+@lib.argsGE(2)
+def cmd_badq(bot, user, chan, realtarget, *args):
+	qid = int(args[0])
+	reason = ' '.join(args[1:])
+	state.db['badqs'].append([qid, reason])
+	bot.msg(user, "Reported bad question #%d" % (qid))
+
+@lib.hook('badqs', glevel=lib.STAFF, needchan=False)
+def cmd_badqs(bot, user, chan, realtarget, *args):
+	if len(state.db['badqs']) == 0:
+		bot.msg(user, "No reports.")
+
+	for i in range(len(state.db['badqs'])):
+		try:
+			report = state.db['badqs'][i]
+			bot.msg(user, "Report #%d: Q%d: %s" % (i, report[0], report[1]))
+			question = state.db['questions'][int(report[0])]
+			bot.msg(user, "- Question is: %s" % (question[0]))
+			bot.msg(user, "- Answer is: %s" % (question[1]))
+		except Exception as e:
+			bot.msg(user, "- Exception: %r" % (e))
+
+@lib.hook('clearbadqs', glevel=lib.STAFF, needchan=False)
+def cmd_clearbadqs(bot, user, chan, realtarget, *args):
+	state.db['badqs'] = []
+	bot.msg(user, "Cleared reports.")
+
+@lib.hook('delbadq', glevel=lib.STAFF, needchan=False)
+@lib.argsEQ(1)
+def cmd_delbadq(bot, user, chan, realtarget, *args):
+	qid = int(args[0])
+	del state.db['badqs'][qid]
+	bot.msg(user, "Removed report #%d" % (qid))
+
 @lib.hook('rank', needchan=False)
 def cmd_rank(bot, user, chan, realtarget, *args):
 	if realtarget == chan.name: replyto = chan
@@ -535,16 +575,11 @@ def cmd_addquestion(bot, user, chan, realtarget, *args):
 
 @lib.hook('triviahelp', needchan=False)
 def cmd_triviahelp(bot, user, chan, realtarget, *args):
-	if user.glevel <= 0:
-		bot.msg(user,         "START")
-		bot.msg(user,         "TOP10")
-		bot.msg(user,         "POINTS        [<user>]")
-		bot.msg(user,         "RANK          [<user>]")
-	else:
-		bot.msg(user,         "START                           (ANYONE )")
-		bot.msg(user,         "TOP10                           (ANYONE )")
-		bot.msg(user,         "POINTS        [<user>]          (ANYONE )")
-		bot.msg(user,         "RANK          [<user>]          (ANYONE )")
+	bot.msg(user,             "START")
+	bot.msg(user,             "TOP10")
+	bot.msg(user,             "POINTS        [<user>]")
+	bot.msg(user,             "RANK          [<user>]")
+	bot.msg(user,             "BADQ          <id> <reason>")
 	if user.glevel >= 1:
 		bot.msg(user,         "SKIP                            (>=KNOWN)")
 		bot.msg(user,         "STOP                            (>=KNOWN)")
@@ -554,6 +589,9 @@ def cmd_triviahelp(bot, user, chan, realtarget, *args):
 			bot.msg(user,     "SETNEXT       <q>*<a>           (>=STAFF)")
 			bot.msg(user,     "ADDQ          <q>*<a>           (>=STAFF)")
 			bot.msg(user,     "DELETEQ       <q>*<a>           (>=STAFF)  [aka DELQ]")
+			bot.msg(user,     "BADQS                           (>=STAFF)")
+			bot.msg(user,     "CLEARBADQS                      (>=STAFF)")
+			bot.msg(user,     "DELBADQ       <reportid>        (>=STAFF)")
 			if user.glevel >= lib.ADMIN:
 				bot.msg(user, "SETTARGET     <points>          (>=ADMIN)")
 				bot.msg(user, "MAXMISSED     <questions>       (>=ADMIN)")
