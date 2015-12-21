@@ -195,6 +195,7 @@ class TriviaState(object):
 		self.nextquestion() #start the game!
 
 	def nextquestion(self, qskipped=False, iteration=0, skipwait=False):
+		self.curq = None
 		if self.gameover == True:
 			return self.doGameOver()
 		if qskipped:
@@ -221,12 +222,12 @@ class TriviaState(object):
 			self.getbot().msg(self.getchan(), "%d questions unanswered! Stopping the game.")
 
 		if skipwait:
-			self._nextquestion(qskipped, iteration)
+			self._nextquestion(iteration)
 		else:
-			self.nextquestiontimer = threading.Timer(self.db['questionpause'], self._nextquestion, args=[qskipped, iteration])
+			self.nextquestiontimer = threading.Timer(self.db['questionpause'], self._nextquestion, args=[iteration])
 			self.nextquestiontimer.start()
 
-	def _nextquestion(self, qskipped, iteration):
+	def _nextquestion(self, iteration):
 		if self.nextq is not None:
 			nextqid = None
 			nextq = self.nextq
@@ -336,6 +337,7 @@ state = TriviaState()
 def trivia_checkanswer(bot, user, chan, *args):
 	line = ' '.join([str(arg) for arg in args])
 	if state.checkanswer(line):
+		state.curq = None
 		bot.msg(chan, "\00312%s\003 has it! The answer was \00312%s\003. New score: %d. Rank: %d. Target: %s (%s)." % (user, line, state.addpoint(user), state.rank(user), state.targetuser(user), state.targetpoints(user)))
 		if state.hintsgiven == 0:
 			bot.msg(chan, "\00312%s\003 got an extra point for getting it before the hints! New score: %d." % (user, state.addpoint(user)))
@@ -343,7 +345,7 @@ def trivia_checkanswer(bot, user, chan, *args):
 
 @lib.hook('points', needchan=False)
 def cmd_points(bot, user, chan, realtarget, *args):
-	if realtarget == chan.name: replyto = chan
+	if chan is not None and realtarget == chan.name: replyto = chan
 	else: replyto = user
 
 	if len(args) != 0: who = args[0]
@@ -391,7 +393,7 @@ def cmd_skip(bot, user, chan, realtarget, *args):
 
 @lib.hook('start', needchan=False)
 def cmd_start(bot, user, chan, realtarget, *args):
-	if realtarget == chan.name: replyto = chan
+	if chan is not None and realtarget == chan.name: replyto = chan
 	else: replyto = user
 
 	if state.curq is None and state.pointvote is None and state.nextquestiontimer is None:
@@ -464,7 +466,7 @@ def cmd_delbadq(bot, user, chan, realtarget, *args):
 
 @lib.hook('rank', needchan=False)
 def cmd_rank(bot, user, chan, realtarget, *args):
-	if realtarget == chan.name: replyto = chan
+	if chan is not None and realtarget == chan.name: replyto = chan
 	else: replyto = user
 
 	if len(args) != 0: who = args[0]
