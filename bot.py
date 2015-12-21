@@ -97,7 +97,7 @@ class Bot(object):
 			if newnick.lower() != oldnick.lower():
 				self.parent.users[newnick.lower()] = self.parent.users[oldnick.lower()]
 				del self.parent.users[oldnick.lower()]
-			self.parent.users[newnick.lower()].nick(newnick)
+			self.parent.users[newnick.lower()].nickchange(newnick)
 
 		elif pieces[1] == "MODE": #TODO parse for ops/voices (at least)
 			pass
