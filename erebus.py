@@ -59,7 +59,7 @@ class Erebus(object):
 		def quit(self):
 			for chan in self.chans:
 				self.chans.remove(chan)
-		def nick(self, newnick):
+		def nickchange(self, newnick):
 			self.nick = newnick
 
 		def __str__(self): return self.nick
