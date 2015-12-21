@@ -21,7 +21,7 @@ import resource
 
 @lib.hook('ram', needchan=False, glevel=lib.MANAGER)
 def cmd_ram(bot, user, chan, realtarget, *args):
-	if realtarget == chan.name: replyto = chan
+	if chan is not None and realtarget == chan.name: replyto = chan
 	else: replyto = user
 
 	try:
@@ -33,7 +33,7 @@ def cmd_ram(bot, user, chan, realtarget, *args):
 
 @lib.hook('resources', needchan=False, glevel=lib.MANAGER)
 def cmd_resources(bot, user, chan, realtarget, *args):
-	if realtarget == chan.name: replyto = chan
+	if chan is not None and realtarget == chan.name: replyto = chan
 	else: replyto = user
 
 	try:

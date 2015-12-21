@@ -65,7 +65,7 @@ def set(user, key, value):
 #commands
 @lib.hook('get', needchan=False)
 def cmd_get(bot, user, chan, realtarget, *args):
-	if realtarget == chan.name: replyto = chan
+	if chan is not None and realtarget == chan.name: replyto = chan
 	else: replyto = user
 
 	if len(args) > 1:
