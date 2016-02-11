@@ -219,7 +219,8 @@ class TriviaState(object):
 
 		if self.missedquestions > self.db['maxmissedquestions']:
 			stop()
-			self.getbot().msg(self.getchan(), "%d questions unanswered! Stopping the game.")
+			self.getbot().msg(self.getchan(), "%d questions unanswered! Stopping the game." % (self.missedquestions))
+			return
 
 		if skipwait:
 			self._nextquestion(iteration)
@@ -412,8 +413,9 @@ def cmd_stop(bot, user, chan, realtarget, *args):
 
 def stop():
 	try:
-		if state.curq is not None:
+		if state.curq is not None or state.nextq is not None:
 			state.curq = None
+			state.nextq = None
 			try:
 				state.steptimer.cancel()
 			except Exception as e:
