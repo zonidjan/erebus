@@ -397,7 +397,12 @@ def cmd_start(bot, user, chan, realtarget, *args):
 	if chan is not None and realtarget == chan.name: replyto = chan
 	else: replyto = user
 
+	if chan is not None and chan.name != state.db['chan']:
+		bot.msg(replyto, "That command isn't valid here.")
+		return
+
 	if state.curq is None and state.pointvote is None and state.nextquestiontimer is None:
+		bot.msg(state.db['chan'], "%s has started the game!" % (user))
 		state.nextquestion(skipwait=True)
 	elif state.pointvote is not None:
 		bot.msg(replyto, "There's a vote in progress!")
