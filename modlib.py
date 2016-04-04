@@ -74,8 +74,13 @@ class modlib(object):
 			return func
 		return realhook
 
-	def hook(self, cmd, needchan=True, glevel=ANYONE, clevel=PUBLIC):
+	def hook(self, cmd=None, needchan=True, glevel=ANYONE, clevel=PUBLIC):
+		_cmd = cmd #save this since it gets wiped out...
 		def realhook(func):
+			cmd = _cmd #...and restore it
+			if cmd is None:
+				cmd = func.__name__ # default to function name
+
 			func.needchan = needchan
 			func.reqglevel = glevel
 			func.reqclevel = clevel
@@ -99,6 +104,7 @@ class modlib(object):
 					return func(bot, user, chan, realtarget, *args)
 				else:
 					bot.msg(user, self.WRONGARGS)
+			checkargs.__name__ = func.__name__
 			return checkargs
 		return realhook
 
@@ -109,5 +115,6 @@ class modlib(object):
 					return func(bot, user, chan, realtarget, *args)
 				else:
 					bot.msg(user, self.WRONGARGS)
+			checkargs.__name__ = func.__name__
 			return checkargs
 		return realhook
