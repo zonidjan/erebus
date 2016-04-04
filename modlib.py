@@ -118,3 +118,19 @@ class modlib(object):
 			checkargs.__name__ = func.__name__
 			return checkargs
 		return realhook
+
+	def help(*args, **kwargs):
+		"""help(args, shorthelp, longhelp, more lines longhelp, cmd=...?)
+		Example:
+		help("<user> <pass>", "login")
+			^ Help will only be one line. Command name determined based on function name.
+		help("<user> <level>", "add a user", cmd=("adduser", "useradd"))
+			^ Help will be listed under ADDUSER; USERADD will say "alias for adduser"
+		help(None, "do stuff", "This command is really complicated.")
+			^ Command takes no args. Short description (in overall HELP listing) is "do stuff".
+			Long description (HELP <command>) will say "<command> - do stuff", newline, "This command is really complicated."
+		"""
+		try:
+			self.mod('help').reghelp(*args, **kwargs)
+		except:
+			pass
