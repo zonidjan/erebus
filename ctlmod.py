@@ -20,7 +20,7 @@ def load(parent, modname):
 			return modlib.error(e)
 		finally:
 			del sys.path[0] #remove ./modules from path, in case there's a name conflict
-			
+
 
 		if not hasattr(mod, 'modinfo'):
 			return modlib.error('no modinfo')
