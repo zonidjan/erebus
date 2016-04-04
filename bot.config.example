@@ -11,8 +11,8 @@ dbname = erebus
 trigger = !
 
 [autoloads]
-module = 1
-eval = 1
+control = 1
+eval = 0
 
 [trivia]
 jsonpath = /bla/foo/bar/modules/contrib/trivia/trivia.json.example
