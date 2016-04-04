@@ -35,8 +35,8 @@ def get_coin_price(pairs):
 	response = requests.post(url, data = {'pairs': pairs})
 	return json.loads(response.text)
 
-@lib.hook('btc')
-def cmd_gtest(bot, user, chan, realtarget, *args):
+@lib.hook()
+def btc(bot, user, chan, realtarget, *args):
 	if len(args) > 0:
 		try:
 			response = get_coin_price('btc_eur')
@@ -49,8 +49,8 @@ def cmd_gtest(bot, user, chan, realtarget, *args):
 		price = str(float(response[0]['price']))
 		bot.msg(chan, "1 BTC = %s EUR" % price)
 
-@lib.hook('doge')
-def cmd_gtest(bot, user, chan, realtarget, *args):
+@lib.hook()
+def doge(bot, user, chan, realtarget, *args):
 	if len(args) > 0:
 		try:
 			doge_btc = get_coin_price('doge_btc')
@@ -65,8 +65,8 @@ def cmd_gtest(bot, user, chan, realtarget, *args):
 		price = str(float(doge_btc[0]['price']) * float(btc_eur[0]['price']))
 		bot.msg(chan, "1 DOGE = %s EUR" % price)
 
-@lib.hook('ltc')
-def cmd_gtest(bot, user, chan, realtarget, *args):
+@lib.hook()
+def ltc(bot, user, chan, realtarget, *args):
 	if len(args) > 0:
 		try:
 			ltc_btc = get_coin_price('ltc_btc')

@@ -19,8 +19,8 @@ modstop = lib.modstop
 # module code
 import resource
 
-@lib.hook('ram', needchan=False, glevel=lib.MANAGER)
-def cmd_ram(bot, user, chan, realtarget, *args):
+@lib.hook(needchan=False, glevel=lib.MANAGER)
+def ram(bot, user, chan, realtarget, *args):
 	if chan is not None and realtarget == chan.name: replyto = chan
 	else: replyto = user
 
@@ -31,8 +31,8 @@ def cmd_ram(bot, user, chan, realtarget, *args):
 
 	bot.msg(replyto, "Memory usage (MiB): %r" % (res.ru_maxrss/1024.0))
 
-@lib.hook('resources', needchan=False, glevel=lib.MANAGER)
-def cmd_resources(bot, user, chan, realtarget, *args):
+@lib.hook(needchan=False, glevel=lib.MANAGER)
+def resources(bot, user, chan, realtarget, *args):
 	if chan is not None and realtarget == chan.name: replyto = chan
 	else: replyto = user
 

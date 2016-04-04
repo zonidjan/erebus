@@ -21,42 +21,64 @@ import sys
 import ctlmod
 
 
-@lib.hook('die', needchan=False, glevel=lib.MANAGER)
-def cmd_die(bot, user, chan, realtarget, *args):
+@lib.hook(needchan=False, glevel=lib.MANAGER)
+def die(bot, user, chan, realtarget, *args):
 	sys.exit(0)
 	os._exit(0)
 
-@lib.hook('modload', needchan=False, glevel=lib.MANAGER)
+@lib.hook(needchan=False, glevel=lib.MANAGER)
 @lib.argsEQ(1)
-def cmd_modload(bot, user, chan, realtarget, *args):
+def modload(bot, user, chan, realtarget, *args):
 	okay = ctlmod.load(bot.parent, args[0])
 	if okay:
 		bot.msg(user, "Loaded %s" % (args[0]))
 	else:
 		bot.msg(user, "Error loading %s: %r" % (args[0], okay))
 
-@lib.hook('modunload', needchan=False, glevel=lib.MANAGER)
+@lib.hook(needchan=False, glevel=lib.MANAGER)
 @lib.argsEQ(1)
-def cmd_modunload(bot, user, chan, realtarget, *args):
+def modunload(bot, user, chan, realtarget, *args):
 	okay = ctlmod.unload(bot.parent, args[0])
 	if okay:
 		bot.msg(user, "Unloaded %s" % (args[0]))
 	else:
 		bot.msg(user, "Error unloading %s: %r" % (args[0], okay))
 
-@lib.hook('modreload', needchan=False, glevel=lib.MANAGER)
+@lib.hook(needchan=False, glevel=lib.MANAGER)
 @lib.argsEQ(1)
-def cmd_modreload(bot, user, chan, realtarget, *args):
+def modreload(bot, user, chan, realtarget, *args):
 	okay = ctlmod.reloadmod(bot.parent, args[0])
 	if okay:
 		bot.msg(user, "Reloaded %s" % (args[0]))
 	else:
 		bot.msg(user, "Error occurred: %r" % (okay))
 
-@lib.hook('modlist', needchan=False, glevel=lib.STAFF)
+@lib.hook(needchan=False, glevel=lib.STAFF)
 @lib.argsEQ(0)
-def cmd_modlist(bot, user, chan, realtarget, *args):
+def modlist(bot, user, chan, realtarget, *args):
 	mods = ctlmod.modules
 	for mod in mods.itervalues():
 		bot.msg(user, "- %s %r" % (mod.__name__, mod))
 	bot.msg(user, "Done.")
+
+@lib.hook(cmd='whoami', needchan=False)
+def whoami(bot, user, chan, realtarget, *args):
+	if not user.isauthed():
+		bot.msg(user, "You are not authed.")
+		return
+
+	fillers = {'auth': user.auth}
+	fmt = "You are %(auth)s"
+
+	if user.glevel >= 1:
+		fillers['glevel'] = user.glevel
+		fmt += " (global access: %(glevel)s)"
+	else:
+		fmt += " (not staff)"
+
+	if chan is not None and chan.levelof(user.auth) >= 1:
+		fillers['clevel'] = chan.levelof(user.auth)
+		fmt += " (channel access: %(clevel)s)"
+	else:
+		fmt += " (not a channel user)"
+	bot.msg(user, fmt % fillers)

@@ -7,7 +7,7 @@ modinfo = {
 	'author': 'Erebus Team',
 	'license': 'public domain',
 	'compatible': [1], # compatible module API versions
-	'depends': [], # other modules required to work properly?
+	'depends': ['userinfo'], # other modules required to work properly?
 }
 
 # preamble
@@ -41,7 +41,7 @@ def findnth(haystack, needle, n): #http://stackoverflow.com/a/1884151
 
 def person(num): return state.db['users'][state.db['ranks'][num]]['realnick']
 def pts(num): return str(state.db['users'][state.db['ranks'][num]]['points'])
-def country(num, default="??"): return lib.mod('userinfo').get(person(num), 'country', default=default)
+def country(num, default="??"): return lib.mod('userinfo')._get(person(num), 'country', default=default)
 
 class TriviaState(object):
 	def __init__(self, parent=None, pointvote=False):
@@ -344,8 +344,8 @@ def trivia_checkanswer(bot, user, chan, *args):
 			bot.msg(chan, "\00312%s\003 got an extra point for getting it before the hints! New score: %d." % (user, state.addpoint(user)))
 		state.nextquestion()
 
-@lib.hook('points', needchan=False)
-def cmd_points(bot, user, chan, realtarget, *args):
+@lib.hook(needchan=False)
+def points(bot, user, chan, realtarget, *args):
 	if chan is not None and realtarget == chan.name: replyto = chan
 	else: replyto = user
 
@@ -354,9 +354,9 @@ def cmd_points(bot, user, chan, realtarget, *args):
 
 	bot.msg(replyto, "%s has %d points." % (who, state.points(who)))
 
-@lib.hook('give', glevel=lib.STAFF, needchan=False)
+@lib.hook(glevel=lib.STAFF, needchan=False)
 @lib.argsGE(1)
-def cmd_give(bot, user, chan, realtarget, *args):
+def give(bot, user, chan, realtarget, *args):
 	whoto = args[0]
 	if len(args) > 1:
 		numpoints = int(args[1])
@@ -366,8 +366,8 @@ def cmd_give(bot, user, chan, realtarget, *args):
 
 	bot.msg(chan, "%s gave %s %d points. New balance: %d" % (user, whoto, numpoints, balance))
 
-@lib.hook('setnextid', glevel=1, needchan=False)
-def cmd_setnextid(bot, user, chan, realtarget, *args):
+@lib.hook(glevel=1, needchan=False)
+def setnextid(bot, user, chan, realtarget, *args):
 	try:
 		qid = int(args[0])
 		state.nextq = state.db['questions'][qid]
@@ -375,9 +375,9 @@ def cmd_setnextid(bot, user, chan, realtarget, *args):
 	except Exception as e:
 		bot.msg(user, "Error: %s" % (e))
 
-@lib.hook('setnext', glevel=lib.STAFF, needchan=False)
+@lib.hook(glevel=lib.STAFF, needchan=False)
 @lib.argsGE(1)
-def cmd_setnext(bot, user, chan, realtarget, *args):
+def setnext(bot, user, chan, realtarget, *args):
 	line = ' '.join([str(arg) for arg in args])
 	linepieces = line.split('*')
 	if len(linepieces) < 2:
@@ -388,12 +388,12 @@ def cmd_setnext(bot, user, chan, realtarget, *args):
 	state.nextq = [question, answer]
 	bot.msg(user, "Done.")
 
-@lib.hook('skip', glevel=1, needchan=False)
-def cmd_skip(bot, user, chan, realtarget, *args):
+@lib.hook(glevel=1, needchan=False)
+def skip(bot, user, chan, realtarget, *args):
 	state.nextquestion(qskipped=True, skipwait=True)
 
-@lib.hook('start', needchan=False)
-def cmd_start(bot, user, chan, realtarget, *args):
+@lib.hook(needchan=False)
+def start(bot, user, chan, realtarget, *args):
 	if chan is not None and realtarget == chan.name: replyto = chan
 	else: replyto = user
 
@@ -436,16 +436,16 @@ def stop():
 	except NameError:
 		pass
 
-@lib.hook('badq', needchan=False)
+@lib.hook(needchan=False)
 @lib.argsGE(2)
-def cmd_badq(bot, user, chan, realtarget, *args):
+def badq(bot, user, chan, realtarget, *args):
 	qid = int(args[0])
 	reason = ' '.join(args[1:])
 	state.db['badqs'].append([qid, reason])
 	bot.msg(user, "Reported bad question #%d" % (qid))
 
-@lib.hook('badqs', glevel=lib.STAFF, needchan=False)
-def cmd_badqs(bot, user, chan, realtarget, *args):
+@lib.hook(glevel=lib.STAFF, needchan=False)
+def badqs(bot, user, chan, realtarget, *args):
 	if len(state.db['badqs']) == 0:
 		bot.msg(user, "No reports.")
 
@@ -459,20 +459,20 @@ def cmd_badqs(bot, user, chan, realtarget, *args):
 		except Exception as e:
 			bot.msg(user, "- Exception: %r" % (e))
 
-@lib.hook('clearbadqs', glevel=lib.STAFF, needchan=False)
-def cmd_clearbadqs(bot, user, chan, realtarget, *args):
+@lib.hook(glevel=lib.STAFF, needchan=False)
+def clearbadqs(bot, user, chan, realtarget, *args):
 	state.db['badqs'] = []
 	bot.msg(user, "Cleared reports.")
 
-@lib.hook('delbadq', glevel=lib.STAFF, needchan=False)
+@lib.hook(glevel=lib.STAFF, needchan=False)
 @lib.argsEQ(1)
-def cmd_delbadq(bot, user, chan, realtarget, *args):
+def delbadq(bot, user, chan, realtarget, *args):
 	qid = int(args[0])
 	del state.db['badqs'][qid]
 	bot.msg(user, "Removed report #%d" % (qid))
 
-@lib.hook('rank', needchan=False)
-def cmd_rank(bot, user, chan, realtarget, *args):
+@lib.hook(needchan=False)
+def rank(bot, user, chan, realtarget, *args):
 	if chan is not None and realtarget == chan.name: replyto = chan
 	else: replyto = user
 
@@ -481,8 +481,8 @@ def cmd_rank(bot, user, chan, realtarget, *args):
 
 	bot.msg(replyto, "%s is in %d place (%s points). Target is: %s (%s points)." % (who, state.rank(who), state.points(who), state.targetuser(who), state.targetpoints(who)))
 
-@lib.hook('top10', needchan=False)
-def cmd_top10(bot, user, chan, realtarget, *args):
+@lib.hook(needchan=False)
+def top10(bot, user, chan, realtarget, *args):
 	if len(state.db['ranks']) == 0:
 		return bot.msg(state.db['chan'], "No one is ranked!")
 
@@ -492,8 +492,8 @@ def cmd_top10(bot, user, chan, realtarget, *args):
 	replylist = ', '.join(["%s (%s) %s" % (person(x), country(x, "unknown"), pts(x)) for x in range(max)])
 	bot.msg(state.db['chan'], "Top %d: %s" % (max, replylist))
 
-@lib.hook('settarget', glevel=lib.ADMIN, needchan=False)
-def cmd_settarget(bot, user, chan, realtarget, *args):
+@lib.hook(glevel=lib.ADMIN, needchan=False)
+def settarget(bot, user, chan, realtarget, *args):
 	try:
 		state.db['target'] = int(args[0])
 		bot.msg(state.db['chan'], "Target has been changed to %s points!" % (state.db['target']))
@@ -506,8 +506,8 @@ def cmd_settarget(bot, user, chan, realtarget, *args):
 		print e
 		bot.msg(user, "Failed to set target.")
 
-@lib.hook('vote', needchan=False)
-def cmd_vote(bot, user, chan, realtarget, *args):
+@lib.hook(needchan=False)
+def vote(bot, user, chan, realtarget, *args):
 	if state.pointvote is not None:
 		if int(args[0]) in state.voteamounts:
 			state.voteamounts[int(args[0])] += 1
@@ -517,40 +517,40 @@ def cmd_vote(bot, user, chan, realtarget, *args):
 	else:
 		bot.msg(user, "There's no vote in progress.")
 
-@lib.hook('maxmissed', glevel=lib.ADMIN, needchan=False)
-def cmd_maxmissed(bot, user, chan, realtarget, *args):
+@lib.hook(glevel=lib.ADMIN, needchan=False)
+def maxmissed(bot, user, chan, realtarget, *args):
 	try:
 		state.db['maxmissedquestions'] = int(args[0])
 		bot.msg(state.db['chan'], "Max missed questions before round ends has been changed to %s." % (state.db['maxmissedquestions']))
 	except:
 		bot.msg(user, "Failed to set maxmissed.")
 
-@lib.hook('hinttimer', glevel=lib.ADMIN, needchan=False)
-def cmd_hinttimer(bot, user, chan, realtarget, *args):
+@lib.hook(glevel=lib.ADMIN, needchan=False)
+def hinttimer(bot, user, chan, realtarget, *args):
 	try:
 		state.db['hinttimer'] = float(args[0])
 		bot.msg(state.db['chan'], "Time between hints has been changed to %s." % (state.db['hinttimer']))
 	except:
 		bot.msg(user, "Failed to set hint timer.")
 
-@lib.hook('hintnum', glevel=lib.ADMIN, needchan=False)
-def cmd_hintnum(bot, user, chan, realtarget, *args):
+@lib.hook(glevel=lib.ADMIN, needchan=False)
+def hintnum(bot, user, chan, realtarget, *args):
 	try:
 		state.db['hintnum'] = int(args[0])
 		bot.msg(state.db['chan'], "Max number of hints has been changed to %s." % (state.db['hintnum']))
 	except:
 		bot.msg(user, "Failed to set hintnum.")
 
-@lib.hook('questionpause', glevel=lib.ADMIN, needchan=False)
-def cmd_questionpause(bot, user, chan, realtarget, *args):
+@lib.hook(glevel=lib.ADMIN, needchan=False)
+def questionpause(bot, user, chan, realtarget, *args):
 	try:
 		state.db['questionpause'] = float(args[0])
 		bot.msg(state.db['chan'], "Pause between questions has been changed to %s." % (state.db['questionpause']))
 	except:
 		bot.msg(user, "Failed to set questionpause.")
 
-@lib.hook('findq', glevel=1, needchan=False)
-def cmd_findquestion(bot, user, chan, realtarget, *args):
+@lib.hook(glevel=1, needchan=False)
+def findq(bot, user, chan, realtarget, *args):
 	matches = [str(i) for i in range(len(state.db['questions'])) if state.db['questions'][i][0] == ' '.join(args)] #TODO looser equality check
 	if len(matches) > 1:
 		bot.msg(user, "Multiple matches: %s" % (', '.join(matches)))
@@ -559,9 +559,8 @@ def cmd_findquestion(bot, user, chan, realtarget, *args):
 	else:
 		bot.msg(user, "No match.")
 
-@lib.hook('delq', glevel=lib.STAFF, needchan=False)
-@lib.hook('deleteq', glevel=lib.STAFF, needchan=False)
-def cmd_deletequestion(bot, user, chan, realtarget, *args):
+@lib.hook(('delq', 'deleteq'), glevel=lib.STAFF, needchan=False)
+def delq(bot, user, chan, realtarget, *args):
 	try:
 		backup = state.db['questions'][int(args[0])]
 		del state.db['questions'][int(args[0])]
@@ -569,8 +568,8 @@ def cmd_deletequestion(bot, user, chan, realtarget, *args):
 	except:
 		bot.msg(user, "Couldn't delete that question.")
 
-@lib.hook('addq', glevel=lib.STAFF, needchan=False)
-def cmd_addquestion(bot, user, chan, realtarget, *args):
+@lib.hook(glevel=lib.STAFF, needchan=False)
+def addq(bot, user, chan, realtarget, *args):
 	line = ' '.join([str(arg) for arg in args])
 	linepieces = line.split('*')
 	if len(linepieces) < 2:
@@ -582,8 +581,8 @@ def cmd_addquestion(bot, user, chan, realtarget, *args):
 	bot.msg(user, "Done. Question is #%s" % (len(state.db['questions'])-1))
 
 
-@lib.hook('triviahelp', needchan=False)
-def cmd_triviahelp(bot, user, chan, realtarget, *args):
+@lib.hook(needchan=False)
+def triviahelp(bot, user, chan, realtarget, *args):
 	bot.msg(user,             "START")
 	bot.msg(user,             "TOP10")
 	bot.msg(user,             "POINTS        [<user>]")

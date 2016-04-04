@@ -47,24 +47,27 @@ def getauth(thing):
 				return "#"+parent.user(thing).auth
 	return None
 
-def has(user, key):
+def _has(user, key):
 	return (
 		key in db.get(getauth(user), {}) or
 		key in db.get(str(user).lower(), {})
 	)
-def get(user, key, default=None):
+def _get(user, key, default=None):
 	return (
-		db.get(getauth(user), {}).get(key,
-		db.get(str(user).lower(), {}).get(key,
-		default
+		db.get(getauth(user), {}). #try to get the auth
+			get(key, #try to get the info-key by auth
+			db.get(str(user).lower(), {}). #fallback to using the nick
+			get(key, #and try to get the info-key from that
+			default #otherwise throw out whatever default
 	)))
-def set(user, key, value):
-	if getauth(user) is not None: db.setdefault(getauth(user), {})[key] = value
-	db.setdefault(str(user).lower(), {})[key] = value
+def _set(user, key, value):
+	if getauth(user) is not None:
+		db.setdefault(getauth(user), {})[key] = value #use auth if we can
+	db.setdefault(str(user).lower(), {})[key] = value #but set nick too
 
 #commands
-@lib.hook('get', needchan=False)
-def cmd_get(bot, user, chan, realtarget, *args):
+@lib.hook(needchan=False)
+def getinfo(bot, user, chan, realtarget, *args):
 	if chan is not None and realtarget == chan.name: replyto = chan
 	else: replyto = user
 
@@ -75,20 +78,20 @@ def cmd_get(bot, user, chan, realtarget, *args):
 		target = user
 		item = args[0]
 
-	value = get(target, item, None)
+	value = _get(target, item, None)
 	if value is None:
 		bot.msg(replyto, "%(user)s: %(item)s on %(target)s is not set." % {'user':user,'item':item,'target':target})
 	else:
 		bot.msg(replyto, "%(user)s: %(item)s on %(target)s: %(value)s" % {'user':user,'item':item,'target':target,'value':value})
 
-@lib.hook('set', needchan=False)
+@lib.hook(needchan=False)
 @lib.argsGE(2)
-def cmd_set(bot, user, chan, realtarget, *args):
-	set(user, args[0], ' '.join(args[1:]))
+def setinfo(bot, user, chan, realtarget, *args):
+	_set(user, args[0], ' '.join(args[1:]))
 	bot.msg(user, "Done.")
 
-@lib.hook('oset', glevel=lib.STAFF, needchan=False)
+@lib.hook(glevel=lib.STAFF, needchan=False)
 @lib.argsGE(3)
-def cmd_oset(bot, user, chan, realtarget, *args):
-	set(args[0], args[1], ' '.join(args[2:]))
+def osetinfo(bot, user, chan, realtarget, *args):
+	_set(args[0], args[1], ' '.join(args[2:]))
 	bot.msg(user, "Done.")
