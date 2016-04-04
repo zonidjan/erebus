@@ -80,7 +80,7 @@ class Bot(object):
 		elif pieces[1] == "PART":
 			nick = pieces[0].split('!')[0][1:]
 			chan = self.parent.channel(pieces[2])
-			
+
 			if nick != self.nick:
 				self.parent.user(nick).part(chan)
 				chan.userpart(self.parent.user(nick))
@@ -102,7 +102,7 @@ class Bot(object):
 		elif pieces[1] == "MODE": #TODO parse for ops/voices (at least)
 			pass
 
-	
+
 	def parsemsg(self, user, target, msg):
 		chan = None
 		if len(msg) == 0:
