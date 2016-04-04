@@ -22,7 +22,7 @@ import ctlmod
 
 
 def module(name):
-	return lib.parent.module(name)
+	return lib.mod(name)
 
 @lib.hook('eval', needchan=False, glevel=lib.MANAGER)
 @lib.argsGE(1)
