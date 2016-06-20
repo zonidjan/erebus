@@ -3,7 +3,7 @@
 # Erebus IRC bot - Author: John Runyon
 # "Bot" and "BotConnection" classes (handling a specific "arm")
 
-import socket, sys
+import socket, sys, time
 
 #bots = {'erebus': bot.Bot(nick='Erebus', user='erebus', bind='', server='irc.quakenet.org', port=6667, realname='Erebus')}
 class Bot(object):
@@ -205,7 +205,8 @@ class BotConnection(object):
 
 	#TODO: rewrite send() to queue
 	def send(self, line):
-		print self.parent.nick, '[O]', str(line)
+		print "%05.3f %s [O] %s" % (time.time() % 100000, self.parent.nick, line)
+#		print (time.time() % 1466400000), self.parent.nick, '[O]', str(line)
 		self._write(line)
 
 	def _write(self, line):
@@ -217,7 +218,8 @@ class BotConnection(object):
 
 		while "\r\n" in self.buffer:
 			pieces = self.buffer.split("\r\n", 1)
-			print self.parent.nick, '[I]', pieces[0]
+			print "%05.3f %s [I] %s" % (time.time() % 100000, self.parent.nick, pieces[0])
+#			print (time.time() % 1460000000), self.parent.nick, '[I]', pieces[0]
 			lines.append(pieces[0])
 			self.buffer = pieces[1]
 
