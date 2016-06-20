@@ -235,11 +235,11 @@ class Erebus(object):
 
 class MyCursor(MySQLdb.cursors.DictCursor):
 	def execute(self, *args, **kwargs):
-		print "[SQL] [#] MyCursor.execute(self, %s, %s)" % (', '.join([repr(i) for i in args]), ', '.join([str(key)+"="+repr(kwargs[key]) for key in kwargs]))
+		print "%05.3f [SQL] [#] MyCursor.execute(self, %s, %s)" % (time.time() % 100000, ', '.join([repr(i) for i in args]), ', '.join([str(key)+"="+repr(kwargs[key]) for key in kwargs]))
 		try:
 			super(self.__class__, self).execute(*args, **kwargs)
 		except MySQLdb.MySQLError as e:
-			print "[SQL] [!] MySQL error! %r" % (e)
+			print "%05.3f [SQL] [!] MySQL error! %r" % (time.time() % 100000, e)
 			dbsetup()
 			return False
 		return True
@@ -257,14 +257,7 @@ def setup():
 
 	autoloads = [mod for mod, yes in cfg.items('autoloads') if int(yes) == 1]
 	for mod in autoloads:
-		print "Loading %s ... " % (mod),
-		modstatus = ctlmod.load(main, mod)
-		if not modstatus:
-			print str(modstatus)
-		elif modstatus == True:
-			print "OK"
-		else:
-			print modstatus
+		ctlmod.load(main, mod)
 
 	dbsetup()
 	c = main.db.cursor()

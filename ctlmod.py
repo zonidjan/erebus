@@ -1,7 +1,7 @@
 # Erebus IRC bot - Author: John Runyon
 # module loading/unloading/tracking code
 
-import sys
+import sys, time
 import modlib
 
 modules = {}
@@ -10,7 +10,25 @@ dependents = {}
 def isloaded(modname): return modname in modules
 def modhas(modname, attname): return getattr(modules[modname], attname, None) is not None
 
-def load(parent, modname):
+def load(parent, modname, dependent=False):
+	#wrapper to call _load and print return
+	if dependent:
+		print "Loading dependency %s..." % (modname),
+	else:
+		print "%05.3f [MOD] [#] Loading %s... " % (time.time() % 100000, modname),
+	modstatus = _load(parent, modname, dependent)
+	if not modstatus:
+		print str(modstatus)
+	elif modstatus == True:
+		if dependent:
+			print "OK. ",
+		else:
+			print "OK."
+	else:
+		print modstatus
+	return modstatus
+
+def _load(parent, modname, dependent=False):
 	if not isloaded(modname):
 		sys.path.insert(0, 'modules')
 		try:
@@ -33,7 +51,7 @@ def load(parent, modname):
 
 		for dep in mod.modinfo['depends']:
 			if dep not in modules:
-				depret = load(parent, dep)
+				depret = load(parent, dep, dependent=True)
 				if not depret:
 					return
 			dependents[dep].append(modname)
