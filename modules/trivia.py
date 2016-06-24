@@ -63,6 +63,8 @@ class TriviaState(object):
 		self.revealpossibilities = None
 		self.gameover = False
 		self.missedquestions = 0
+		self.curqid = None
+		self.lastqid = None
 
 		if 'starttime' not in self.db or self.db['starttime'] is None:
 			self.db['starttime'] = time.time()
@@ -195,7 +197,9 @@ class TriviaState(object):
 		self.nextquestion() #start the game!
 
 	def nextquestion(self, qskipped=False, iteration=0, skipwait=False):
+		self.lastqid = self.curqid
 		self.curq = None
+		self.curqid = None
 		if self.gameover == True:
 			return self.doGameOver()
 		if qskipped:
@@ -259,6 +263,7 @@ class TriviaState(object):
 		self.getbot().msg(self.chan, qtext)
 
 		self.curq = nextq
+		self.curqid = nextqid
 
 		if isinstance(self.curq[1], basestring): self.hintanswer = self.curq[1]
 		else: self.hintanswer = random.choice(self.curq[1])
@@ -437,12 +442,14 @@ def stop():
 		pass
 
 @lib.hook(needchan=False)
-@lib.argsGE(2)
+@lib.argsGE(1)
 def badq(bot, user, chan, realtarget, *args):
-	qid = int(args[0])
-	reason = ' '.join(args[1:])
-	state.db['badqs'].append([qid, reason])
-	bot.msg(user, "Reported bad question #%d" % (qid))
+	lastqid = state.lastqid
+	curqid = state.curqid
+
+	reason = ' '.join(args)
+	state.db['badqs'].append([lastqid, curqid, reason])
+	bot.msg(user, "Reported bad question.")
 
 @lib.hook(glevel=lib.STAFF, needchan=False)
 def badqs(bot, user, chan, realtarget, *args):
@@ -452,10 +459,13 @@ def badqs(bot, user, chan, realtarget, *args):
 	for i in range(len(state.db['badqs'])):
 		try:
 			report = state.db['badqs'][i]
-			bot.msg(user, "Report #%d: Q%d: %s" % (i, report[0], report[1]))
-			question = state.db['questions'][int(report[0])]
-			bot.msg(user, "- Question is: %s" % (question[0]))
-			bot.msg(user, "- Answer is: %s" % (question[1]))
+			bot.msg(user, "Report #%d: LastQ=%r CurQ=%r: %s" % (i, report[0], report[1], report[2]))
+			try: lq = state.db['questions'][int(report[0])]
+			except Exception as e: lq = (None,None)
+			try: cq = state.db['questions'][int(report[1])]
+			except Exception as e: cq = (None, None)
+			bot.msg(user, "- Last: %s*%s" % (lq[0], lq[1]))
+			bot.msg(user, "- Curr: %s*%s" % (cq[0], cq[1]))
 		except Exception as e:
 			bot.msg(user, "- Exception: %r" % (e))
 
