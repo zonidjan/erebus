@@ -255,8 +255,8 @@ class TriviaState(object):
 		nextq[1] = nextq[1].lower()
 
 		qtext = "\00304,01Next up: "
-		if nextqid is not None:
-			qtext += "(%d) " % (nextqid)
+		if nextqid is None:
+			qtext += "(DYNAMIC) "
 		qary = nextq[0].split(None)
 		for qword in qary:
 			qtext += "\00304,01"+qword+"\00301,01"+chr(random.randrange(0x61,0x7A)) #a-z
