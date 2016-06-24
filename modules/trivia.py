@@ -551,7 +551,8 @@ def questionpause(bot, user, chan, realtarget, *args):
 
 @lib.hook(glevel=1, needchan=False)
 def findq(bot, user, chan, realtarget, *args):
-	matches = [str(i) for i in range(len(state.db['questions'])) if state.db['questions'][i][0] == ' '.join(args)] #TODO looser equality check
+	searcher = re.compile(' '.join(args))
+	matches = [str(i) for i in range(len(state.db['questions'])) if searcher.search(state.db['questions'][i][0]) is not None]
 	if len(matches) > 1:
 		bot.msg(user, "Multiple matches: %s" % (', '.join(matches)))
 	elif len(matches) == 1:
