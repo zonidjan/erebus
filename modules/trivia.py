@@ -255,9 +255,9 @@ class TriviaState(object):
 		nextq[1] = nextq[1].lower()
 
 		qtext = "\00304,01Next up: "
-		if nextqid is None:
-			qtext += "(DYNAMIC) "
+		qtext += "(%5d)"% (random.randint(0,99999))
 		qary = nextq[0].split(None)
+		qtext += " "
 		for qword in qary:
 			qtext += "\00304,01"+qword+"\00301,01"+chr(random.randrange(0x61,0x7A)) #a-z
 		self.getbot().msg(self.chan, qtext)
@@ -376,7 +376,11 @@ def setnextid(bot, user, chan, realtarget, *args):
 	try:
 		qid = int(args[0])
 		state.nextq = state.db['questions'][qid]
-		bot.msg(user, "Done. Next question is: %s" % (state.nextq[0]))
+		if user.glevel >= lib.STAFF:
+			respstr = "Done. Next question is: %s" % (state.nextq[0])
+		else:
+			respstr = "Done."
+		bot.msg(user, respstr)
 	except Exception as e:
 		bot.msg(user, "Error: %s" % (e))
 
