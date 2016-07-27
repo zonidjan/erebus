@@ -49,22 +49,22 @@ class TriviaState(object):
 			self.gotParent(parent, pointvote)
 
 	def gotParent(self, parent, pointvote=False):
-		self.parent = parent
-		self.questionfile = self.parent.cfg.get('trivia', 'jsonpath', default="./modules/trivia.json")
-		self.db = json.load(open(self.questionfile, "r"))
-		self.chan = self.db['chan']
-		self.curq = None
-		self.nextq = None
-		self.nextquestiontimer = None
-		self.steptimer = None
-		self.hintstr = None
-		self.hintanswer = None
-		self.hintsgiven = 0
+		self.parent              = parent
+		self.questionfile        = self.parent.cfg.get('trivia', 'jsonpath', default="./modules/trivia.json")
+		self.db                  = json.load(open(self.questionfile, "r"))
+		self.chan                = self.db['chan']
+		self.curq                = None
+		self.nextq               = None
+		self.nextquestiontimer   = None
+		self.steptimer           = None
+		self.hintstr             = None
+		self.hintanswer          = None
+		self.hintsgiven          = 0
 		self.revealpossibilities = None
-		self.gameover = False
-		self.missedquestions = 0
-		self.curqid = None
-		self.lastqid = None
+		self.gameover            = False
+		self.missedquestions     = 0
+		self.curqid              = None
+		self.lastqid             = None
 
 		if 'starttime' not in self.db or self.db['starttime'] is None:
 			self.db['starttime'] = time.time()
@@ -255,7 +255,7 @@ class TriviaState(object):
 		nextq[1] = nextq[1].lower()
 
 		qtext = "\00304,01Next up: "
-		qtext += "(%5d)"% (random.randint(0,99999))
+		qtext += "(%5d)" % (random.randint(0,99999))
 		qary = nextq[0].split(None)
 		qtext += " "
 		for qword in qary:
@@ -565,9 +565,15 @@ def questionpause(bot, user, chan, realtarget, *args):
 
 @lib.hook(glevel=1, needchan=False)
 def findq(bot, user, chan, realtarget, *args):
+	if len(args) == 0:
+		bot.msg(user, "You need to specify a search string.")
+		return
+
 	searcher = re.compile(' '.join(args))
 	matches = [str(i) for i in range(len(state.db['questions'])) if searcher.search(state.db['questions'][i][0]) is not None]
-	if len(matches) > 1:
+	if len(matches) > 25:
+		bot.msg(user, "Too many matches! (>25)")
+	elif len(matches) > 1:
 		bot.msg(user, "Multiple matches: %s" % (', '.join(matches)))
 	elif len(matches) == 1:
 		bot.msg(user, "One match: %s" % (matches[0]))
@@ -602,7 +608,7 @@ def triviahelp(bot, user, chan, realtarget, *args):
 	bot.msg(user,             "TOP10")
 	bot.msg(user,             "POINTS        [<user>]")
 	bot.msg(user,             "RANK          [<user>]")
-	bot.msg(user,             "BADQ          <id> <reason>")
+	bot.msg(user,             "BADQ          <reason> (include info to identify question)")
 	if user.glevel >= 1:
 		bot.msg(user,         "SKIP                            (>=KNOWN)")
 		bot.msg(user,         "STOP                            (>=KNOWN)")
