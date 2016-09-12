@@ -27,14 +27,17 @@ ctlmod: needs to print out a traceback. traceback.print_exc().
 [X] automatically change topic
 [X] automatic periodically displaying top 10 by country (assigned countries by stored player stats)
     	implemented as part of !top10 and TOPIC instead
+[X] error reporting system (one exists with hashie but it sucked and no one checked it)
+[X] live high score table on webpage (stats accessible)
+[X] auto topic changes for last round won (configurable by a text file or similar)
 
-v2
-	multi-channel
-	team play (Create/edit/addplayer/removeplayer) needs password & email address for team captain
-	stats. lots of them. (per round/lifetime stats, fastest, biggest streak, team stats, etc)
-	live high score table on webpage (stats accessible)
-	error reporting system (one exists with hashie but it sucked and no one checked it)
-	question categories (able to change different question lists currently in use. i.e. tv/movies/music/general/etc categories)
-	auto topic changes for last round won (configurable by a text file or similar)
-	small challenges for preset targets (e.g. 1st to 20 points/most points in 10 mins) player vs player, team vs team, free for all)
-	question management system done via web
+
+convert to using MySQL for question/stat/game storage
+multi-channel
+team play (Create/edit/addplayer/removeplayer) needs password & email address for team captain
+stats. lots of them. (per round/lifetime stats, fastest, biggest streak, team stats, etc)
+question categories (able to change different question lists currently in use. i.e. tv/movies/music/general/etc categories)
+small challenges for preset targets (e.g. 1st to 20 points/most points in 10 mins) player vs player, team vs team, free for all)
+question management system done via web
+team play (Create/edit/addplayer/removeplayer) needs password & email address for team captain
+question categories (able to change different question lists currently in use. i.e. tv/movies/music/general/etc categories)
