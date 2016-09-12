@@ -3,7 +3,8 @@
 # Erebus IRC bot - Author: John Runyon
 # "Bot" and "BotConnection" classes (handling a specific "arm")
 
-import socket, sys, time
+import socket, sys, time, threading
+from collections import deque
 
 #bots = {'erebus': bot.Bot(nick='Erebus', user='erebus', bind='', server='irc.quakenet.org', port=6667, realname='Erebus')}
 class Bot(object):
@@ -23,6 +24,11 @@ class Bot(object):
 			self.chans = [self.parent.newchannel(self, row['chname']) for row in chansres]
 
 		self.conn = BotConnection(self, bind, server, port)
+
+		self.msgqueue = deque()
+		self.makemsgtimer()
+
+
 	def connect(self):
 		if self.conn.connect():
 			self.parent.newfd(self, self.conn.socket.fileno())
@@ -99,6 +105,10 @@ class Bot(object):
 				del self.parent.users[oldnick.lower()]
 			self.parent.users[newnick.lower()].nickchange(newnick)
 
+		elif pieces[0] == "ERROR":
+			sys.exit(2)
+			os._exit(2)
+
 		elif pieces[1] == "MODE": #TODO parse for ops/voices (at least)
 			pass
 
@@ -156,12 +166,32 @@ class Bot(object):
 	def msg(self, target, msg):
 		if target is None or msg is None: return
 
-		if isinstance(target, self.parent.User): self.conn.send("NOTICE %s :%s" % (target.nick, msg))
-		elif isinstance(target, self.parent.Channel): self.conn.send("PRIVMSG %s :%s" % (target.name, msg))
-		elif isinstance(target, basestring):
-			if target[0] == '#': self.conn.send("PRIVMSG %s :%s" % (target, msg))
-			else: self.conn.send("NOTICE %s :%s" % (target, msg))
-		else: raise TypeError('Bot.msg() "target" must be Erebus.User, Erebus.Channel, or string')
+		self.msgqueue.append((target,msg))
+		if not self.msgtimer.is_alive():
+			self.msgtimer.start()
+
+	def fastmsg(self, target, msg):
+
+		if isinstance(target, self.parent.User): target = target.nick
+		elif isinstance(target, self.parent.Channel): target = target.name
+		elif not isinstance(target, basestring): raise TypeError('Bot.msg() "target" must be Erebus.User, Erebus.Channel, or string')
+
+		if target[0] == '#': command = "PRIVMSG %s :%s" % (target, msg)
+		else: command = "NOTICE %s :%s" % (target, msg)
+
+		self.conn.send(command)
+
+	def _popmsg(self):
+		self.makemsgtimer()
+
+		try:
+			self.fastmsg(*self.msgqueue.popleft())
+			self.msgtimer.start()
+		except IndexError: pass
+
+	def makemsgtimer(self):
+		self.msgtimer = threading.Timer(2, self._popmsg)
+		self.msgtimer.daemon = True
 
 	def join(self, chan):
 		self.conn.send("JOIN %s" % (chan))

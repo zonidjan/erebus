@@ -27,7 +27,9 @@ class Erebus(object):
 			self.chans = []
 
 		def msg(self, *args, **kwargs):
-			main.randbot.msg(self, *args, **kwargs)
+			main.randbot().msg(self, *args, **kwargs)
+		def fastmsg(self, *args, **kwargs):
+			main.randbot().fastmsg(self, *args, **kwargs)
 
 		def isauthed(self):
 			return self.auth is not None
@@ -84,7 +86,9 @@ class Erebus(object):
 
 
 		def msg(self, *args, **kwargs):
-			self.bot.msg(self.name, *args, **kwargs)
+			self.bot.msg(self, *args, **kwargs)
+		def fastmsg(self, *args, **kwargs):
+			self.bot.fastmsg(self, *args, **kwargs)
 
 		def levelof(self, auth):
 			if auth is None:
@@ -253,6 +257,11 @@ def setup():
 	global cfg, main
 
 	cfg = config.Config('bot.config')
+
+	pidfile = open(cfg.pidfile, 'w')
+	pidfile.write(str(os.getpid()))
+	pidfile.close()
+
 	main = Erebus(cfg)
 
 	autoloads = [mod for mod, yes in cfg.items('autoloads') if int(yes) == 1]
