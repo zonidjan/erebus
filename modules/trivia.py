@@ -131,6 +131,9 @@ class TriviaState(object):
 		except IndexError: pass
 		except Exception as e: msg("DERP! %r" % (e))
 
+		self.db['lastwinner'] = winner
+		self.db['lastwon'] = time.time()
+
 		if self.db['hofpath'] is not None and self.db['hofpath'] != '':
 			self.writeHof()
 
@@ -660,6 +663,8 @@ def num_TOPIC(bot, textline):
 			"%s (%s, %s)" % (person(x), pts(x), country(x))
 			for x in range(10) if x < len(state.db['ranks'])
 		]),
+		'lastwinner': state.db['lastwinner'],
+		'lastwon': time.strftime("%b %d", time.gmtime(state.db['lastwon'])),
 		'target': state.db['target'],
 	}
 	if gottopic != formatted:
