@@ -30,7 +30,7 @@ def modstop(*args, **kwargs):
 import json, random, threading, re, time, datetime
 
 try:
-	import twitter 
+	import twitter
 except: pass # doesn't matter if we don't have twitter, updating the status just will fall through the try-except if so...
 
 def findnth(haystack, needle, n): #http://stackoverflow.com/a/1884151
@@ -42,6 +42,11 @@ def findnth(haystack, needle, n): #http://stackoverflow.com/a/1884151
 def person(num): return state.db['users'][state.db['ranks'][num]]['realnick']
 def pts(num): return str(state.db['users'][state.db['ranks'][num]]['points'])
 def country(num, default="??"): return lib.mod('userinfo')._get(person(num), 'country', default=default)
+
+class MyTimer(threading._Timer):
+	def __init__(self, *args, **kwargs):
+		threading._Timer.__init__(self, *args, **kwargs)
+		self.daemon = True
 
 class TriviaState(object):
 	def __init__(self, parent=None, pointvote=False):
@@ -73,7 +78,7 @@ class TriviaState(object):
 			self.getchan().msg("Vote for the next round target points! Options: %s. Vote using !vote <choice>" % (', '.join([str(x) for x in self.db['targetoptions']])))
 			self.getchan().msg("You have %s seconds." % (self.db['votetimer']))
 			self.voteamounts = dict([(x, 0) for x in self.db['targetoptions']]) # make a dict {pointsoptionA: 0, pointsoptionB: 0, ...}
-			self.pointvote = threading.Timer(self.db['votetimer'], self.endPointVote)
+			self.pointvote = MyTimer(self.db['votetimer'], self.endPointVote)
 			self.pointvote.start()
 		else:
 			self.pointvote = None
@@ -108,15 +113,15 @@ class TriviaState(object):
 			revealloc = findnth(''.join(self.hintstr), '*', revealcount)
 			self.revealpossibilities.remove(revealcount)
 			self.hintstr[revealloc] = answer[revealloc]
-		self.parent.channel(self.chan).bot.msg(self.chan, "\00304,01Here's a hint: %s" % (''.join(self.hintstr)))
+		self.parent.channel(self.chan).bot.fastmsg(self.chan, "\00304,01Here's a hint: %s" % (''.join(self.hintstr)))
 
 		self.hintsgiven += 1
 
 		if hintnum < self.db['hintnum']:
-			self.steptimer = threading.Timer(self.db['hinttimer'], self.nexthint, args=[hintnum+1])
+			self.steptimer = MyTimer(self.db['hinttimer'], self.nexthint, args=[hintnum+1])
 			self.steptimer.start()
 		else:
-			self.steptimer = threading.Timer(self.db['hinttimer'], self.nextquestion, args=[True])
+			self.steptimer = MyTimer(self.db['hinttimer'], self.nextquestion, args=[True])
 			self.steptimer.start()
 
 	def doGameOver(self):
@@ -206,7 +211,7 @@ class TriviaState(object):
 		if self.gameover == True:
 			return self.doGameOver()
 		if qskipped:
-			self.getchan().msg("\00304Fail! The correct answer was: %s" % (self.hintanswer))
+			self.getchan().fastmsg("\00304Fail! The correct answer was: %s" % (self.hintanswer))
 			self.missedquestions += 1
 		else:
 			self.missedquestions = 0
@@ -232,7 +237,7 @@ class TriviaState(object):
 		if skipwait:
 			self._nextquestion(iteration)
 		else:
-			self.nextquestiontimer = threading.Timer(self.db['questionpause'], self._nextquestion, args=[iteration])
+			self.nextquestiontimer = MyTimer(self.db['questionpause'], self._nextquestion, args=[iteration])
 			self.nextquestiontimer.start()
 
 	def _nextquestion(self, iteration):
@@ -263,7 +268,7 @@ class TriviaState(object):
 		qtext += " "
 		for qword in qary:
 			qtext += "\00304,01"+qword+"\00301,01"+chr(random.randrange(0x61,0x7A)) #a-z
-		self.getbot().msg(self.chan, qtext)
+		self.getbot().fastmsg(self.chan, qtext)
 
 		self.curq = nextq
 		self.curqid = nextqid
@@ -271,7 +276,7 @@ class TriviaState(object):
 		if isinstance(self.curq[1], basestring): self.hintanswer = self.curq[1]
 		else: self.hintanswer = random.choice(self.curq[1])
 
-		self.steptimer = threading.Timer(self.db['hinttimer'], self.nexthint, args=[1])
+		self.steptimer = MyTimer(self.db['hinttimer'], self.nexthint, args=[1])
 		self.steptimer.start()
 
 	def checkanswer(self, answer):
@@ -347,7 +352,7 @@ def trivia_checkanswer(bot, user, chan, *args):
 	line = ' '.join([str(arg) for arg in args])
 	if state.checkanswer(line):
 		state.curq = None
-		bot.msg(chan, "\00312%s\003 has it! The answer was \00312%s\003. New score: %d. Rank: %d. Target: %s (%s)." % (user, line, state.addpoint(user), state.rank(user), state.targetuser(user), state.targetpoints(user)))
+		bot.fastmsg(chan, "\00312%s\003 has it! The answer was \00312%s\003. New score: %d. Rank: %d. Target: %s (%s)." % (user, line, state.addpoint(user), state.rank(user), state.targetuser(user), state.targetpoints(user)))
 		if state.hintsgiven == 0:
 			bot.msg(chan, "\00312%s\003 got an extra point for getting it before the hints! New score: %d." % (user, state.addpoint(user)))
 		state.nextquestion()
@@ -427,6 +432,10 @@ def cmd_stop(bot, user, chan, realtarget, *args):
 		bot.msg(state.chan, "Game stopped by %s" % (user))
 	else:
 		bot.msg(user, "Game isn't running.")
+
+@lib.hook('exception')
+def cmd_exception(*args, **kwargs):
+	raise Exception()
 
 def stop():
 	try:
