@@ -10,6 +10,8 @@ dbname = erebus
 
 trigger = !
 
+pidfile = pidfile
+
 [autoloads]
 control = 1
 eval = 0

@@ -5,3 +5,5 @@
 bot.config
 .*.swp
 *.json
+nohup.out
+pidfile
