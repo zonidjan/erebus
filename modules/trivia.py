@@ -117,16 +117,21 @@ class TriviaState(object):
 		answer = self.hintanswer
 
 		if self.hintstr is None or self.revealpossibilities is None or self.reveal is None:
+			oldhintstr = ""
 			self.hintstr = list(re.sub(r'[a-zA-Z0-9]', '*', answer))
 			self.revealpossibilities = range(''.join(self.hintstr).count('*'))
-			self.reveal = int(''.join(self.hintstr).count('*') * (7/24.0))
+			self.reveal = int(round(''.join(self.hintstr).count('*') * (7/24.0)))
+		else:
+			oldhintstr = ''.join(self.hintstr)
 
 		for i in range(self.reveal):
 			revealcount = random.choice(self.revealpossibilities)
 			revealloc = findnth(''.join(self.hintstr), '*', revealcount)
 			self.revealpossibilities.remove(revealcount)
 			self.hintstr[revealloc] = answer[revealloc]
-		self.parent.channel(self.chan).bot.fastmsg(self.chan, "\00304,01Here's a hint: %s" % (''.join(self.hintstr)))
+		if oldhintstr != ''.join(self.hintstr): pass
+		else: self.hintstr = self.hintstr.append("!")
+		self.getchan().fastmsg("\00304,01Here's a hint: %s" % (''.join(self.hintstr)))
 
 		self.hintsgiven += 1
 
@@ -273,7 +278,10 @@ class TriviaState(object):
 		else:
 			nextq.append(time.time())
 
-		nextq[1] = nextq[1].lower()
+		if isinstance(nextq[1], basestring):
+			nextq[1] = nextq[1].lower()
+		else:
+			nextq[1] = [s.lower() for s in nextq[1]]
 
 		qtext = "\00312,01Next up: "
 		qtext += "(%5d)" % (random.randint(0,99999))
@@ -365,7 +373,10 @@ def trivia_checkanswer(bot, user, chan, *args):
 	line = ' '.join([str(arg) for arg in args])
 	if state.checkanswer(line):
 		state.curq = None
-		bot.fastmsg(chan, "\00312%s\003 has it! The answer was \00312%s\003. New score: %d. Rank: %d. Target: %s (%s)." % (user, line, state.addpoint(user), state.rank(user), state.targetuser(user), state.targetpoints(user)))
+		if state.hintanswer.lower() == line.lower():
+			bot.fastmsg(chan, "\00312%s\003 has it! The answer was \00312%s\003. New score: %d. Rank: %d. Target: %s (%s)." % (user, line, state.addpoint(user), state.rank(user), state.targetuser(user), state.targetpoints(user)))
+		else:
+			bot.fastmsg(chan, "\00312%s\003 has it! The answer was \00312%s\003 (hinted answer: %s). New score: %d. Rank: %d. Target: %s (%s)." % (user, line, state.hintanswer, state.addpoint(user), state.rank(user), state.targetuser(user), state.targetpoints(user)))
 		if state.hintsgiven == 0:
 			bot.msg(chan, "\00312%s\003 got an extra point for getting it before the hints! New score: %d." % (user, state.addpoint(user)))
 		state.nextquestion()
@@ -646,7 +657,7 @@ def triviahelp(bot, user, chan, realtarget, *args):
 
 @lib.hooknum(417)
 def num_417(bot, textline):
-	bot.fastmsg(state.db['chan'], "Whoops, it looks like that question didn't quite go through! (E:417). Let's try another...")
+#	bot.fastmsg(state.db['chan'], "Whoops, it looks like that question didn't quite go through! (E:417). Let's try another...")
 	state.nextquestion(qskipped=False, skipwait=True)
 
 @lib.hooknum(332)
