@@ -236,6 +236,7 @@ class BotConnection(object):
 	#TODO: rewrite send() to queue
 	def send(self, line):
 		print "%05.3f %s [O] %s" % (time.time() % 100000, self.parent.nick, line)
+		sys.stdout.flush()
 #		print (time.time() % 1466400000), self.parent.nick, '[O]', str(line)
 		self._write(line)
 
@@ -249,6 +250,7 @@ class BotConnection(object):
 		while "\r\n" in self.buffer:
 			pieces = self.buffer.split("\r\n", 1)
 			print "%05.3f %s [I] %s" % (time.time() % 100000, self.parent.nick, pieces[0])
+			sys.stdout.flush()
 #			print (time.time() % 1460000000), self.parent.nick, '[I]', pieces[0]
 			lines.append(pieces[0])
 			self.buffer = pieces[1]
