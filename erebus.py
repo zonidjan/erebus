@@ -284,7 +284,7 @@ def loop():
 			main.fd(fileno).parse(line)
 
 if __name__ == '__main__':
-	try: os.rename('logfile', 'oldlogs/%s' % (time.time()))
+	try: os.rename('logfile', 'oldlog.%s' % (time.time()))
 	except: pass
 	sys.stdout = open('logfile', 'w')
 	sys.stderr = sys.stdout
