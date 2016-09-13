@@ -7,5 +7,4 @@ bot.config
 *.json
 nohup.out
 pidfile
-oldlog.*
 logfile
