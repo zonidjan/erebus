@@ -39,13 +39,22 @@ def findnth(haystack, needle, n): #http://stackoverflow.com/a/1884151
 		return -1
 	return len(haystack)-len(parts[-1])-len(needle)
 
-def person(num):
-	try: return state.db['users'][state.db['ranks'][num]]['realnick']
-	except IndexError: return ''
+def person(num, throwindexerror=False):
+	try:
+		return state.db['users'][state.db['ranks'][num]]['realnick']
+	except IndexError:
+		if throwindexerror:
+			raise
+		else:
+			return ''
+
 def pts(num):
-	try: return str(state.db['users'][state.db['ranks'][num]]['points'])
-	except IndexError: return 0
-def country(num, default="??"): return lib.mod('userinfo')._get(person(num), 'country', default=default)
+	try:
+		return str(state.db['users'][state.db['ranks'][num]]['points'])
+	except IndexError:
+		return 0
+def country(num, default="??"):
+	return lib.mod('userinfo')._get(person(num), 'country', default=default)
 
 class MyTimer(threading._Timer):
 	def __init__(self, *args, **kwargs):
@@ -75,8 +84,8 @@ class TriviaState(object):
 		self.curqid              = None
 		self.lastqid             = None
 
-		if 'starttime' not in self.db or self.db['starttime'] is None:
-			self.db['starttime'] = time.time()
+		if 'lastwon' not in self.db or self.db['lastwon'] is None:
+			self.db['lastwon'] = time.time()
 
 		if pointvote:
 			self.getchan().msg("Vote for the next round target points! Options: %s. Vote using !vote <choice>" % (', '.join([str(x) for x in self.db['targetoptions']])))
@@ -133,10 +142,10 @@ class TriviaState(object):
 		winner = person(0)
 		try:
 			msg("\00312THE GAME IS OVER!!!")
-			msg("THE WINNER IS: %s (%s)" % (person(0), pts(0)))
-			msg("2ND PLACE: %s (%s)" % (person(1), pts(1)))
-			msg("3RD PLACE: %s (%s)" % (person(2), pts(2)))
-			[msg("%dth place: %s (%s)" % (i+1, person(i), pts(i))) for i in range(3,10)]
+			msg("THE WINNER IS: %s (%s)" % (person(0, True), pts(0)))
+			msg("2ND PLACE: %s (%s)" % (person(1, True), pts(1)))
+			msg("3RD PLACE: %s (%s)" % (person(2, True), pts(2)))
+			[msg("%dth place: %s (%s)" % (i+1, person(i, True), pts(i))) for i in range(3,10)]
 		except IndexError: pass
 		except Exception as e: msg("DERP! %r" % (e))
 
@@ -178,7 +187,7 @@ class TriviaState(object):
 			f.seek(insertpos)
 			f.write((self.db['hofformat']+"\n") % {
 				'date': time.strftime("%F", time.gmtime()),
-				'duration': str(datetime.timedelta(seconds=time.time()-self.db['starttime'])),
+				'duration': str(datetime.timedelta(seconds=time.time()-self.db['lastwon'])),
 				'targetscore': self.db['target'],
 				'firstperson': person(0),
 				'firstscore': pts(0),
@@ -266,7 +275,7 @@ class TriviaState(object):
 
 		nextq[1] = nextq[1].lower()
 
-		qtext = "\00304,01Next up: "
+		qtext = "\00312,01Next up: "
 		qtext += "(%5d)" % (random.randint(0,99999))
 		qary = nextq[0].split(None)
 		qtext += " "
@@ -426,9 +435,9 @@ def start(bot, user, chan, realtarget, *args):
 		bot.msg(state.db['chan'], "%s has started the game!" % (user))
 		state.nextquestion(skipwait=True)
 	elif state.pointvote is not None:
-		bot.msg(replyto, "There's a vote in progress!")
+		bot.msg(user, "There's a vote in progress!")
 	else:
-		bot.msg(replyto, "Game is already started!")
+		bot.msg(user, "Game is already started!")
 
 @lib.hook('stop', glevel=1, needchan=False)
 def cmd_stop(bot, user, chan, realtarget, *args):
@@ -511,7 +520,7 @@ def top10(bot, user, chan, realtarget, *args):
 	if max > 10:
 		max = 10
 	replylist = ', '.join(["%s (%s) %s" % (person(x), country(x, "unknown"), pts(x)) for x in range(max)])
-	bot.msg(state.db['chan'], "Top %d: %s" % (max, replylist))
+	bot.msg(state.db['chan'], "Top 10: %s" % (replylist))
 
 @lib.hook(glevel=lib.ADMIN, needchan=False)
 def settarget(bot, user, chan, realtarget, *args):
@@ -637,7 +646,7 @@ def triviahelp(bot, user, chan, realtarget, *args):
 
 @lib.hooknum(417)
 def num_417(bot, textline):
-	bot.msg(state.db['chan'], "Whoops, it looks like that question didn't quite go through! (E:417). Let's try another...")
+	bot.fastmsg(state.db['chan'], "Whoops, it looks like that question didn't quite go through! (E:417). Let's try another...")
 	state.nextquestion(qskipped=False, skipwait=True)
 
 @lib.hooknum(332)
@@ -691,7 +700,7 @@ def specialQuestion(oldq):
 
 def spellout(num):
 	return [
-		"zero", "one", "two", "three", "four", "five", "six", "seven", "eight", 
+		"zero", "one", "two", "three", "four", "five", "six", "seven", "eight",
 		"nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen",
 		"sixteen", "seventeen", "eighteen", "nineteen", "twenty"
 	][num]
