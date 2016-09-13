@@ -1,8 +1,8 @@
 #!/bin/bash
-exec &>/dev/null
 
 cd /home/jrunyon/erebus
+exec &>nohup.out
 
 if ! kill -0 "$(cat pidfile)"; then
-	nohup ./run.sh >nohup.out &
+	nohup ./run.sh &
 fi
