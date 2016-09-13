@@ -39,8 +39,12 @@ def findnth(haystack, needle, n): #http://stackoverflow.com/a/1884151
 		return -1
 	return len(haystack)-len(parts[-1])-len(needle)
 
-def person(num): return state.db['users'][state.db['ranks'][num]]['realnick']
-def pts(num): return str(state.db['users'][state.db['ranks'][num]]['points'])
+def person(num):
+	try: return state.db['users'][state.db['ranks'][num]]['realnick']
+	except IndexError: return ''
+def pts(num):
+	try: return str(state.db['users'][state.db['ranks'][num]]['points'])
+	except IndexError: return 0
 def country(num, default="??"): return lib.mod('userinfo')._get(person(num), 'country', default=default)
 
 class MyTimer(threading._Timer):
@@ -438,24 +442,15 @@ def cmd_exception(*args, **kwargs):
 	raise Exception()
 
 def stop():
-	try:
-		if state.curq is not None or state.nextq is not None:
-			state.curq = None
-			state.nextq = None
-			try:
-				state.steptimer.cancel()
-			except Exception as e:
-				print "!!! steptimer.cancel(): %s %r" % (e,e)
-			try:
-				state.nextquestiontimer.cancel()
-				state.nextquestiontimer = None
-			except Exception as e:
-				print "!!! nextquestiontimer.cancel(): %s %r" % (e,e)
-			return True
-		else:
-			return False
-	except NameError:
-		pass
+	state.curq = None
+	state.nextq = None
+	try: state.steptimer.cancel()
+	except Exception as e: print "!!! steptimer.cancel(): %s %r" % (e,e)
+	state.steptimer = None
+	try: state.nextquestiontimer.cancel()
+	except Exception as e: print "!!! nextquestiontimer.cancel(): %s %r" % (e,e)
+	state.nextquestiontimer = None
+	return True
 
 @lib.hook(needchan=False)
 @lib.argsGE(1)
