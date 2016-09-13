@@ -105,7 +105,7 @@ class Bot(object):
 				del self.parent.users[oldnick.lower()]
 			self.parent.users[newnick.lower()].nickchange(newnick)
 
-		elif pieces[0] == "ERROR":
+		elif pieces[0] == "ERROR": #TODO handle better
 			sys.exit(2)
 			os._exit(2)
 

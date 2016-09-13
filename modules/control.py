@@ -23,6 +23,10 @@ import ctlmod
 
 @lib.hook(needchan=False, glevel=lib.MANAGER)
 def die(bot, user, chan, realtarget, *args):
+	for botitem in bot.parent.bots.itervalues():
+		for chan in botitem.chans:
+			chan.fastmsg("Bot is restarting! %s" % ' '.join(args))
+		bot.conn.send("QUIT :Restarting.")
 	sys.exit(0)
 	os._exit(0)
 
