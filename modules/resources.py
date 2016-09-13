@@ -42,15 +42,15 @@ def resources(bot, user, chan, realtarget, *args):
 		res = resource.getrusage(resource.RUSAGE_SELF)
 
 	bot.msg(replyto, "Resource usage:")
-	for i, v in [
+	for i, v in (
 		('utime (s)', res.ru_utime),
 		('stime (s)', res.ru_stime),
-		('memory (MiB)', (res.ru_maxrss/1024.0))
+		('memory (MiB)', (res.ru_maxrss/1024.0)),
 		('I/O (blocks)', res.ru_inblock+res.ru_oublock),
 		('page faults', res.ru_majflt),
 		('signals', res.ru_nsignals),
 		('context switches (voluntary)', res.ru_nvcsw),
 		('context switches (involuntary)', res.ru_nivcsw),
-	]:
+	):
 		bot.msg(replyto, "- %s: %r" % (i, v))
 	bot.msg(replyto, "EOL.")
