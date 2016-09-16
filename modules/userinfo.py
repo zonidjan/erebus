@@ -29,7 +29,10 @@ import json
 def gotParent():
 	global jsonfile, db
 	jsonfile = parent.cfg.get('userinfo', 'jsonpath', default="./modules/userinfo.json")
-	db = json.load(open(jsonfile, "r"))
+	try:
+		db = json.load(open(jsonfile, "r"))
+	except:
+		db = {}
 def closeshop():
 	if json is not None and json.dump is not None:
 		json.dump(db, open(jsonfile, "w"))#, indent=4, separators=(',', ': '))
