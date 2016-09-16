@@ -26,6 +26,7 @@ class Bot(object):
 		self.conn = BotConnection(self, bind, server, port)
 
 		self.msgqueue = deque()
+		self.slowmsgqueue = deque()
 		self.makemsgtimer()
 
 
@@ -164,14 +165,22 @@ class Bot(object):
 						self.msg(user, "Command not implemented.")
 
 	def msg(self, target, msg):
-		if target is None or msg is None: return
+		if target is None or msg is None: return False
 
-		self.msgqueue.append((target,msg))
+		self.msgqueue.append((target, msg))
 		if not self.msgtimer.is_alive():
 			self.msgtimer.start()
+		return True
+
+	def slowmsg(self, target, msg):
+		if target is None or msg is None: return False
+
+		self.slowmsgqueue.append((target,msg))
+		if not self.msgtimer.is_alive():
+			self.msgtimer.start()
+		return True
 
 	def fastmsg(self, target, msg):
-
 		if isinstance(target, self.parent.User): target = target.nick
 		elif isinstance(target, self.parent.Channel): target = target.name
 		elif not isinstance(target, basestring): raise TypeError('Bot.msg() "target" must be Erebus.User, Erebus.Channel, or string')
@@ -187,7 +196,12 @@ class Bot(object):
 		try:
 			self.fastmsg(*self.msgqueue.popleft())
 			self.msgtimer.start()
-		except IndexError: pass
+		except IndexError:
+			try:
+				self.fastmsg(*self.slowmsgqueue.popleft())
+				self.msgtimer.start()
+			except IndexError:
+				pass
 
 	def makemsgtimer(self):
 		self.msgtimer = threading.Timer(2, self._popmsg)

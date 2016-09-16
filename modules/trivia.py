@@ -53,8 +53,9 @@ def pts(num):
 		return str(state.db['users'][state.db['ranks'][num]]['points'])
 	except IndexError:
 		return 0
+
 def country(num, default="??"):
-	return lib.mod('userinfo')._get(person(num), 'country', default=default)
+	return lib.mod('userinfo')._get(person(num), 'country', default=default).upper()
 
 class MyTimer(threading._Timer):
 	def __init__(self, *args, **kwargs):
@@ -129,9 +130,7 @@ class TriviaState(object):
 			revealloc = findnth(''.join(self.hintstr), '*', revealcount)
 			self.revealpossibilities.remove(revealcount)
 			self.hintstr[revealloc] = answer[revealloc]
-		if oldhintstr != ''.join(self.hintstr): pass
-		else: self.hintstr = self.hintstr.append("!")
-		self.getchan().fastmsg("\00304,01Here's a hint: %s" % (''.join(self.hintstr)))
+		if oldhintstr != ''.join(self.hintstr): self.getchan().fastmsg("\00304,01Here's a hint: %s" % (''.join(self.hintstr)))
 
 		self.hintsgiven += 1
 
@@ -530,7 +529,7 @@ def top10(bot, user, chan, realtarget, *args):
 	max = len(state.db['ranks'])
 	if max > 10:
 		max = 10
-	replylist = ', '.join(["%s (%s) %s" % (person(x), country(x, "unknown"), pts(x)) for x in range(max)])
+	replylist = ', '.join(["%s (%s) %s" % (person(x), country(x), pts(x)) for x in range(max)])
 	bot.msg(state.db['chan'], "Top 10: %s" % (replylist))
 
 @lib.hook(glevel=lib.ADMIN, needchan=False)
@@ -631,29 +630,29 @@ def addq(bot, user, chan, realtarget, *args):
 
 @lib.hook(needchan=False)
 def triviahelp(bot, user, chan, realtarget, *args):
-	bot.msg(user,             "START")
-	bot.msg(user,             "TOP10")
-	bot.msg(user,             "POINTS        [<user>]")
-	bot.msg(user,             "RANK          [<user>]")
-	bot.msg(user,             "BADQ          <reason> (include info to identify question)")
+	bot.slowmsg(user,             "START")
+	bot.slowmsg(user,             "TOP10")
+	bot.slowmsg(user,             "POINTS        [<user>]")
+	bot.slowmsg(user,             "RANK          [<user>]")
+	bot.slowmsg(user,             "BADQ          <reason> (include info to identify question)")
 	if user.glevel >= 1:
-		bot.msg(user,         "SKIP                            (>=KNOWN)")
-		bot.msg(user,         "STOP                            (>=KNOWN)")
-		bot.msg(user,         "FINDQ         <question>        (>=KNOWN)")
+		bot.slowmsg(user,         "SKIP                            (>=KNOWN)")
+		bot.slowmsg(user,         "STOP                            (>=KNOWN)")
+		bot.slowmsg(user,         "FINDQ         <question>        (>=KNOWN)")
 		if user.glevel >= lib.STAFF:
-			bot.msg(user,     "GIVE          <user> [<points>] (>=STAFF)")
-			bot.msg(user,     "SETNEXT       <q>*<a>           (>=STAFF)")
-			bot.msg(user,     "ADDQ          <q>*<a>           (>=STAFF)")
-			bot.msg(user,     "DELETEQ       <q>*<a>           (>=STAFF)  [aka DELQ]")
-			bot.msg(user,     "BADQS                           (>=STAFF)")
-			bot.msg(user,     "CLEARBADQS                      (>=STAFF)")
-			bot.msg(user,     "DELBADQ       <reportid>        (>=STAFF)")
+			bot.slowmsg(user,     "GIVE          <user> [<points>] (>=STAFF)")
+			bot.slowmsg(user,     "SETNEXT       <q>*<a>           (>=STAFF)")
+			bot.slowmsg(user,     "ADDQ          <q>*<a>           (>=STAFF)")
+			bot.slowmsg(user,     "DELETEQ       <q>*<a>           (>=STAFF)  [aka DELQ]")
+			bot.slowmsg(user,     "BADQS                           (>=STAFF)")
+			bot.slowmsg(user,     "CLEARBADQS                      (>=STAFF)")
+			bot.slowmsg(user,     "DELBADQ       <reportid>        (>=STAFF)")
 			if user.glevel >= lib.ADMIN:
-				bot.msg(user, "SETTARGET     <points>          (>=ADMIN)")
-				bot.msg(user, "MAXMISSED     <questions>       (>=ADMIN)")
-				bot.msg(user, "HINTTIMER     <float seconds>   (>=ADMIN)")
-				bot.msg(user, "HINTNUM       <hints>           (>=ADMIN)")
-				bot.msg(user, "QUESTIONPAUSE <float seconds>   (>=ADMIN)")
+				bot.slowmsg(user, "SETTARGET     <points>          (>=ADMIN)")
+				bot.slowmsg(user, "MAXMISSED     <questions>       (>=ADMIN)")
+				bot.slowmsg(user, "HINTTIMER     <float seconds>   (>=ADMIN)")
+				bot.slowmsg(user, "HINTNUM       <hints>           (>=ADMIN)")
+				bot.slowmsg(user, "QUESTIONPAUSE <float seconds>   (>=ADMIN)")
 
 @lib.hooknum(417)
 def num_417(bot, textline):

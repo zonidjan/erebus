@@ -28,6 +28,8 @@ class Erebus(object):
 
 		def msg(self, *args, **kwargs):
 			main.randbot().msg(self, *args, **kwargs)
+		def slowmsg(self, *args, **kwargs):
+			main.randbot().slowmsg(self, *args, **kwargs)
 		def fastmsg(self, *args, **kwargs):
 			main.randbot().fastmsg(self, *args, **kwargs)
 
@@ -87,6 +89,8 @@ class Erebus(object):
 
 		def msg(self, *args, **kwargs):
 			self.bot.msg(self, *args, **kwargs)
+		def slowmsg(self, *args, **kwargs):
+			self.bot.slowmsg(self, *args, **kwargs)
 		def fastmsg(self, *args, **kwargs):
 			self.bot.fastmsg(self, *args, **kwargs)
 
