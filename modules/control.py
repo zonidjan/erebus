@@ -19,6 +19,7 @@ modstop = lib.modstop
 # module code
 import sys
 import ctlmod
+from collections import deque
 
 
 @lib.hook(needchan=False, glevel=lib.MANAGER)
@@ -86,3 +87,23 @@ def whoami(bot, user, chan, realtarget, *args):
 	else:
 		fmt += " (not a channel user)"
 	bot.msg(user, fmt % fillers)
+
+@lib.hook(needchan=False, glevel=1)
+def qstat(bot, user, chan, realtarget, *args):
+	bot.fastmsg(user, "Regular: %d -- Slow: %d" % (len(bot.msgqueue), len(bot.slowmsgqueue)))
+
+@lib.hook(needchan=False, glevel=lib.ADMIN)
+def qclear(bot, user, chan, realtarget, *args):
+	if len(args) == 0:
+		bot.msgqueue = deque()
+		bot.slowmsgqueue = deque()
+		bot.fastmsg(user, "Cleared both msgqueues.")
+	else:
+		if args[0] == 'regular':
+			bot.msgqueue = deque()
+		elif args[0] == 'slow':
+			bot.slowmsgqueue = deque()
+		else:
+			bot.fastmsg(user, "Syntax: QCLEAR [regular|slow]")
+			return #short-circuit
+		bot.fastmsg(user, "Cleared that msgqueue.")
