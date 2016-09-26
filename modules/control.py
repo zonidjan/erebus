@@ -66,27 +66,41 @@ def modlist(bot, user, chan, realtarget, *args):
 		bot.msg(user, "- %s %r" % (mod.__name__, mod))
 	bot.msg(user, "Done.")
 
-@lib.hook(cmd='whoami', needchan=False)
-def whoami(bot, user, chan, realtarget, *args):
+def _whois(user, chan, showglevel=True, showclevel=True):
 	if not user.isauthed():
-		bot.msg(user, "You are not authed.")
-		return
+		return "not authed."
 
 	fillers = {'auth': user.auth}
-	fmt = "You are %(auth)s"
+	fmt = "%(auth)s"
 
-	if user.glevel >= 1:
-		fillers['glevel'] = user.glevel
-		fmt += " (global access: %(glevel)s)"
+	if showglevel and user.glevel >= 1:
+			fillers['glevel'] = user.glevel
+			fmt += " (global access: %(glevel)s)"
+	elif user.glevel >= 1:
+		fmt += " (staff)"
 	else:
 		fmt += " (not staff)"
 
-	if chan is not None and chan.levelof(user.auth) >= 1:
-		fillers['clevel'] = chan.levelof(user.auth)
-		fmt += " (channel access: %(clevel)s)"
+	if showclevel and chan is not None:
+		if chan.levelof(user.auth) >= 1:
+			fillers['clevel'] = chan.levelof(user.auth)
+			fmt += " (channel access: %(clevel)s)"
+		else:
+			fmt += " (not a channel user)"
+	return fmt % fillers
+
+@lib.hook(needchan=False)
+@lib.argsEQ(1)
+def whois(bot, user, chan, realtarget, *args):
+	target = bot.parent.user(args[0], create=False)
+	if target is None:
+		bot.msg(user, "I don't know %s." % (args[0]))
 	else:
-		fmt += " (not a channel user)"
-	bot.msg(user, fmt % fillers)
+		bot.msg(user, "%s is %s" % (args[0], _whois(target, chan, (user.glevel >= 1), (chan is not None and chan.levelof(user.auth) >= 1))))
+
+@lib.hook(needchan=False)
+def whoami(bot, user, chan, realtarget, *args):
+	bot.msg(user, "You are %s" % (_whois(user, chan)))
 
 @lib.hook(needchan=False, glevel=1)
 def qstat(bot, user, chan, realtarget, *args):
