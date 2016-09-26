@@ -114,6 +114,13 @@ class Bot(object):
 			pass
 
 
+	def __debug_cbexception(self, *args):
+		if int(self.parent.cfg.get('debug', 'cbexc', default=0)) == 1:
+			self.conn.send("PRIVMSG DimeCadmium :%09.3f ^C4^B!!!^B^C CBEXC" % (time.time() % 100000))
+			print "%09.3f %s [!] CBEXC %r" % (time.time() % 100000, self.nick, args)
+			__import__('traceback').print_exc()
+
+
 	def parsemsg(self, user, target, msg):
 		chan = None
 		if len(msg) == 0:
@@ -146,9 +153,12 @@ class Bot(object):
 				elif not triggerused:
 					if self.parent.haschanhook(target.lower()):
 						for callback in self.parent.getchanhook(target.lower()):
-							cbret = callback(self, user, chan, *pieces)
-							if cbret is NotImplemented:
-								self.msg(user, "Command not implemented.")
+							try:
+								cbret = callback(self, user, chan, *pieces)
+								if cbret is NotImplemented: self.msg(user, "Command not implemented.")
+							except Exception:
+								self.msg(user, "Command failed. Code: CBEXC%09.3f" % (time.time() % 100000))
+								self.__debug_cbexception("chanhook", user, target, msg)
 					return # not to bot, don't process!
 			except IndexError:
 				return # "message" is empty
@@ -160,27 +170,41 @@ class Bot(object):
 				if chan is None and callback.needchan:
 					self.msg(user, "You need to specify a channel for that command.")
 				elif user.glevel >= callback.reqglevel and (not callback.needchan or chan.levelof(user.auth) >= callback.reqclevel):
-					cbret = callback(self, user, chan, target, *pieces[1:])
-					if cbret is NotImplemented:
-						self.msg(user, "Command not implemented.")
+					try:
+						cbret = callback(self, user, chan, target, *pieces[1:])
+						if cbret is NotImplemented: self.msg(user, "Command not implemented.")
+					except Exception:
+						self.msg(user, "Command failed. Code: CBEXC%09.3f" % (time.time() % 100000))
+						self.__debug_cbexception("hook", user, target, msg)
+
+	def __debug_nomsg(self, target, msg):
+		if int(self.parent.cfg.get('debug', 'nomsg', default=0)) == 1:
+			self.conn.send("PRIVMSG DimeCadmium :%09.3f 4!!! NOMSG %r, %r" % (time.time() % 100000, target, msg))
+			print "%09.3f %s [!] %s" % (time.time() % 100000, self.nick, "!!! NOMSG")
+			__import__('traceback').print_stack()
 
 	def msg(self, target, msg):
-		if target is None or msg is None: return False
+		if target is None or msg is None:
+			return self.__debug_nomsg(target, msg)
 
 		self.msgqueue.append((target, msg))
 		if not self.msgtimer.is_alive():
 			self.msgtimer.start()
-		return True
+		return
 
 	def slowmsg(self, target, msg):
-		if target is None or msg is None: return False
+		if target is None or msg is None:
+			return self.__debug_nomsg(target, msg)
 
 		self.slowmsgqueue.append((target,msg))
 		if not self.msgtimer.is_alive():
 			self.msgtimer.start()
-		return True
+		return
 
 	def fastmsg(self, target, msg):
+		if target is None or msg is None:
+			return __debug_nomsg(target, msg)
+
 		if isinstance(target, self.parent.User): target = target.nick
 		elif isinstance(target, self.parent.Channel): target = target.name
 		elif not isinstance(target, basestring): raise TypeError('Bot.msg() "target" must be Erebus.User, Erebus.Channel, or string')
@@ -247,11 +271,8 @@ class BotConnection(object):
 		if done: self.state = 2
 		return self.state == 2
 
-	#TODO: rewrite send() to queue
 	def send(self, line):
-		print "%05.3f %s [O] %s" % (time.time() % 100000, self.parent.nick, line)
-		sys.stdout.flush()
-#		print (time.time() % 1466400000), self.parent.nick, '[O]', str(line)
+		print "%09.3f %s [O] %s" % (time.time() % 100000, self.parent.nick, line)
 		self._write(line)
 
 	def _write(self, line):
@@ -263,8 +284,7 @@ class BotConnection(object):
 
 		while "\r\n" in self.buffer:
 			pieces = self.buffer.split("\r\n", 1)
-			print "%05.3f %s [I] %s" % (time.time() % 100000, self.parent.nick, pieces[0])
-			sys.stdout.flush()
+			print "%09.3f %s [I] %s" % (time.time() % 100000, self.parent.nick, pieces[0])
 #			print (time.time() % 1460000000), self.parent.nick, '[I]', pieces[0]
 			lines.append(pieces[0])
 			self.buffer = pieces[1]

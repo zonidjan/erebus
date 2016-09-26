@@ -15,7 +15,7 @@ def load(parent, modname, dependent=False):
 	if dependent:
 		print "Loading dependency %s..." % (modname),
 	else:
-		print "%05.3f [MOD] [#] Loading %s... " % (time.time() % 100000, modname),
+		print "%09.3f [MOD] [#] Loading %s... " % (time.time() % 100000, modname),
 	modstatus = _load(parent, modname, dependent)
 	if not modstatus:
 		print str(modstatus)

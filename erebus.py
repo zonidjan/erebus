@@ -59,7 +59,9 @@ class Erebus(object):
 		def join(self, chan):
 			self.chans.append(chan)
 		def part(self, chan):
-			self.chans.remove(chan)
+			try:
+				self.chans.remove(chan)
+			except: pass
 		def quit(self):
 			for chan in self.chans:
 				self.chans.remove(chan)
@@ -163,11 +165,11 @@ class Erebus(object):
 	def randbot(self): #get Bot() randomly
 		return self.bots[random.choice(self.bots.keys())]
 
-	def user(self, _nick, justjoined=False):
+	def user(self, _nick, justjoined=False, create=True):
 		nick = _nick.lower()
 		if nick in self.users:
 			return self.users[nick]
-		else:
+		elif create:
 			user = self.User(_nick)
 			self.users[nick] = user
 
@@ -175,6 +177,8 @@ class Erebus(object):
 				self.randbot().conn.send("WHO %s n%%ant,2" % (nick))
 
 			return user
+		else:
+			return None
 	def channel(self, name): #get Channel() by name
 		if name.lower() in self.chans:
 			return self.chans[name.lower()]
@@ -243,11 +247,11 @@ class Erebus(object):
 
 class MyCursor(MySQLdb.cursors.DictCursor):
 	def execute(self, *args, **kwargs):
-		print "%05.3f [SQL] [#] MyCursor.execute(self, %s, %s)" % (time.time() % 100000, ', '.join([repr(i) for i in args]), ', '.join([str(key)+"="+repr(kwargs[key]) for key in kwargs]))
+		print "%09.3f [SQL] [#] MyCursor.execute(self, %s, %s)" % (time.time() % 100000, ', '.join([repr(i) for i in args]), ', '.join([str(key)+"="+repr(kwargs[key]) for key in kwargs]))
 		try:
 			super(self.__class__, self).execute(*args, **kwargs)
 		except MySQLdb.MySQLError as e:
-			print "%05.3f [SQL] [!] MySQL error! %r" % (time.time() % 100000, e)
+			print "%09.3f [SQL] [!] MySQL error! %r" % (time.time() % 100000, e)
 			dbsetup()
 			return False
 		return True
@@ -290,7 +294,7 @@ def loop():
 if __name__ == '__main__':
 	try: os.rename('logfile', 'oldlogs/%s' % (time.time()))
 	except: pass
-	sys.stdout = open('logfile', 'w')
+	sys.stdout = open('logfile', 'w', 1)
 	sys.stderr = sys.stdout
 	setup()
 	while True: loop()
