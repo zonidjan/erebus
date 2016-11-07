@@ -156,7 +156,7 @@ class Bot(object):
 							try:
 								cbret = callback(self, user, chan, *pieces)
 								if cbret is NotImplemented: self.msg(user, "Command not implemented.")
-							except Exception:
+							except:
 								self.msg(user, "Command failed. Code: CBEXC%09.3f" % (time.time() % 100000))
 								self.__debug_cbexception("chanhook", user, target, msg)
 					return # not to bot, don't process!
@@ -205,9 +205,7 @@ class Bot(object):
 		if target is None or msg is None:
 			return __debug_nomsg(target, msg)
 
-		if isinstance(target, self.parent.User): target = target.nick
-		elif isinstance(target, self.parent.Channel): target = target.name
-		elif not isinstance(target, basestring): raise TypeError('Bot.msg() "target" must be Erebus.User, Erebus.Channel, or string')
+		target = str(target)
 
 		if target[0] == '#': command = "PRIVMSG %s :%s" % (target, msg)
 		else: command = "NOTICE %s :%s" % (target, msg)
