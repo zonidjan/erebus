@@ -9,6 +9,8 @@ modlib: allow lib.hook with a first argument list or tuple (aliases)
 
 ctlmod: needs to print out a traceback. traceback.print_exc().
 
+core: watchdog timer (check how long since last received, if >5m restart)
+
 
 == ?????? ==
 - Store User and Channel objects
