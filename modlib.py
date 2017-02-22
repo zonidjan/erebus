@@ -119,8 +119,8 @@ class modlib(object):
 			return checkargs
 		return realhook
 
-	def help(*args, **kwargs):
-		"""help(args, shorthelp, longhelp, more lines longhelp, cmd=...?)
+	def help(self, *args, **kwargs):
+		"""help(syntax, shorthelp, longhelp, more lines longhelp, cmd=...?)
 		Example:
 		help("<user> <pass>", "login")
 			^ Help will only be one line. Command name determined based on function name.
