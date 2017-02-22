@@ -151,7 +151,8 @@ class TriviaState(object):
 			msg("3RD PLACE: %s (%s)" % (person(2, True), pts(2)))
 			[msg("%dth place: %s (%s)" % (i+1, person(i, True), pts(i))) for i in range(3,10)]
 		except IndexError: pass
-		except Exception as e: msg("DERP! %r" % (e))
+		except Exception as e:
+			msg("DERP! %r" % (e))
 
 		self.db['lastwinner'] = winner
 		self.db['lastwon'] = time.time()
@@ -203,7 +204,7 @@ class TriviaState(object):
 			f.write(fcontents)
 			return True
 		except Exception as e:
-			raise e
+			raise e #FIXME wtf???
 			return False
 		finally:
 			f.close()
@@ -463,11 +464,15 @@ def cmd_exception(*args, **kwargs):
 def stop():
 	state.curq = None
 	state.nextq = None
-	try: state.steptimer.cancel()
-	except Exception as e: print "!!! steptimer.cancel(): %s %r" % (e,e)
+	try:
+		state.steptimer.cancel()
+	except Exception as e:
+		print "!!! steptimer.cancel(): %s %r" % (e,e)
 	state.steptimer = None
-	try: state.nextquestiontimer.cancel()
-	except Exception as e: print "!!! nextquestiontimer.cancel(): %s %r" % (e,e)
+	try:
+		state.nextquestiontimer.cancel()
+	except Exception as e:
+		print "!!! nextquestiontimer.cancel(): %s %r" % (e,e)
 	state.nextquestiontimer = None
 	return True
 
