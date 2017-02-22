@@ -3,7 +3,7 @@
 # Erebus IRC bot - Author: John Runyon
 # "Bot" and "BotConnection" classes (handling a specific "arm")
 
-import socket, sys, time, threading
+import socket, sys, time, threading, os
 from collections import deque
 
 #bots = {'erebus': bot.Bot(nick='Erebus', user='erebus', bind='', server='irc.quakenet.org', port=6667, realname='Erebus')}
@@ -40,78 +40,87 @@ class Bot(object):
 	def parse(self, line):
 		pieces = line.split()
 
-		if not self.conn.registered() and pieces[0] == "NOTICE":
-			self.conn.register()
-			return
+		zero = {
+			'NOTICE': self._gotregistered,
+			'PING': self._gotping,
+			'ERROR': self._goterror,
+		}
+		one = {
+			'001': self._got001,
+			'PRIVMSG': self._gotprivmsg,
+			'354': self._got354,
+			'JOIN': self._gotjoin,
+			'PART': self._gotpart,
+			'QUIT': self._gotquit,
+			'NICK': self._gotnick,
+			'MODE': self._gotmode,
+		}
 
 		if self.parent.hasnumhook(pieces[1]):
 			hooks = self.parent.getnumhook(pieces[1])
 			for callback in hooks:
 				callback(self, line)
 
-		if pieces[1] == "001":
-			self.conn.registered(True)
-			self.conn.send("MODE %s +x" % (pieces[2]))
-			if self.authname is not None and self.authpass is not None:
-				self.conn.send("AUTH %s %s" % (self.authname, self.authpass))
-			for c in self.chans:
-				self.join(c.name)
+		if pieces[0] in zero:
+			zero[pieces[0]](pieces)
+		elif pieces[1] in one:
+			one[pieces[1]](pieces)
 
-		elif pieces[1] == "PRIVMSG":
-			nick = pieces[0].split('!')[0][1:]
-			user = self.parent.user(nick)
-			target = pieces[2]
-			msg = ' '.join(pieces[3:])[1:]
-			self.parsemsg(user, target, msg)
+	def _gotregistered(self, pieces):
+		if not self.conn.registered():
+			self.conn.register()
+	def _gotping(self, pieces):
+		self.conn.send("PONG %s" % (pieces[1]))
+	def _goterror(self, pieces): #TODO handle better
+		sys.exit(2)
+		os._exit(2)
+	def _got001(self, pieces):
+		self.conn.registered(True)
+		self.conn.send("MODE %s +x" % (pieces[2]))
+		if self.authname is not None and self.authpass is not None:
+			self.conn.send("AUTH %s %s" % (self.authname, self.authpass))
+		for c in self.chans:
+			self.join(c.name)
+	def _gotprivmsg(self, pieces):
+		nick = pieces[0].split('!')[0][1:]
+		user = self.parent.user(nick)
+		target = pieces[2]
+		msg = ' '.join(pieces[3:])[1:]
+		self.parsemsg(user, target, msg)
+	def _got354(self, pieces):
+		qt, nick, auth = pieces[3:6]
+		self.parent.user(nick).authed(auth)
+	def _gotjoin(self, pieces):
+		nick = pieces[0].split('!')[0][1:]
+		chan = self.parent.channel(pieces[2])
 
-		elif pieces[0] == "PING":
-			self.conn.send("PONG %s" % (pieces[1]))
+		if nick == self.nick:
+			self.conn.send("WHO %s c%%ant,1" % (chan))
+		else:
+			user = self.parent.user(nick, justjoined=True)
+			chan.userjoin(user)
+			user.join(chan)
+	def _gotpart(self, pieces):
+		nick = pieces[0].split('!')[0][1:]
+		chan = self.parent.channel(pieces[2])
 
-		elif pieces[1] == "354": # WHOX
-			qt = pieces[3]
-			nick = pieces[4]
-			auth = pieces[5]
-			self.parent.user(nick).authed(auth)
-
-		elif pieces[1] == "JOIN":
-			nick = pieces[0].split('!')[0][1:]
-			chan = self.parent.channel(pieces[2])
-
-			if nick == self.nick:
-				self.conn.send("WHO %s c%%ant,1" % (chan))
-			else:
-				user = self.parent.user(nick, justjoined=True)
-				chan.userjoin(user)
-				user.join(chan)
-
-		elif pieces[1] == "PART":
-			nick = pieces[0].split('!')[0][1:]
-			chan = self.parent.channel(pieces[2])
-
-			if nick != self.nick:
-				self.parent.user(nick).part(chan)
-				chan.userpart(self.parent.user(nick))
-
-		elif pieces[1] == "QUIT":
-			nick = pieces[0].split('!')[0][1:]
-			if nick != self.nick:
-				self.parent.user(nick).quit()
-				del self.parent.users[nick.lower()]
-
-		elif pieces[1] == "NICK":
-			oldnick = pieces[0].split('!')[0][1:]
-			newnick = pieces[2][1:]
-			if newnick.lower() != oldnick.lower():
-				self.parent.users[newnick.lower()] = self.parent.users[oldnick.lower()]
-				del self.parent.users[oldnick.lower()]
-			self.parent.users[newnick.lower()].nickchange(newnick)
-
-		elif pieces[0] == "ERROR": #TODO handle better
-			sys.exit(2)
-			os._exit(2)
-
-		elif pieces[1] == "MODE": #TODO parse for ops/voices (at least)
-			pass
+		if nick != self.nick:
+			self.parent.user(nick).part(chan)
+			chan.userpart(self.parent.user(nick))
+	def _gotquit(self, pieces):
+		nick = pieces[0].split('!')[0][1:]
+		if nick != self.nick:
+			self.parent.user(nick).quit()
+			del self.parent.users[nick.lower()]
+	def _gotnick(self, pieces):
+		oldnick = pieces[0].split('!')[0][1:]
+		newnick = pieces[2][1:]
+		if newnick.lower() != oldnick.lower():
+			self.parent.users[newnick.lower()] = self.parent.users[oldnick.lower()]
+			del self.parent.users[oldnick.lower()]
+		self.parent.users[newnick.lower()].nickchange(newnick)
+	def _gotmode(self, pieces): #TODO parse for ops/voices (at least)
+		pass
 
 
 	def __debug_cbexception(self, *args):
@@ -190,20 +199,18 @@ class Bot(object):
 		self.msgqueue.append((target, msg))
 		if not self.msgtimer.is_alive():
 			self.msgtimer.start()
-		return
 
 	def slowmsg(self, target, msg):
 		if target is None or msg is None:
 			return self.__debug_nomsg(target, msg)
 
-		self.slowmsgqueue.append((target,msg))
+		self.slowmsgqueue.append((target, msg))
 		if not self.msgtimer.is_alive():
 			self.msgtimer.start()
-		return
 
 	def fastmsg(self, target, msg):
 		if target is None or msg is None:
-			return __debug_nomsg(target, msg)
+			return self.__debug_nomsg(target, msg)
 
 		target = str(target)
 
@@ -289,5 +296,5 @@ class BotConnection(object):
 
 		return lines
 
-	def __str__(self): return self.nick
+	def __str__(self): return self.parent.nick
 	def __repr__(self): return "<BotConnection %r (%r)>" % (self.socket.fileno(), self.parent.nick)
