@@ -29,7 +29,7 @@ def ram(bot, user, chan, realtarget, *args):
 	except:
 		res = resource.getrusage(resource.RUSAGE_SELF)
 
-	bot.msg(replyto, "Memory usage (MiB): %r" % (res.ru_maxrss/1024.0))
+	bot.fastmsg(replyto, "Memory usage (MiB): %r" % (res.ru_maxrss/1024.0))
 
 @lib.hook(needchan=False, glevel=lib.MANAGER)
 def resources(bot, user, chan, realtarget, *args):
@@ -41,7 +41,7 @@ def resources(bot, user, chan, realtarget, *args):
 	except:
 		res = resource.getrusage(resource.RUSAGE_SELF)
 
-	bot.msg(replyto, "Resource usage:")
+	bot.slowmsg(replyto, "Resource usage:")
 	for i, v in (
 		('utime (s)', res.ru_utime),
 		('stime (s)', res.ru_stime),
@@ -52,5 +52,5 @@ def resources(bot, user, chan, realtarget, *args):
 		('context switches (voluntary)', res.ru_nvcsw),
 		('context switches (involuntary)', res.ru_nivcsw),
 	):
-		bot.msg(replyto, "- %s: %r" % (i, v))
-	bot.msg(replyto, "EOL.")
+		bot.slowmsg(replyto, "- %s: %r" % (i, v))
+	bot.slowmsg(replyto, "EOL.")
