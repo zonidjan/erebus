@@ -17,7 +17,7 @@ modstart = lib.modstart
 modstop = lib.modstop
 
 # module code
-import sys
+import sys, os
 import ctlmod
 from collections import deque
 
