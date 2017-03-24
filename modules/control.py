@@ -22,7 +22,7 @@ import ctlmod
 from collections import deque
 
 
-@lib.hook(needchan=False, glevel=lib.MANAGER)
+@lib.hook(('die','restart'), needchan=False, glevel=lib.MANAGER)
 def die(bot, user, chan, realtarget, *args):
 	for botitem in bot.parent.bots.itervalues():
 		for chan in botitem.chans:
