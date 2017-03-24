@@ -106,6 +106,9 @@ class TriviaState(object):
 			if isinstance(self.nextquestiontimer, threading._Timer):
 				self.nextquestiontimer.cancel()
 				self.nextquestiontimer = None
+		self.savedb()
+
+	def savedb(self):
 		if json is not None and json.dump is not None:
 			json.dump(self.db, open(self.questionfile, "w"))#, indent=4, separators=(',', ': '))
 
@@ -457,7 +460,7 @@ def cmd_stop(bot, user, chan, realtarget, *args):
 	else:
 		bot.msg(user, "Game isn't running.")
 
-@lib.hook('exception')
+@lib.hook('exception', glevel=lib.OWNER)
 def cmd_exception(*args, **kwargs):
 	raise Exception()
 
@@ -611,14 +614,29 @@ def findq(bot, user, chan, realtarget, *args):
 	else:
 		bot.msg(user, "No match.")
 
+@lib.hook(glevel=lib.STAFF, needchan=False)
+def showq(bot, user, chan, realtarget, *args):
+	try:
+		qid = int(args[0])
+	except:
+		bot.msg(user, "Specify a numeric question ID.")
+		return
+	try:
+		q = state.db['questions'][qid]
+	except:
+		bot.msg(user, "ID not valid.")
+		return
+	bot.msg(user, "%s: %s*%s" % (qid, q[0], q[1]))
+
 @lib.hook(('delq', 'deleteq'), glevel=lib.STAFF, needchan=False)
 def delq(bot, user, chan, realtarget, *args):
 	try:
 		backup = state.db['questions'][int(args[0])]
 		del state.db['questions'][int(args[0])]
+		state.savedb()
 		bot.msg(user, "Deleted %s*%s" % (backup[0], backup[1]))
 	except:
-		bot.msg(user, "Couldn't delete that question.")
+		bot.msg(user, "Couldn't delete that question. %r" % (e))
 
 @lib.hook(glevel=lib.STAFF, needchan=False)
 def addq(bot, user, chan, realtarget, *args):
@@ -630,6 +648,7 @@ def addq(bot, user, chan, realtarget, *args):
 	question = linepieces[0].strip()
 	answer = linepieces[1].strip()
 	state.db['questions'].append([question, answer])
+	state.savedb()
 	bot.msg(user, "Done. Question is #%s" % (len(state.db['questions'])-1))
 
 
@@ -641,23 +660,25 @@ def triviahelp(bot, user, chan, realtarget, *args):
 	bot.slowmsg(user,             "RANK          [<user>]")
 	bot.slowmsg(user,             "BADQ          <reason> (include info to identify question)")
 	if user.glevel >= 1:
-		bot.slowmsg(user,         "SKIP                            (>=KNOWN)")
-		bot.slowmsg(user,         "STOP                            (>=KNOWN)")
-		bot.slowmsg(user,         "FINDQ         <question>        (>=KNOWN)")
+		bot.slowmsg(user,         "SKIP                            (KNOWN)")
+		bot.slowmsg(user,         "STOP                            (KNOWN)")
+		bot.slowmsg(user,         "FINDQ         <question>        (KNOWN)")
+		bot.slowmsg(user,         "SETNEXTID     <qid>             (KNOWN)")
 		if user.glevel >= lib.STAFF:
-			bot.slowmsg(user,     "GIVE          <user> [<points>] (>=STAFF)")
-			bot.slowmsg(user,     "SETNEXT       <q>*<a>           (>=STAFF)")
-			bot.slowmsg(user,     "ADDQ          <q>*<a>           (>=STAFF)")
-			bot.slowmsg(user,     "DELETEQ       <q>*<a>           (>=STAFF)  [aka DELQ]")
-			bot.slowmsg(user,     "BADQS                           (>=STAFF)")
-			bot.slowmsg(user,     "CLEARBADQS                      (>=STAFF)")
-			bot.slowmsg(user,     "DELBADQ       <reportid>        (>=STAFF)")
+			bot.slowmsg(user,     "GIVE          <user> [<points>] (STAFF)")
+			bot.slowmsg(user,     "SETNEXT       <q>*<a>           (STAFF)")
+			bot.slowmsg(user,     "ADDQ          <q>*<a>           (STAFF)")
+			bot.slowmsg(user,     "DELQ          <q>*<a>           (STAFF)  [aka DELETEQ]")
+			bot.slowmsg(user,     "SHOWQ         <qid>             (STAFF)")
+			bot.slowmsg(user,     "BADQS                           (STAFF)")
+			bot.slowmsg(user,     "CLEARBADQS                      (STAFF)")
+			bot.slowmsg(user,     "DELBADQ       <reportid>        (STAFF)")
 			if user.glevel >= lib.ADMIN:
-				bot.slowmsg(user, "SETTARGET     <points>          (>=ADMIN)")
-				bot.slowmsg(user, "MAXMISSED     <questions>       (>=ADMIN)")
-				bot.slowmsg(user, "HINTTIMER     <float seconds>   (>=ADMIN)")
-				bot.slowmsg(user, "HINTNUM       <hints>           (>=ADMIN)")
-				bot.slowmsg(user, "QUESTIONPAUSE <float seconds>   (>=ADMIN)")
+				bot.slowmsg(user, "SETTARGET     <points>          (ADMIN)")
+				bot.slowmsg(user, "MAXMISSED     <questions>       (ADMIN)")
+				bot.slowmsg(user, "HINTTIMER     <float seconds>   (ADMIN)")
+				bot.slowmsg(user, "HINTNUM       <hints>           (ADMIN)")
+				bot.slowmsg(user, "QUESTIONPAUSE <float seconds>   (ADMIN)")
 
 @lib.hooknum(417)
 def num_417(bot, textline):
