@@ -85,9 +85,12 @@ class modlib(object):
 			func.reqglevel = glevel
 			func.reqclevel = clevel
 
-			self.hooks[cmd] = func
-			if self.parent is not None:
-				self.parent.hook(cmd, func)
+			if isinstance(cmd, basestring):
+				cmd = (cmd,)
+			for c in cmd:
+				self.hooks[c] = func
+				if self.parent is not None:
+					self.parent.hook(c, func)
 			return func
 		return realhook
 
