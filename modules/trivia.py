@@ -487,6 +487,7 @@ def badq(bot, user, chan, realtarget, *args):
 
 	reason = ' '.join(args)
 	state.db['badqs'].append([lastqid, curqid, reason])
+	state.savedb()
 	bot.msg(user, "Reported bad question.")
 
 @lib.hook(glevel=lib.STAFF, needchan=False)
@@ -510,14 +511,19 @@ def badqs(bot, user, chan, realtarget, *args):
 @lib.hook(glevel=lib.STAFF, needchan=False)
 def clearbadqs(bot, user, chan, realtarget, *args):
 	state.db['badqs'] = []
+	state.savedb()
 	bot.msg(user, "Cleared reports.")
 
 @lib.hook(glevel=lib.STAFF, needchan=False)
 @lib.argsEQ(1)
 def delbadq(bot, user, chan, realtarget, *args):
-	qid = int(args[0])
-	del state.db['badqs'][qid]
-	bot.msg(user, "Removed report #%d" % (qid))
+	try:
+		qid = int(args[0])
+		del state.db['badqs'][qid]
+		state.savedb()
+		bot.msg(user, "Removed report #%d" % (qid))
+	except:
+		bot.msg(user, "Failed!")
 
 @lib.hook(needchan=False)
 def rank(bot, user, chan, realtarget, *args):
@@ -600,10 +606,25 @@ def questionpause(bot, user, chan, realtarget, *args):
 @lib.hook(glevel=1, needchan=False)
 def findq(bot, user, chan, realtarget, *args):
 	if len(args) == 0:
+		bot.msg(user, "You need to specify the question.")
+		return
+
+	searchkey = ' '.join(args).lower()
+	matches = [str(i) for i in range(len(state.db['questions'])) if state.db['questions'][i][0].lower() == searchkey]
+	if len(matches) > 1:
+		bot.msg(user, "Multiple matches: %s" % (', '.join(matches)))
+	elif len(matches) == 1:
+		bot.msg(user, "One match: %s" % (matches[0]))
+	else:
+		bot.msg(user, "No match.")
+
+@lib.hook(glevel=1, needchan=False)
+def findqre(bot, user, chan, realtarget, *args):
+	if len(args) == 0:
 		bot.msg(user, "You need to specify a search string.")
 		return
 
-	searcher = re.compile(' '.join(args))
+	searcher = re.compile(' '.join(args), re.IGNORECASE)
 	matches = [str(i) for i in range(len(state.db['questions'])) if searcher.search(state.db['questions'][i][0]) is not None]
 	if len(matches) > 25:
 		bot.msg(user, "Too many matches! (>25)")
@@ -662,7 +683,8 @@ def triviahelp(bot, user, chan, realtarget, *args):
 	if user.glevel >= 1:
 		bot.slowmsg(user,         "SKIP                            (KNOWN)")
 		bot.slowmsg(user,         "STOP                            (KNOWN)")
-		bot.slowmsg(user,         "FINDQ         <question>        (KNOWN)")
+		bot.slowmsg(user,         "FINDQ         <full question>   (KNOWN)")
+		bot.slowmsg(user,         "FINDQRE       <regex>           (KNOWN)")
 		bot.slowmsg(user,         "SETNEXTID     <qid>             (KNOWN)")
 		if user.glevel >= lib.STAFF:
 			bot.slowmsg(user,     "GIVE          <user> [<points>] (STAFF)")
