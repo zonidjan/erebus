@@ -23,3 +23,7 @@ con_sec = twitter consumer secret
 token = twitter token
 token_sec = twitter token secret
 
+[sms]
+account_sid = twilio AccountSid
+auth_token = twilio auth token
+mynumber = +11234567890 (sms "callerid")
