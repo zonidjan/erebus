@@ -22,7 +22,7 @@ class modlib(object):
 	ANYONE  =  -1
 
 	# (channel) access levels
-	OWNER   =   5
+	COWNER  =   5
 	MASTER  =   4
 	OP      =   3
 	VOICE   =   2
@@ -44,6 +44,7 @@ class modlib(object):
 		self.parent = parent
 		for cmd, func in self.hooks.iteritems():
 			self.parent.hook(cmd, func)
+			self.parent.hook("%s.%s" % (self.name, cmd), func)
 		for num, func in self.numhooks.iteritems():
 			self.parent.hooknum(num, func)
 		for chan, func in self.chanhooks.iteritems():
@@ -52,6 +53,7 @@ class modlib(object):
 	def modstop(self, parent):
 		for cmd, func in self.hooks.iteritems():
 			self.parent.unhook(cmd, func)
+			self.parent.unhook("%s.%s" % (self.name, cmd), func)
 		for num, func in self.numhooks.iteritems():
 			self.parent.unhooknum(num, func)
 		for chan, func in self.chanhooks.iteritems():
@@ -91,6 +93,7 @@ class modlib(object):
 				self.hooks[c] = func
 				if self.parent is not None:
 					self.parent.hook(c, func)
+					self.parent.hook("%s.%s" % (self.name, c), func)
 			return func
 		return realhook
 
