@@ -460,10 +460,6 @@ def cmd_stop(bot, user, chan, realtarget, *args):
 	else:
 		bot.msg(user, "Game isn't running.")
 
-@lib.hook('exception', glevel=lib.OWNER)
-def cmd_exception(*args, **kwargs):
-	raise Exception()
-
 def stop():
 	state.curq = None
 	state.nextq = None
