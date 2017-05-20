@@ -40,12 +40,13 @@ class Bot(object):
 	def parse(self, line):
 		pieces = line.split()
 
-		zero = {
+		# dispatch dict
+		zero = { #things to look for without source
 			'NOTICE': self._gotregistered,
 			'PING': self._gotping,
 			'ERROR': self._goterror,
 		}
-		one = {
+		one = { #things to look for after source
 			'001': self._got001,
 			'PRIVMSG': self._gotprivmsg,
 			'354': self._got354,
@@ -59,7 +60,10 @@ class Bot(object):
 		if self.parent.hasnumhook(pieces[1]):
 			hooks = self.parent.getnumhook(pieces[1])
 			for callback in hooks:
-				callback(self, line)
+				try:
+					callback(self, line)
+				except Exception:
+					self.__debug_cbexception("numhook", line)
 
 		if pieces[0] in zero:
 			zero[pieces[0]](pieces)
@@ -123,11 +127,11 @@ class Bot(object):
 		pass
 
 
-	def __debug_cbexception(self, *args):
+	def __debug_cbexception(self, source, *args, **kwargs):
 		if int(self.parent.cfg.get('debug', 'cbexc', default=0)) == 1:
-			self.conn.send("PRIVMSG DimeCadmium :%09.3f ^C4^B!!!^B^C CBEXC" % (time.time() % 100000))
-			print "%09.3f %s [!] CBEXC %r" % (time.time() % 100000, self.nick, args)
+			self.conn.send("PRIVMSG %s :%09.3f ^C4^B!!!^B^C CBEXC %s" % (self.parent.cfg.get('debug', 'owner'), time.time() % 100000, source))
 			__import__('traceback').print_exc()
+			print "%09.3f %s [!] CBEXC %s %r %r" % (time.time() % 100000, self.nick, source, args, kwargs)
 
 
 	def parsemsg(self, user, target, msg):
@@ -167,7 +171,7 @@ class Bot(object):
 								if cbret is NotImplemented: self.msg(user, "Command not implemented.")
 							except:
 								self.msg(user, "Command failed. Code: CBEXC%09.3f" % (time.time() % 100000))
-								self.__debug_cbexception("chanhook", user, target, msg)
+								self.__debug_cbexception("chanhook", user=user, target=target, msg=msg)
 					return # not to bot, don't process!
 			except IndexError:
 				return # "message" is empty
@@ -184,7 +188,7 @@ class Bot(object):
 						if cbret is NotImplemented: self.msg(user, "Command not implemented.")
 					except Exception:
 						self.msg(user, "Command failed. Code: CBEXC%09.3f" % (time.time() % 100000))
-						self.__debug_cbexception("hook", user, target, msg)
+						self.__debug_cbexception("hook", user=user, target=target, msg=msg)
 
 	def __debug_nomsg(self, target, msg):
 		if int(self.parent.cfg.get('debug', 'nomsg', default=0)) == 1:
