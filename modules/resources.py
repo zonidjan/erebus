@@ -20,6 +20,7 @@ modstop = lib.modstop
 import resource
 
 @lib.hook(needchan=False, glevel=lib.MANAGER)
+@lib.help(None, "show RAM usage")
 def ram(bot, user, chan, realtarget, *args):
 	if chan is not None and realtarget == chan.name: replyto = chan
 	else: replyto = user
@@ -32,6 +33,7 @@ def ram(bot, user, chan, realtarget, *args):
 	bot.fastmsg(replyto, "Memory usage (MiB): %r" % (res.ru_maxrss/1024.0))
 
 @lib.hook(needchan=False, glevel=lib.MANAGER)
+@lib.help(None, "show resource usage")
 def resources(bot, user, chan, realtarget, *args):
 	if chan is not None and realtarget == chan.name: replyto = chan
 	else: replyto = user

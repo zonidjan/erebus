@@ -70,6 +70,8 @@ def _set(user, key, value):
 
 #commands
 @lib.hook(needchan=False)
+@lib.help("[<user>] <item>", "gets an info item about you or someone else")
+@lib.argsGE(1)
 def getinfo(bot, user, chan, realtarget, *args):
 	if chan is not None and realtarget == chan.name: replyto = chan
 	else: replyto = user
@@ -88,12 +90,14 @@ def getinfo(bot, user, chan, realtarget, *args):
 		bot.msg(replyto, "%(user)s: %(item)s on %(target)s: %(value)s" % {'user':user,'item':item,'target':target,'value':value})
 
 @lib.hook(needchan=False)
+@lib.help("<item> <value>", "sets an info item about you")
 @lib.argsGE(2)
 def setinfo(bot, user, chan, realtarget, *args):
 	_set(user, args[0], ' '.join(args[1:]))
 	bot.msg(user, "Done.")
 
 @lib.hook(glevel=lib.STAFF, needchan=False)
+@lib.help("<user> <item> <value>", "sets an info item about someone else")
 @lib.argsGE(3)
 def osetinfo(bot, user, chan, realtarget, *args):
 	_set(args[0], args[1], ' '.join(args[2:]))

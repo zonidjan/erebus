@@ -25,6 +25,7 @@ def module(name):
 	return lib.mod(name)
 
 @lib.hook('eval', needchan=False, glevel=lib.MANAGER)
+@lib.help("<python>", "eval")
 @lib.argsGE(1)
 def cmd_eval(bot, user, chan, realtarget, *args):
 	if chan is not None and realtarget == chan.name: replyto = chan
@@ -36,6 +37,7 @@ def cmd_eval(bot, user, chan, realtarget, *args):
 
 
 @lib.hook('exec', needchan=False, glevel=lib.MANAGER)
+@lib.help("<python>", "exec")
 @lib.argsGE(1)
 def cmd_exec(bot, user, chan, realtarget, *args):
 	if chan is not None and realtarget == chan.name: replyto = chan
@@ -46,5 +48,6 @@ def cmd_exec(bot, user, chan, realtarget, *args):
 	else: bot.msg(replyto, "Done.")
 
 @lib.hook('exception', glevel=lib.OWNER)
+@lib.help(None, "cause an exception")
 def cmd_exception(*args, **kwargs):
 	raise Exception()

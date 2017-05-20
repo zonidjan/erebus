@@ -23,6 +23,7 @@ from collections import deque
 
 
 @lib.hook(('die','restart'), needchan=False, glevel=lib.MANAGER)
+@lib.help(None, "stops the bot")
 def die(bot, user, chan, realtarget, *args):
 	for botitem in bot.parent.bots.itervalues():
 		for chan in botitem.chans:
@@ -32,6 +33,7 @@ def die(bot, user, chan, realtarget, *args):
 	os._exit(0)
 
 @lib.hook(needchan=False, glevel=lib.MANAGER)
+@lib.help("<mod>", "loads a module")
 @lib.argsEQ(1)
 def modload(bot, user, chan, realtarget, *args):
 	okay = ctlmod.load(bot.parent, args[0])
@@ -41,6 +43,7 @@ def modload(bot, user, chan, realtarget, *args):
 		bot.msg(user, "Error loading %s: %r" % (args[0], okay))
 
 @lib.hook(needchan=False, glevel=lib.MANAGER)
+@lib.help("<mod>", "unloads a module")
 @lib.argsEQ(1)
 def modunload(bot, user, chan, realtarget, *args):
 	okay = ctlmod.unload(bot.parent, args[0])
@@ -50,6 +53,7 @@ def modunload(bot, user, chan, realtarget, *args):
 		bot.msg(user, "Error unloading %s: %r" % (args[0], okay))
 
 @lib.hook(needchan=False, glevel=lib.MANAGER)
+@lib.help("<mod>", "reloads a module")
 @lib.argsEQ(1)
 def modreload(bot, user, chan, realtarget, *args):
 	okay = ctlmod.reloadmod(bot.parent, args[0])
@@ -59,6 +63,7 @@ def modreload(bot, user, chan, realtarget, *args):
 		bot.msg(user, "Error occurred: %r" % (okay))
 
 @lib.hook(needchan=False, glevel=lib.STAFF)
+@lib.help(None, "list loaded modules")
 @lib.argsEQ(0)
 def modlist(bot, user, chan, realtarget, *args):
 	mods = ctlmod.modules
@@ -90,6 +95,7 @@ def _whois(user, chan, showglevel=True, showclevel=True):
 	return fmt % fillers
 
 @lib.hook(needchan=False)
+@lib.help("<user>", "shows who someone is")
 @lib.argsEQ(1)
 def whois(bot, user, chan, realtarget, *args):
 	target = bot.parent.user(args[0], create=False)
@@ -99,14 +105,17 @@ def whois(bot, user, chan, realtarget, *args):
 		bot.msg(user, "%s is %s" % (args[0], _whois(target, chan, (user.glevel >= 1), (chan is not None and chan.levelof(user.auth) >= 1))))
 
 @lib.hook(needchan=False)
+@lib.help(None, "shows who you are")
 def whoami(bot, user, chan, realtarget, *args):
 	bot.msg(user, "You are %s" % (_whois(user, chan)))
 
 @lib.hook(needchan=False, glevel=1)
+@lib.help(None, "displays length of each msgqueue")
 def qstat(bot, user, chan, realtarget, *args):
 	bot.fastmsg(user, "Regular: %d -- Slow: %d" % (len(bot.msgqueue), len(bot.slowmsgqueue)))
 
 @lib.hook(needchan=False, glevel=lib.ADMIN)
+@lib.help("[regular|slow]", "clears both or a specific msgqueue")
 def qclear(bot, user, chan, realtarget, *args):
 	if len(args) == 0:
 		bot.msgqueue = deque()

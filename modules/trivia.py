@@ -385,6 +385,7 @@ def trivia_checkanswer(bot, user, chan, *args):
 		state.nextquestion()
 
 @lib.hook(needchan=False)
+@lib.help("[<user>]", "shows how many points you or someone has")
 def points(bot, user, chan, realtarget, *args):
 	if chan is not None and realtarget == chan.name: replyto = chan
 	else: replyto = user
@@ -395,6 +396,7 @@ def points(bot, user, chan, realtarget, *args):
 	bot.msg(replyto, "%s has %d points." % (who, state.points(who)))
 
 @lib.hook(glevel=lib.STAFF, needchan=False)
+@lib.help("<user> [<amount>]", "gives someone points", "defaults to 1 point")
 @lib.argsGE(1)
 def give(bot, user, chan, realtarget, *args):
 	whoto = args[0]
@@ -407,6 +409,8 @@ def give(bot, user, chan, realtarget, *args):
 	bot.msg(chan, "%s gave %s %d points. New balance: %d" % (user, whoto, numpoints, balance))
 
 @lib.hook(glevel=1, needchan=False)
+@lib.help("<qid>", "sets next question to one in the database")
+@lib.argsEQ(1)
 def setnextid(bot, user, chan, realtarget, *args):
 	try:
 		qid = int(args[0])
@@ -420,6 +424,7 @@ def setnextid(bot, user, chan, realtarget, *args):
 		bot.msg(user, "Error: %s" % (e))
 
 @lib.hook(glevel=lib.STAFF, needchan=False)
+@lib.help("<q>*<a>", "sets next question to one not in database")
 @lib.argsGE(1)
 def setnext(bot, user, chan, realtarget, *args):
 	line = ' '.join([str(arg) for arg in args])
@@ -433,10 +438,12 @@ def setnext(bot, user, chan, realtarget, *args):
 	bot.msg(user, "Done.")
 
 @lib.hook(glevel=1, needchan=False)
+@lib.help(None, "skips to next question")
 def skip(bot, user, chan, realtarget, *args):
 	state.nextquestion(qskipped=True, skipwait=True)
 
 @lib.hook(needchan=False)
+@lib.help(None, "starts the trivia game")
 def start(bot, user, chan, realtarget, *args):
 	if chan is not None and realtarget == chan.name: replyto = chan
 	else: replyto = user
@@ -454,6 +461,7 @@ def start(bot, user, chan, realtarget, *args):
 		bot.msg(user, "Game is already started!")
 
 @lib.hook('stop', glevel=1, needchan=False)
+@lib.help(None, "stops the trivia game")
 def cmd_stop(bot, user, chan, realtarget, *args):
 	if stop():
 		bot.msg(state.chan, "Game stopped by %s" % (user))
@@ -476,6 +484,7 @@ def stop():
 	return True
 
 @lib.hook(needchan=False)
+@lib.help("<reason>", "reports a bad question to the admins")
 @lib.argsGE(1)
 def badq(bot, user, chan, realtarget, *args):
 	lastqid = state.lastqid
@@ -487,6 +496,7 @@ def badq(bot, user, chan, realtarget, *args):
 	bot.msg(user, "Reported bad question.")
 
 @lib.hook(glevel=lib.STAFF, needchan=False)
+@lib.help(None, "shows a list of BADQ reports")
 def badqs(bot, user, chan, realtarget, *args):
 	if len(state.db['badqs']) == 0:
 		bot.msg(user, "No reports.")
@@ -505,12 +515,14 @@ def badqs(bot, user, chan, realtarget, *args):
 			bot.msg(user, "- Exception: %r" % (e))
 
 @lib.hook(glevel=lib.STAFF, needchan=False)
+@lib.hook(None, "clears list of BADQ reports")
 def clearbadqs(bot, user, chan, realtarget, *args):
 	state.db['badqs'] = []
 	state.savedb()
 	bot.msg(user, "Cleared reports.")
 
 @lib.hook(glevel=lib.STAFF, needchan=False)
+@lib.hook("<badqid>", "removes a BADQ report")
 @lib.argsEQ(1)
 def delbadq(bot, user, chan, realtarget, *args):
 	try:
@@ -522,6 +534,7 @@ def delbadq(bot, user, chan, realtarget, *args):
 		bot.msg(user, "Failed!")
 
 @lib.hook(needchan=False)
+@lib.help("[<user>]", "shows you or someone else's rank")
 def rank(bot, user, chan, realtarget, *args):
 	if chan is not None and realtarget == chan.name: replyto = chan
 	else: replyto = user
@@ -532,6 +545,7 @@ def rank(bot, user, chan, realtarget, *args):
 	bot.msg(replyto, "%s is in %d place (%s points). Target is: %s (%s points)." % (who, state.rank(who), state.points(who), state.targetuser(who), state.targetpoints(who)))
 
 @lib.hook(needchan=False)
+@lib.help(None, "shows top10 list")
 def top10(bot, user, chan, realtarget, *args):
 	if len(state.db['ranks']) == 0:
 		return bot.msg(state.db['chan'], "No one is ranked!")
@@ -543,6 +557,7 @@ def top10(bot, user, chan, realtarget, *args):
 	bot.msg(state.db['chan'], "Top 10: %s" % (replylist))
 
 @lib.hook(glevel=lib.ADMIN, needchan=False)
+@lib.help("<target score>", "changes the target score for this round")
 def settarget(bot, user, chan, realtarget, *args):
 	try:
 		state.db['target'] = int(args[0])
@@ -557,6 +572,7 @@ def settarget(bot, user, chan, realtarget, *args):
 		bot.msg(user, "Failed to set target.")
 
 @lib.hook(needchan=False)
+@lib.help("<option>", "votes for a trarget score for next round")
 def vote(bot, user, chan, realtarget, *args):
 	if state.pointvote is not None:
 		if int(args[0]) in state.voteamounts:
@@ -568,6 +584,7 @@ def vote(bot, user, chan, realtarget, *args):
 		bot.msg(user, "There's no vote in progress.")
 
 @lib.hook(glevel=lib.ADMIN, needchan=False)
+@lib.help("<number>", "sets the max missed question before game stops")
 def maxmissed(bot, user, chan, realtarget, *args):
 	try:
 		state.db['maxmissedquestions'] = int(args[0])
@@ -576,6 +593,7 @@ def maxmissed(bot, user, chan, realtarget, *args):
 		bot.msg(user, "Failed to set maxmissed.")
 
 @lib.hook(glevel=lib.ADMIN, needchan=False)
+@lib.help("<seconds>", "sets the time between hints")
 def hinttimer(bot, user, chan, realtarget, *args):
 	try:
 		state.db['hinttimer'] = float(args[0])
@@ -584,6 +602,7 @@ def hinttimer(bot, user, chan, realtarget, *args):
 		bot.msg(user, "Failed to set hint timer.")
 
 @lib.hook(glevel=lib.ADMIN, needchan=False)
+@lib.help("<number>", "sets the number of hints given")
 def hintnum(bot, user, chan, realtarget, *args):
 	try:
 		state.db['hintnum'] = int(args[0])
@@ -592,6 +611,7 @@ def hintnum(bot, user, chan, realtarget, *args):
 		bot.msg(user, "Failed to set hintnum.")
 
 @lib.hook(glevel=lib.ADMIN, needchan=False)
+@lib.help("<seconds>", "sets the pause between questions")
 def questionpause(bot, user, chan, realtarget, *args):
 	try:
 		state.db['questionpause'] = float(args[0])
@@ -600,6 +620,7 @@ def questionpause(bot, user, chan, realtarget, *args):
 		bot.msg(user, "Failed to set questionpause.")
 
 @lib.hook(glevel=1, needchan=False)
+@lib.help("<full question>", "finds a qid given a complete question")
 def findq(bot, user, chan, realtarget, *args):
 	if len(args) == 0:
 		bot.msg(user, "You need to specify the question.")
@@ -615,6 +636,7 @@ def findq(bot, user, chan, realtarget, *args):
 		bot.msg(user, "No match.")
 
 @lib.hook(glevel=1, needchan=False)
+@lib.help("<regex>", "finds a qid given a regex or partial question")
 def findqre(bot, user, chan, realtarget, *args):
 	if len(args) == 0:
 		bot.msg(user, "You need to specify a search string.")
@@ -632,6 +654,7 @@ def findqre(bot, user, chan, realtarget, *args):
 		bot.msg(user, "No match.")
 
 @lib.hook(glevel=lib.STAFF, needchan=False)
+@lib.help("<qid>", "displays the q*a for a qid")
 def showq(bot, user, chan, realtarget, *args):
 	try:
 		qid = int(args[0])
@@ -646,6 +669,7 @@ def showq(bot, user, chan, realtarget, *args):
 	bot.msg(user, "%s: %s*%s" % (qid, q[0], q[1]))
 
 @lib.hook(('delq', 'deleteq'), glevel=lib.STAFF, needchan=False)
+@lib.help("<qid>", "removes a question from the database")
 def delq(bot, user, chan, realtarget, *args):
 	try:
 		backup = state.db['questions'][int(args[0])]
@@ -656,6 +680,7 @@ def delq(bot, user, chan, realtarget, *args):
 		bot.msg(user, "Couldn't delete that question. %r" % (e))
 
 @lib.hook(glevel=lib.STAFF, needchan=False)
+@lib.help("<q>*<a>", "adds a question")
 def addq(bot, user, chan, realtarget, *args):
 	line = ' '.join([str(arg) for arg in args])
 	linepieces = line.split('*')

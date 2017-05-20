@@ -28,9 +28,10 @@ def client(bot):
 
 #@lib.hook(needchan=False, glevel=lib.MANAGER)
 def reply(bot, user, chan, realtarget, *args):
-	pass
+	return NotImplemented
 
 @lib.hook(('sms','w'), needchan=False, glevel=lib.OWNER)
+@lib.help("<number> <message>", "send an SMS")
 def sms(bot, user, chan, realtarget, *args):
 	number = "+%s" % (args[0])
 	message = ' '.join(args[1:])

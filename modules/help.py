@@ -58,8 +58,8 @@ def dereghelp(func, *args, **kwargs):
 
 @lib.hook(needchan=False)
 @lib.help('[<command>]', 'lists commands or describes a command')
-def help(bot, user, chan, realtarget, *args):
-	if len(args) == 0:
+def help(bot, user, chan, realtarget, *args): #TODO add ordering - by access level, then alphabetic?
+	if len(args) == 0: # list commands
 		for func in helps.itervalues():
 			if user.glevel >= func.reqglevel:
 				if func.reqglevel <= 0:
@@ -69,7 +69,7 @@ def help(bot, user, chan, realtarget, *args):
 				if len(func.cmd) > 1:
 					for c in func.cmd[1:]:
 						bot.slowmsg(user, "%-40s - Alias of %s" % (c, func.cmd[0]))
-	else:
+	else: # help for a specific command/topic
 		cmd = str(' '.join(args))
 		if cmd in cmds and user.glevel >= cmds[cmd].reqglevel:
 			func = cmds[cmd]
