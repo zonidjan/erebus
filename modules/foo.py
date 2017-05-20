@@ -26,6 +26,6 @@ def test(bot, user, chan, realtarget, *args):
 	bot.msg(replyto, "You said: %s" % (' '.join([str(arg) for arg in args])))
 
 @lib.hook(('foo', 'bar'), needchan=False) #hooks !foo and !bar as aliases
-@lib.help(None, 'replies with nonsense.', cmd=('foo', 'bar'))
+@lib.help(None, 'replies with nonsense.', "it's a very non-sensical command", "more lines")
 def foobar(bot, user, chan, realtarget, *args):
 	bot.msg(user, "Foo bar baz.")

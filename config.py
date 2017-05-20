@@ -46,5 +46,8 @@ if __name__ == '__main__':
 	import sys
 	cfg = Config(sys.argv[1], False)
 
-	for k, v in cfg.items():
-		print k, '=', v
+	for s in cfg.config.sections():
+		for k, v in cfg.items(s):
+			print s+'.'+k, '=', v
+#	for k, v in cfg.items():
+#		print 'erebus.'+k, '=', v

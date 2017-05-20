@@ -36,6 +36,7 @@ class modlib(object):
 		self.hooks = {}
 		self.numhooks = {}
 		self.chanhooks = {}
+		self.helps = []
 		self.parent = None
 
 		self.name = name
@@ -49,6 +50,12 @@ class modlib(object):
 			self.parent.hooknum(num, func)
 		for chan, func in self.chanhooks.iteritems():
 			self.parent.hookchan(chan, func)
+
+		for func, args, kwargs in self.helps:
+			try:
+				self.mod('help').reghelp(func, *args, **kwargs)
+			except:
+				pass
 		return True
 	def modstop(self, parent):
 		for cmd, func in self.hooks.iteritems():
@@ -58,6 +65,12 @@ class modlib(object):
 			self.parent.unhooknum(num, func)
 		for chan, func in self.chanhooks.iteritems():
 			self.parent.unhookchan(chan, func)
+
+		for func, args, kwargs in self.helps:
+			try:
+				self.mod('help').dereghelp(func, *args, **kwargs)
+			except:
+				pass
 		return True
 
 	def hooknum(self, num):
@@ -82,13 +95,14 @@ class modlib(object):
 			cmd = _cmd #...and restore it
 			if cmd is None:
 				cmd = func.__name__ # default to function name
+			if isinstance(cmd, basestring):
+				cmd = (cmd,)
 
 			func.needchan = needchan
 			func.reqglevel = glevel
 			func.reqclevel = clevel
+			func.cmd = cmd
 
-			if isinstance(cmd, basestring):
-				cmd = (cmd,)
 			for c in cmd:
 				self.hooks[c] = func
 				if self.parent is not None:
@@ -126,7 +140,7 @@ class modlib(object):
 		return realhook
 
 	def help(self, *args, **kwargs):
-		"""help(syntax, shorthelp, longhelp, more lines longhelp, cmd=...?)
+		"""help(syntax, shorthelp, longhelp?, more lines longhelp?, cmd=...?)
 		Example:
 		help("<user> <pass>", "login")
 			^ Help will only be one line. Command name determined based on function name.
@@ -136,7 +150,12 @@ class modlib(object):
 			^ Command takes no args. Short description (in overall HELP listing) is "do stuff".
 			Long description (HELP <command>) will say "<command> - do stuff", newline, "This command is really complicated."
 		"""
-		try:
-			self.mod('help').reghelp(*args, **kwargs)
-		except:
-			pass
+		def realhook(func):
+			if self.parent is not None:
+				try:
+					self.mod('help').reghelp(func, *args, **kwargs)
+				except:
+					pass
+			self.helps.append((func,args,kwargs))
+			return func
+		return realhook
