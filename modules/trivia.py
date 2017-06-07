@@ -186,6 +186,7 @@ class TriviaState(object):
 			try: return str(self.db['users'][self.db['ranks'][num]]['points'])
 			except: return 0
 
+		status = False
 		try:
 			f = open(self.db['hofpath'], 'rb+')
 			for i in range(self.db['hoflines']): #skip this many lines
@@ -205,12 +206,12 @@ class TriviaState(object):
 				'thirdscore': pts(2),
 			})
 			f.write(fcontents)
-			return True
+			status = True
 		except Exception as e:
-			raise e #FIXME wtf???
-			return False
+			status = False
 		finally:
 			f.close()
+			return status
 
 	def endPointVote(self):
 		self.getchan().msg("Voting has ended!")
