@@ -192,7 +192,7 @@ class Bot(object):
 
 	def __debug_nomsg(self, target, msg):
 		if int(self.parent.cfg.get('debug', 'nomsg', default=0)) == 1:
-			self.conn.send("PRIVMSG DimeCadmium :%09.3f 4!!! NOMSG %r, %r" % (time.time() % 100000, target, msg))
+			self.conn.send("PRIVMSG %s :%09.3f 4!!! NOMSG %r, %r" % (self.parent.cfg.get('debug', 'owner'), time.time() % 100000, target, msg))
 			print "%09.3f %s [!] %s" % (time.time() % 100000, self.nick, "!!! NOMSG")
 			__import__('traceback').print_stack()
 
