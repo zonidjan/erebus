@@ -57,11 +57,13 @@ def dereghelp(func, *args, **kwargs):
 	del helps[func]
 
 class HelpLine(object):
-	def __init__(self, cmd, syntax, shorthelp, level=0):
+	def __init__(self, cmd, syntax, shorthelp, admin, level, module):
 		self.cmd = cmd
 		self.syntax = syntax
 		self.shorthelp = shorthelp
+		self.admin = admin
 		self.level = level
+		self.module = module
 
 	def __cmp__(self, other):
 		if self.level == other.level:
@@ -71,10 +73,10 @@ class HelpLine(object):
 
 
 	def __str__(self):
-		if self.level <= 0:
-			return "%-40s - %-50s" % (self.cmd+' '+self.syntax, self.shorthelp)
+		if self.admin:
+			return "%-35s(%3s) - %-10s - %-50s" % (self.cmd+' '+self.syntax, self.level, self.module, self.shorthelp)
 		else:
-			return "%-35s(%3s) - %-50s" % (self.cmd+' '+self.syntax, self.level, self.shorthelp)
+			return "%-40s - %-50s" % (self.cmd+' '+self.syntax, self.shorthelp)
 
 @lib.hook(needchan=False)
 @lib.help('[<command>]', 'lists commands or describes a command')
@@ -83,16 +85,10 @@ def help(bot, user, chan, realtarget, *args): #TODO add ordering - by access lev
 		lines = []
 		for func in helps.itervalues():
 			if user.glevel >= func.reqglevel:
-				if func.reqglevel <= 0:
-					lines.append(HelpLine(func.cmd[0], func.syntax, func.shorthelp))
-#					bot.slowmsg(user, "%-40s - %-50s" % (func.cmd[0]+' '+func.syntax, func.shorthelp))
-				else:
-					lines.append(HelpLine(func.cmd[0], func.syntax, func.shorthelp, func.reqglevel))
-#					bot.slowmsg(user, "%-40s - %-50s (%5s)" % (func.cmd[0]+' '+func.syntax, func.shorthelp, func.reqglevel))
+				lines.append(HelpLine(func.cmd[0], func.syntax, func.shorthelp, (user.glevel > 0), func.reqglevel, func.__module__))
 				if len(func.cmd) > 1:
 					for c in func.cmd[1:]:
-						lines.append(HelpLine(c, "", "Alias of %s" % (func.cmd[0]), func.reqglevel))
-#						bot.slowmsg(user, "%-40s - Alias of %s" % (c, func.cmd[0]))
+						lines.append(HelpLine(c, "", "Alias of %s" % (func.cmd[0]), (user.glevel > 0), func.reqglevel, func.__module__))
 		for line in sorted(lines):
 			bot.slowmsg(user, str(line))
 	else: # help for a specific command/topic
