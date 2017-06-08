@@ -125,6 +125,7 @@ class modlib(object):
 				else:
 					bot.msg(user, self.WRONGARGS)
 			checkargs.__name__ = func.__name__
+			checkargs.__module__ = func.__module__
 			return checkargs
 		return realhook
 
@@ -136,6 +137,7 @@ class modlib(object):
 				else:
 					bot.msg(user, self.WRONGARGS)
 			checkargs.__name__ = func.__name__
+			checkargs.__module__ = func.__module__
 			return checkargs
 		return realhook
 
