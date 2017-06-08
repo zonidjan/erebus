@@ -34,7 +34,7 @@ def gotParent():
 	except:
 		db = {}
 def closeshop():
-	if json is not None and json.dump is not None:
+	if json is not None and json.dump is not None and db != {}:
 		json.dump(db, open(jsonfile, "w"))#, indent=4, separators=(',', ': '))
 
 #functions
@@ -50,6 +50,8 @@ def getauth(thing):
 				return "#"+parent.user(thing).auth
 	return None
 
+def _keys(user):
+	return list(set(db.get(getauth(user), {}).keys() + db.get(str(user).lower(), {}).keys())) #list-to-set-to-list to remove duplicates
 def _has(user, key):
 	return (
 		key in db.get(getauth(user), {}) or
@@ -60,8 +62,8 @@ def _get(user, key, default=None):
 		db.get(getauth(user), {}). #try to get the auth
 			get(key, #try to get the info-key by auth
 			db.get(str(user).lower(), {}). #fallback to using the nick
-			get(key, #and try to get the info-key from that
-			default #otherwise throw out whatever default
+				get(key, #and try to get the info-key from that
+				default #otherwise throw out whatever default
 	)))
 def _set(user, key, value):
 	if getauth(user) is not None:
@@ -70,7 +72,20 @@ def _set(user, key, value):
 
 #commands
 @lib.hook(needchan=False)
-@lib.help("[<user>] <item>", "gets an info item about you or someone else")
+@lib.help("[<target>]", "lists info items known about someone", "<target> may be a nick, or an auth in format '#auth'", "it defaults to yourself")
+def getitems(bot, user, chan, realtarget, *args):
+	if chan is not None and realtarget == chan.name: replyto = chan
+	else: replyto = user
+
+	if len(args) > 0:
+		target = args[0]
+	else:
+		target = user
+
+	bot.msg(replyto, "%(user)s: %(target)s has the following info items: %(items)s" % {'user':user,'target':target,'items':(', '.join(_keys(target)))})
+
+@lib.hook(needchan=False)
+@lib.help("[<target>] <item>", "gets an info item about someone", "<target> may be a nick, or an auth in format '#auth'", "it defaults to yourself")
 @lib.argsGE(1)
 def getinfo(bot, user, chan, realtarget, *args):
 	if chan is not None and realtarget == chan.name: replyto = chan
@@ -94,11 +109,13 @@ def getinfo(bot, user, chan, realtarget, *args):
 @lib.argsGE(2)
 def setinfo(bot, user, chan, realtarget, *args):
 	_set(user, args[0], ' '.join(args[1:]))
+	closeshop()
 	bot.msg(user, "Done.")
 
 @lib.hook(glevel=lib.STAFF, needchan=False)
-@lib.help("<user> <item> <value>", "sets an info item about someone else")
+@lib.help("<target> <item> <value>", "sets an info item about someone else", "<target> may be a nick, or an auth in format '#auth'")
 @lib.argsGE(3)
 def osetinfo(bot, user, chan, realtarget, *args):
 	_set(args[0], args[1], ' '.join(args[2:]))
+	closeshop()
 	bot.msg(user, "Done.")
