@@ -68,7 +68,7 @@ def modreload(bot, user, chan, realtarget, *args):
 def modlist(bot, user, chan, realtarget, *args):
 	mods = ctlmod.modules
 	for mod in mods.itervalues():
-		bot.msg(user, "- %s %r" % (mod.__name__, mod))
+		bot.msg(user, "- %s (%s)" % (mod.__name__, mod.__file__))
 	bot.msg(user, "Done.")
 
 def _whois(user, chan, showglevel=True, showclevel=True):
@@ -108,6 +108,12 @@ def whois(bot, user, chan, realtarget, *args):
 @lib.help(None, "shows who you are")
 def whoami(bot, user, chan, realtarget, *args):
 	bot.msg(user, "You are %s" % (_whois(user, chan)))
+
+@lib.hook(needchan=False)
+@lib.help(None, "tries to read your auth and access level again")
+def auth(bot, user, chan, realtarget, *args):
+	bot.msg(user, "Okay, give me a second.")
+	bot.conn.send("WHO %s n%%ant,2" % (user))
 
 @lib.hook(needchan=False, glevel=1)
 @lib.help(None, "displays length of each msgqueue")

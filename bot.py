@@ -94,6 +94,8 @@ class Bot(object):
 	def _got354(self, pieces):
 		qt, nick, auth = pieces[3:6]
 		self.parent.user(nick).authed(auth)
+		if qt == "2":
+			self.msg(nick, "You are now known as #%s (access level: %s)" % (auth, self.parent.user(nick).glevel))
 	def _gotjoin(self, pieces):
 		nick = pieces[0].split('!')[0][1:]
 		chan = self.parent.channel(pieces[2])
