@@ -80,7 +80,7 @@ class HelpLine(object):
 
 @lib.hook(needchan=False)
 @lib.help('[<command>]', 'lists commands or describes a command')
-def help(bot, user, chan, realtarget, *args): #TODO add ordering - by access level, then alphabetic?
+def help(bot, user, chan, realtarget, *args):
 	if len(args) == 0: # list commands
 		lines = []
 		for func in helps.itervalues():
@@ -95,10 +95,7 @@ def help(bot, user, chan, realtarget, *args): #TODO add ordering - by access lev
 		cmd = str(' '.join(args))
 		if cmd in cmds and user.glevel >= cmds[cmd].reqglevel:
 			func = cmds[cmd]
-			if func.reqglevel <= 0:
-				bot.slowmsg(user, "%-40s - %-50s" % (func.cmd[0]+' '+func.syntax, func.shorthelp))
-			else:
-				bot.slowmsg(user, "%-40s - %-50s (%5s)" % (func.cmd[0]+' '+func.syntax, func.shorthelp, func.reqglevel))
+			bot.slowmsg(user, str(HelpLine(func.cmd[0], func.syntax, func.shorthelp, (user.glevel > 0), func.reqglevel, func.__module__)))
 			for line in func.longhelps:
 				bot.slowmsg(user, "  %s" % (line))
 
