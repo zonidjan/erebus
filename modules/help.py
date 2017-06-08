@@ -91,6 +91,7 @@ def help(bot, user, chan, realtarget, *args):
 						lines.append(HelpLine(c, "", "Alias of %s" % (func.cmd[0]), (user.glevel > 0), func.reqglevel, func.__module__))
 		for line in sorted(lines):
 			bot.slowmsg(user, str(line))
+		bot.slowmsg(user, "End of command listing.")
 	else: # help for a specific command/topic
 		cmd = str(' '.join(args))
 		if cmd in cmds and user.glevel >= cmds[cmd].reqglevel:
@@ -98,6 +99,7 @@ def help(bot, user, chan, realtarget, *args):
 			bot.slowmsg(user, str(HelpLine(func.cmd[0], func.syntax, func.shorthelp, (user.glevel > 0), func.reqglevel, func.__module__)))
 			for line in func.longhelps:
 				bot.slowmsg(user, "  %s" % (line))
+			bot.slowmsg(user, "End of help for %s." % (func.cmd[0]))
 
 			if len(func.cmd) > 1:
 				bot.slowmsg(user, "  Aliases: %s" % (' '.join(func.cmd[1:])))
