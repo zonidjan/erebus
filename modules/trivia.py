@@ -113,7 +113,7 @@ class TriviaState(object):
 #			json.dump(self.db, open(self.questionfile, "w"))#, indent=4, separators=(',', ': '))
 			dbjson = json.dumps(self.db)
 			if len(dbjson) > 0:
-				os.rename(self.questionfile, self.questionfile+".autobak")
+				os.rename(self.questionfile, self.questionfile+".auto.bak")
 				tmpfn = os.tempnam('.', 'trivia')
 				try:
 					f = open(tmpfn, "w")
@@ -122,7 +122,7 @@ class TriviaState(object):
 					os.rename(tmpfn, self.questionfile)
 					return True
 				except: #if something happens, restore the backup
-					os.rename(self.questionfile+".autobak", self.questionfile)
+					os.rename(self.questionfile+".auto.bak", self.questionfile)
 					try:
 						os.unlink(tmpfn)
 					except OSError: # temp file is already gone
