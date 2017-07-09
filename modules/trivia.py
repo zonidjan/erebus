@@ -27,7 +27,7 @@ def modstop(*args, **kwargs):
 	return lib.modstop(*args, **kwargs)
 
 # module code
-import json, random, threading, re, time, datetime
+import json, random, threading, re, time, datetime, os
 
 try:
 	import twitter
@@ -108,9 +108,27 @@ class TriviaState(object):
 				self.nextquestiontimer = None
 		self.savedb()
 
-	def savedb(self):
+	def savedb(self): #returns whether or not it was able to save
 		if json is not None and json.dump is not None:
-			json.dump(self.db, open(self.questionfile, "w"))#, indent=4, separators=(',', ': '))
+#			json.dump(self.db, open(self.questionfile, "w"))#, indent=4, separators=(',', ': '))
+			dbjson = json.dumps(self.db)
+			if len(dbjson) > 0:
+				os.rename(self.questionfile, self.questionfile+".autobak")
+				tmpfn = os.tempnam('.', 'trivia')
+				try:
+					f = open(tmpfn, "w")
+					f.write(dbjson)
+					f.close()
+					os.rename(tmpfn, self.questionfile)
+					return True
+				except: #if something happens, restore the backup
+					os.rename(self.questionfile+".autobak", self.questionfile)
+					try:
+						os.unlink(tmpfn)
+					except OSError: # temp file is already gone
+						pass
+					raise #TODO: we may be better off just swallowing exceptions?
+		return False
 
 	def getchan(self):
 		return self.parent.channel(self.chan)
@@ -256,6 +274,8 @@ class TriviaState(object):
 			self.getbot().msg(self.getchan(), "%d questions unanswered! Stopping the game." % (self.missedquestions))
 			return
 
+		self.savedb()
+
 		if skipwait:
 			self._nextquestion(iteration)
 		else:
@@ -385,6 +405,17 @@ def trivia_checkanswer(bot, user, chan, *args):
 			bot.msg(chan, "\00312%s\003 got an extra point for getting it before the hints! New score: %d." % (user, state.addpoint(user)))
 		state.nextquestion()
 
+@lib.hook(glevel=1, needchan=False)
+@lib.help(None, "saves the trivia database")
+def save(bot, user, chan, realtarget, *args):
+	if chan is not None and realtarget == chan.name: replyto = chan
+	else: replyto = user
+
+	if state.savedb():
+		bot.msg(replyto, "Save successful.")
+	else:
+		bot.msg(replyto, "Save failed!")
+
 @lib.hook(needchan=False)
 @lib.help("[<user>]", "shows how many points you or someone has")
 def points(bot, user, chan, realtarget, *args):
@@ -493,7 +524,6 @@ def badq(bot, user, chan, realtarget, *args):
 
 	reason = ' '.join(args)
 	state.db['badqs'].append([lastqid, curqid, reason])
-	state.savedb()
 	bot.msg(user, "Reported bad question.")
 
 @lib.hook(glevel=lib.STAFF, needchan=False)
@@ -519,7 +549,6 @@ def badqs(bot, user, chan, realtarget, *args):
 @lib.hook(None, "clears list of BADQ reports")
 def clearbadqs(bot, user, chan, realtarget, *args):
 	state.db['badqs'] = []
-	state.savedb()
 	bot.msg(user, "Cleared reports.")
 
 @lib.hook(glevel=lib.STAFF, needchan=False)
@@ -529,7 +558,6 @@ def delbadq(bot, user, chan, realtarget, *args):
 	try:
 		qid = int(args[0])
 		del state.db['badqs'][qid]
-		state.savedb()
 		bot.msg(user, "Removed report #%d" % (qid))
 	except:
 		bot.msg(user, "Failed!")
@@ -675,7 +703,6 @@ def delq(bot, user, chan, realtarget, *args):
 	try:
 		backup = state.db['questions'][int(args[0])]
 		del state.db['questions'][int(args[0])]
-		state.savedb()
 		bot.msg(user, "Deleted %s*%s" % (backup[0], backup[1]))
 	except:
 		bot.msg(user, "Couldn't delete that question. %r" % (e))
@@ -691,7 +718,6 @@ def addq(bot, user, chan, realtarget, *args):
 	question = linepieces[0].strip()
 	answer = linepieces[1].strip()
 	state.db['questions'].append([question, answer])
-	state.savedb()
 	bot.msg(user, "Done. Question is #%s" % (len(state.db['questions'])-1))
 
 
