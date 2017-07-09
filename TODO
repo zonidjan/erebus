@@ -1,3 +1,6 @@
+handle nick in use
+61901.935 Erebus [I] :underworld2.no.quakenet.org 433 * Erebus :Nickname is already in use.
+
 == other ==
 module: help (generic help system)
 module: user (global access) management
