@@ -30,14 +30,12 @@ def load(parent, modname, dependent=False):
 
 def _load(parent, modname, dependent=False):
 	if not isloaded(modname):
-		sys.path.insert(0, 'modules')
 		try:
-			mod = __import__(modname)
+			mod = __import__('modules.'+modname, globals(), locals(), ['*'], -1)
+			# ^ fromlist doesn't actually do anything(?) but it means we don't have to worry about this returning the top-level "modules" object
 			reload(mod) #in case it's been previously loaded.
-		except BaseException as e: #we don't want even sys.exit() to crash us (in case of malicious module) so use BaseException
+		except Exception as e:
 			return modlib.error(e)
-		finally:
-			del sys.path[0] #remove ./modules from path, in case there's a name conflict
 
 
 		if not hasattr(mod, 'modinfo'):
@@ -103,5 +101,3 @@ def unloadall(parent, modlist):
 	for m in modlist: unload(parent, m)
 def reloadall(parent, modlist):
 	for m in modlist: reloadmod(parent, m)
-
-sys.path.append('modules')

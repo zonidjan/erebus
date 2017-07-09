@@ -39,7 +39,7 @@ class modlib(object):
 		self.helps = []
 		self.parent = None
 
-		self.name = name
+		self.name = (name.split(".", 1))[1]
 
 	def modstart(self, parent):
 		self.parent = parent
