@@ -29,6 +29,11 @@ class Bot(object):
 		self.slowmsgqueue = deque()
 		self.makemsgtimer()
 
+	def __del__(self):
+		curs = self.parent.db.cursor()
+		curs.execute("UPDATE bots SET connected = 0 WHERE nick = %s", (self.nick,))
+		curs.close()
+
 
 	def connect(self):
 		if self.conn.connect():
@@ -76,10 +81,18 @@ class Bot(object):
 	def _gotping(self, pieces):
 		self.conn.send("PONG %s" % (pieces[1]))
 	def _goterror(self, pieces): #TODO handle better
+		curs = self.parent.db.cursor()
+		curs.execute("UPDATE bots SET connected = 0")
+		curs.close()
 		sys.exit(2)
 		os._exit(2)
 	def _got001(self, pieces):
 		self.conn.registered(True)
+
+		curs = self.parent.db.cursor()
+		curs.execute("UPDATE bots SET connected = 1 WHERE nick = %s", (self.nick,))
+		curs.close()
+
 		self.conn.send("MODE %s +x" % (pieces[2]))
 		if self.authname is not None and self.authpass is not None:
 			self.conn.send("AUTH %s %s" % (self.authname, self.authpass))
@@ -93,9 +106,16 @@ class Bot(object):
 		self.parsemsg(user, target, msg)
 	def _got354(self, pieces):
 		qt, nick, auth = pieces[3:6]
-		self.parent.user(nick).authed(auth)
+		user = self.parent.user(nick)
+		user.authed(auth)
 		if qt == "2":
-			self.msg(nick, "You are now known as #%s (access level: %s)" % (auth, self.parent.user(nick).glevel))
+			if user.isauthed():
+				if user.glevel > 0:
+					self.msg(nick, "You are now known as #%s (access level: %s)" % (auth, user.glevel))
+				else:
+					self.msg(nick, "You are now known as #%s (not staff)" % (auth))
+			else:
+				self.msg(nick, "I tried, but you're not authed!")
 	def _gotjoin(self, pieces):
 		nick = pieces[0].split('!')[0][1:]
 		chan = self.parent.channel(pieces[2])
@@ -170,7 +190,8 @@ class Bot(object):
 						for callback in self.parent.getchanhook(target.lower()):
 							try:
 								cbret = callback(self, user, chan, *pieces)
-								if cbret is NotImplemented: self.msg(user, "Command not implemented.")
+							except NotImplementedError:
+								self.msg(user, "Command not implemented.")
 							except:
 								self.msg(user, "Command failed. Code: CBEXC%09.3f" % (time.time() % 100000))
 								self.__debug_cbexception("chanhook", user=user, target=target, msg=msg)
@@ -187,10 +208,16 @@ class Bot(object):
 				elif user.glevel >= callback.reqglevel and (not callback.needchan or chan.levelof(user.auth) >= callback.reqclevel):
 					try:
 						cbret = callback(self, user, chan, target, *pieces[1:])
-						if cbret is NotImplemented: self.msg(user, "Command not implemented.")
+					except NotImplementedError:
+						self.msg(user, "Command not implemented.")
 					except Exception:
 						self.msg(user, "Command failed. Code: CBEXC%09.3f" % (time.time() % 100000))
 						self.__debug_cbexception("hook", user=user, target=target, msg=msg)
+					except SystemExit as e:
+						curs = self.parent.db.cursor()
+						curs.execute("UPDATE bots SET connected = 0")
+						curs.close()
+						raise e
 
 	def __debug_nomsg(self, target, msg):
 		if int(self.parent.cfg.get('debug', 'nomsg', default=0)) == 1:
