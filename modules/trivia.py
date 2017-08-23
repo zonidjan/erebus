@@ -269,12 +269,12 @@ class TriviaState(object):
 		self.revealpossibilities = None
 		self.reveal = None
 
+		self.savedb()
+
 		if self.missedquestions > self.db['maxmissedquestions']:
 			stop()
 			self.getbot().msg(self.getchan(), "%d questions unanswered! Stopping the game." % (self.missedquestions))
 			return
-
-		self.savedb()
 
 		if skipwait:
 			self._nextquestion(iteration)
@@ -312,7 +312,10 @@ class TriviaState(object):
 		qary = nextq[0].split(None)
 		qtext += " "
 		for qword in qary:
-			qtext += "\00304,01"+qword+"\00301,01"+chr(random.randrange(0x61,0x7A)) #a-z
+			spacer = random.choice(
+				range(0x61,0x7A) + ([0x20]*4)
+			)
+			qtext += "\00304,01"+qword+"\00301,01"+chr(spacer) #a-z
 		self.getbot().fastmsg(self.chan, qtext)
 
 		self.curq = nextq
@@ -384,11 +387,11 @@ class TriviaState(object):
 		if user in self.db['users']:
 			rank = self.db['users'][user]['rank']
 			if rank == 0:
-				return "N/A"
+				return ""
 			else:
-				return self.db['users'][self.db['ranks'][rank-1]]['points']
+				return "("+str(self.db['users'][self.db['ranks'][rank-1]]['points'])+")"
 		else:
-			return self.db['users'][self.db['ranks'][-1]]['points']
+			return "("+str(self.db['users'][self.db['ranks'][-1]]['points'])+")"
 
 state = TriviaState()
 
@@ -398,9 +401,9 @@ def trivia_checkanswer(bot, user, chan, *args):
 	if state.checkanswer(line):
 		state.curq = None
 		if state.hintanswer.lower() == line.lower():
-			bot.fastmsg(chan, "\00312%s\003 has it! The answer was \00312%s\003. New score: %d. Rank: %d. Target: %s (%s)." % (user, line, state.addpoint(user), state.rank(user), state.targetuser(user), state.targetpoints(user)))
+			bot.fastmsg(chan, "\00312%s\003 has it! The answer was \00312%s\003. New score: %d. Rank: %d. Target: %s %s" % (user, line, state.addpoint(user), state.rank(user), state.targetuser(user), state.targetpoints(user)))
 		else:
-			bot.fastmsg(chan, "\00312%s\003 has it! The answer was \00312%s\003 (hinted answer: %s). New score: %d. Rank: %d. Target: %s (%s)." % (user, line, state.hintanswer, state.addpoint(user), state.rank(user), state.targetuser(user), state.targetpoints(user)))
+			bot.fastmsg(chan, "\00312%s\003 has it! The answer was \00312%s\003 (hinted answer: %s). New score: %d. Rank: %d. Target: %s%s" % (user, line, state.hintanswer, state.addpoint(user), state.rank(user), state.targetuser(user), state.targetpoints(user)))
 		if state.hintsgiven == 0:
 			bot.msg(chan, "\00312%s\003 got an extra point for getting it before the hints! New score: %d." % (user, state.addpoint(user)))
 		state.nextquestion()
@@ -571,7 +574,7 @@ def rank(bot, user, chan, realtarget, *args):
 	if len(args) != 0: who = args[0]
 	else: who = user
 
-	bot.msg(replyto, "%s is in %d place (%s points). Target is: %s (%s points)." % (who, state.rank(who), state.points(who), state.targetuser(who), state.targetpoints(who)))
+	bot.msg(replyto, "%s is in %d place (%s points). Target is: %s %s" % (who, state.rank(who), state.points(who), state.targetuser(who), state.targetpoints(who)))
 
 @lib.hook(needchan=False)
 @lib.help(None, "shows top10 list")
