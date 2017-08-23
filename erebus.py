@@ -62,9 +62,9 @@ class Erebus(object):
 			try:
 				self.chans.remove(chan)
 			except: pass
+			return len(self.chans) == 0
 		def quit(self):
-			for chan in self.chans:
-				self.chans.remove(chan)
+			pass
 		def nickchange(self, newnick):
 			self.nick = newnick
 
@@ -174,7 +174,7 @@ class Erebus(object):
 			self.users[nick] = user
 
 			if justjoined:
-				self.randbot().conn.send("WHO %s n%%ant,2" % (nick))
+				self.randbot().conn.send("WHO %s n%%ant,1" % (nick))
 
 			return user
 		else:
