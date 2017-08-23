@@ -105,10 +105,21 @@ class Bot(object):
 		msg = ' '.join(pieces[3:])[1:]
 		self.parsemsg(user, target, msg)
 	def _got354(self, pieces):
-		qt, nick, auth = pieces[3:6]
+		qt = int(pieces[3])
+		if qt < 3:
+			nick, auth = pieces[4:6]
+			chan = None
+		else:
+			chan, nick, auth = pieces[4:7]
+			chan = self.parent.channel(chan)
 		user = self.parent.user(nick)
 		user.authed(auth)
-		if qt == "2":
+
+		if chan is not None:
+			user.join(chan)
+			chan.userjoin(user)
+
+		if qt == 2: # triggered by !auth
 			if user.isauthed():
 				if user.glevel > 0:
 					self.msg(nick, "You are now known as #%s (access level: %s)" % (auth, user.glevel))
@@ -121,7 +132,7 @@ class Bot(object):
 		chan = self.parent.channel(pieces[2])
 
 		if nick == self.nick:
-			self.conn.send("WHO %s c%%ant,1" % (chan))
+			self.conn.send("WHO %s c%%cant,3" % (chan))
 		else:
 			user = self.parent.user(nick, justjoined=True)
 			chan.userjoin(user)
@@ -131,11 +142,16 @@ class Bot(object):
 		chan = self.parent.channel(pieces[2])
 
 		if nick != self.nick:
-			self.parent.user(nick).part(chan)
+			gone = self.parent.user(nick).part(chan)
 			chan.userpart(self.parent.user(nick))
+			if gone:
+				self.parent.user(nick).quit()
+				del self.parent.users[nick.lower()]
 	def _gotquit(self, pieces):
 		nick = pieces[0].split('!')[0][1:]
 		if nick != self.nick:
+			for chan in self.parent.user(nick).chans:
+				chan.userpart(self.parent.user(nick))
 			self.parent.user(nick).quit()
 			del self.parent.users[nick.lower()]
 	def _gotnick(self, pieces):
