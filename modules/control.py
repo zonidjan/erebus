@@ -44,8 +44,12 @@ def modload(bot, user, chan, realtarget, *args):
 
 @lib.hook(needchan=False, glevel=lib.MANAGER)
 @lib.help("<mod>", "unloads a module")
-@lib.argsEQ(1)
+@lib.argsGE(1)
 def modunload(bot, user, chan, realtarget, *args):
+	if len(ctlmod.dependents[args[0]]) > 0:
+		if len(args) == 1 or args[1].lower() != "force":
+			bot.msg(user, "That module has dependents! Say MODUNLOAD %s FORCE to unload it and any dependents." % (args[0]))
+			return
 	okay = ctlmod.unload(bot.parent, args[0])
 	if okay:
 		bot.msg(user, "Unloaded %s" % (args[0]))
@@ -67,8 +71,8 @@ def modreload(bot, user, chan, realtarget, *args):
 @lib.argsEQ(0)
 def modlist(bot, user, chan, realtarget, *args):
 	mods = ctlmod.modules
-	for mod in mods.itervalues():
-		bot.msg(user, "- %s (%s)" % ((mod.__name__.split(".", 1))[1], mod.__file__))
+	for modname, mod in mods.iteritems():
+		bot.msg(user, "- %s (%s) %r" % ((modname, mod.__file__, ctlmod.dependents[modname])))
 	bot.msg(user, "Done.")
 
 def _whois(user, chan, showglevel=True, showclevel=True):
