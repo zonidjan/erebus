@@ -222,7 +222,7 @@ class Bot(object):
 
 	def __debug_cbexception(self, source, *args, **kwargs):
 		if int(self.parent.cfg.get('debug', 'cbexc', default=0)) == 1:
-			self.conn.send("PRIVMSG %s :%09.3f ^C4^B!!!^B^C CBEXC %s" % (self.parent.cfg.get('debug', 'owner'), time.time() % 100000, source))
+			self.conn.send("PRIVMSG %s :%09.3f 4!!! CBEXC %s" % (self.parent.cfg.get('debug', 'owner'), time.time() % 100000, source))
 			__import__('traceback').print_exc()
 			self.log('!', "CBEXC %s %r %r" % (source, args, kwargs))
 #			print "%09.3f %s [!] CBEXC %s %r %r" % (time.time() % 100000, self.nick, source, args, kwargs)
@@ -293,7 +293,7 @@ class Bot(object):
 
 	def __debug_nomsg(self, target, msg):
 		if int(self.parent.cfg.get('debug', 'nomsg', default=0)) == 1:
-			self.conn.send("PRIVMSG %s :%09.3f 4!!! NOMSG %r, %r" % (self.parent.cfg.get('debug', 'owner'), time.time() % 100000, target, msg))
+			self.conn.send("PRIVMSG %s :%09.3f 4!!! NOMSG %r, %r" % (self.parent.cfg.get('debug', 'owner'), time.time() % 100000, target, msg))
 			self.log('!', "!!! NOMSG")
 #			print "%09.3f %s [!] %s" % (time.time() % 100000, self.nick, "!!! NOMSG")
 			__import__('traceback').print_stack()
@@ -304,7 +304,7 @@ class Bot(object):
 
 		self.msgqueue.append((target, msg))
 		if not self.msgtimer.is_alive():
-			self.msgtimer.start()
+			self._popmsg()
 
 	def slowmsg(self, target, msg):
 		if target is None or msg is None:
