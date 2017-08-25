@@ -6,6 +6,7 @@ import modlib
 
 modules = {}
 dependents = {}
+#dependents[modname] = [list of modules which depend on modname]
 
 def isloaded(modname): return modname in modules
 def modhas(modname, attname): return getattr(modules[modname], attname, None) is not None
@@ -13,15 +14,15 @@ def modhas(modname, attname): return getattr(modules[modname], attname, None) is
 def load(parent, modname, dependent=False):
 	#wrapper to call _load and print return
 	if dependent:
-		print "Loading dependency %s..." % (modname),
+		print "(Loading dependency %s..." % (modname),
 	else:
-		print "%09.3f [MOD] [#] Loading %s... " % (time.time() % 100000, modname),
+		print "%09.3f [MOD] [?] Loading %s..." % (time.time() % 100000, modname),
 	modstatus = _load(parent, modname, dependent)
 	if not modstatus:
 		print str(modstatus)
 	elif modstatus == True:
 		if dependent:
-			print "OK. ",
+			print "OK)",
 		else:
 			print "OK."
 	else:
@@ -50,8 +51,8 @@ def _load(parent, modname, dependent=False):
 		for dep in mod.modinfo['depends']:
 			if dep not in modules:
 				depret = load(parent, dep, dependent=True)
-				if not depret:
-					return
+				if depret is not None and not depret:
+					return depret #TODO FIXME
 			dependents[dep].append(modname)
 
 
@@ -69,7 +70,7 @@ def unload(parent, modname):
 	if isloaded(modname):
 		for dependent in dependents[modname]:
 			unload(parent, dependent)
-		for dep in dependents[modname]:
+		for dep in modules[modname].modinfo['depends']:
 			dependents[dep].remove(modname)
 		ret = modules[modname].modstop(parent)
 		del modules[modname]

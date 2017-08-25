@@ -6,7 +6,7 @@
 import os, sys, select, MySQLdb, MySQLdb.cursors, time, random
 import bot, config, ctlmod
 
-class Erebus(object):
+class Erebus(object): #singleton to pass around
 	APIVERSION = 1
 	RELEASE = 0
 
@@ -204,6 +204,9 @@ class Erebus(object):
 	def module(self, name):
 		return ctlmod.modules[name]
 
+	def log(self, source, level, message):
+		print "%09.3f %s [%s] %s" % (time.time() % 100000, source, level, message)
+
 	#bind functions
 	def hook(self, word, handler):
 		try:
@@ -247,11 +250,13 @@ class Erebus(object):
 
 class MyCursor(MySQLdb.cursors.DictCursor):
 	def execute(self, *args, **kwargs):
-		print "%09.3f [SQL] [#] MyCursor.execute(self, %s, %s)" % (time.time() % 100000, ', '.join([repr(i) for i in args]), ', '.join([str(key)+"="+repr(kwargs[key]) for key in kwargs]))
+		main.log("[SQL]", "?", "MyCursor.execute(self, %s, %s)" % (', '.join([repr(i) for i in args]), ', '.join([str(key)+"="+repr(kwargs[key]) for key in kwargs])))
+#		print "%09.3f [SQL] [#] MyCursor.execute(self, %s, %s)" % (time.time() % 100000, ', '.join([repr(i) for i in args]), ', '.join([str(key)+"="+repr(kwargs[key]) for key in kwargs]))
 		try:
-			super(self.__class__, self).execute(*args, **kwargs)
+			return super(self.__class__, self).execute(*args, **kwargs)
 		except MySQLdb.MySQLError as e:
-			print "%09.3f [SQL] [!] MySQL error! %r" % (time.time() % 100000, e)
+			main.log("[SQL]", "!", "MySQL error! %r" % (e))
+#			print "%09.3f [SQL] [!] MySQL error! %r" % (time.time() % 100000, e)
 			dbsetup()
 			return False
 		return True

@@ -36,6 +36,9 @@ class Bot(object):
 		curs.close()
 
 
+	def log(self, *args, **kwargs):
+		self.parent.log(self.nick, *args, **kwargs)
+
 	def connect(self):
 		if self.conn.connect():
 			self.parent.newfd(self, self.conn.socket.fileno())
@@ -48,6 +51,7 @@ class Bot(object):
 			self.conn.send("NICK %s" % (self.permnick))
 
 	def parse(self, line):
+		self.log('I', line)
 		pieces = line.split()
 
 		# dispatch dict
@@ -220,7 +224,8 @@ class Bot(object):
 		if int(self.parent.cfg.get('debug', 'cbexc', default=0)) == 1:
 			self.conn.send("PRIVMSG %s :%09.3f ^C4^B!!!^B^C CBEXC %s" % (self.parent.cfg.get('debug', 'owner'), time.time() % 100000, source))
 			__import__('traceback').print_exc()
-			print "%09.3f %s [!] CBEXC %s %r %r" % (time.time() % 100000, self.nick, source, args, kwargs)
+			self.log('!', "CBEXC %s %r %r" % (source, args, kwargs))
+#			print "%09.3f %s [!] CBEXC %s %r %r" % (time.time() % 100000, self.nick, source, args, kwargs)
 
 
 	def parsemsg(self, user, target, msg):
@@ -289,7 +294,8 @@ class Bot(object):
 	def __debug_nomsg(self, target, msg):
 		if int(self.parent.cfg.get('debug', 'nomsg', default=0)) == 1:
 			self.conn.send("PRIVMSG %s :%09.3f 4!!! NOMSG %r, %r" % (self.parent.cfg.get('debug', 'owner'), time.time() % 100000, target, msg))
-			print "%09.3f %s [!] %s" % (time.time() % 100000, self.nick, "!!! NOMSG")
+			self.log('!', "!!! NOMSG")
+#			print "%09.3f %s [!] %s" % (time.time() % 100000, self.nick, "!!! NOMSG")
 			__import__('traceback').print_stack()
 
 	def msg(self, target, msg):
@@ -377,7 +383,8 @@ class BotConnection(object):
 		return self.state == 2
 
 	def send(self, line):
-		print "%09.3f %s [O] %s" % (time.time() % 100000, self.parent.nick, line)
+		self.parent.log('O', line)
+#		print "%09.3f %s [O] %s" % (time.time() % 100000, self.parent.nick, line)
 		self._write(line)
 
 	def _write(self, line):
@@ -389,8 +396,8 @@ class BotConnection(object):
 
 		while "\r\n" in self.buffer:
 			pieces = self.buffer.split("\r\n", 1)
-			print "%09.3f %s [I] %s" % (time.time() % 100000, self.parent.nick, pieces[0])
-#			print (time.time() % 1460000000), self.parent.nick, '[I]', pieces[0]
+#			self.parent.log('I', pieces[0]) # replaced by statement in Bot.parse()
+#			print "%09.3f %s [I] %s" % (time.time() % 100000, self.parent.nick, pieces[0])
 			lines.append(pieces[0])
 			self.buffer = pieces[1]
 
