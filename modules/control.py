@@ -72,7 +72,7 @@ def modreload(bot, user, chan, realtarget, *args):
 def modlist(bot, user, chan, realtarget, *args):
 	mods = ctlmod.modules
 	for modname, mod in mods.iteritems():
-		bot.msg(user, "- %s (%s) %r" % ((modname, mod.__file__, ctlmod.dependents[modname])))
+		bot.msg(user, "- %s (%s) [%s]" % ((modname, mod.__file__, ', '.join(ctlmod.dependents[modname]))))
 	bot.msg(user, "Done.")
 
 def _whois(user, chan, showglevel=True, showclevel=True):
