@@ -29,3 +29,8 @@ def test(bot, user, chan, realtarget, *args):
 @lib.help(None, 'replies with nonsense.', "it's a very non-sensical command", "more lines")
 def foobar(bot, user, chan, realtarget, *args):
 	bot.msg(user, "Foo bar baz.")
+
+@lib.hook()
+@lib.help(None, 'a command that does nothing but requires you specify a channel')
+def needchan(bot, user, chan, realtarget, *args):
+	bot.msg(user, "You did it!")
