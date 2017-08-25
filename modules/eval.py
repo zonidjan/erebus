@@ -47,7 +47,7 @@ def cmd_exec(bot, user, chan, realtarget, *args):
 	except Exception: bot.msg(replyto, "Error: %s %s" % (sys.exc_info()[0], sys.exc_info()[1]))
 	else: bot.msg(replyto, "Done.")
 
-@lib.hook('exception', glevel=lib.OWNER)
+@lib.hook('exception', needchan=False, glevel=lib.OWNER)
 @lib.help(None, "cause an exception")
 def cmd_exception(*args, **kwargs):
 	raise Exception()
