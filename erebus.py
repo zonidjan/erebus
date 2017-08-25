@@ -57,7 +57,7 @@ class Erebus(object):
 			return self.glevel
 
 		def join(self, chan):
-			self.chans.append(chan)
+			if chan not in self.chans: self.chans.append(chan)
 		def part(self, chan):
 			try:
 				self.chans.remove(chan)

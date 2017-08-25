@@ -54,7 +54,8 @@ class Bot(object):
 		one = { #things to look for after source
 			'001': self._got001,
 			'PRIVMSG': self._gotprivmsg,
-			'354': self._got354,
+			'353': self._got353, #NAMES
+			'354': self._got354, #WHO
 			'JOIN': self._gotjoin,
 			'PART': self._gotpart,
 			'QUIT': self._gotquit,
@@ -80,7 +81,7 @@ class Bot(object):
 			self.conn.register()
 	def _gotping(self, pieces):
 		self.conn.send("PONG %s" % (pieces[1]))
-	def _goterror(self, pieces): #TODO handle better
+	def _goterror(self, pieces): #TODO handle more gracefully
 		curs = self.parent.db.cursor()
 		curs.execute("UPDATE bots SET connected = 0")
 		curs.close()
@@ -104,6 +105,19 @@ class Bot(object):
 		target = pieces[2]
 		msg = ' '.join(pieces[3:])[1:]
 		self.parsemsg(user, target, msg)
+	def _got353(self, pieces):
+		chan = self.parent.channel(pieces[4])
+		names = pieces[5:]
+		names[0] = names[0][1:] #remove colon
+		for n in names:
+			user = self.parent.user(n.lstrip('@+'))
+			if n[0] == '@':
+				chan.userjoin(user, 'op')
+			elif n[0] == '+':
+				chan.userjoin(user, 'voice')
+			else:
+				chan.userjoin(user)
+			user.join(chan)
 	def _got354(self, pieces):
 		qt = int(pieces[3])
 		if qt < 3:
@@ -161,9 +175,30 @@ class Bot(object):
 			self.parent.users[newnick.lower()] = self.parent.users[oldnick.lower()]
 			del self.parent.users[oldnick.lower()]
 		self.parent.users[newnick.lower()].nickchange(newnick)
-	def _gotmode(self, pieces): #TODO parse for ops/voices (at least)
-		pass
+	def _gotmode(self, pieces):
+		source = pieces[0].split('!')[0][1:]
+		chan = self.parent.channel(pieces[2])
+		mode = pieces[3]
+		args = pieces[4:]
 
+		adding = True
+		for c in mode:
+			if c == '+':
+				adding = True
+			elif c == '-':
+				adding = False
+			elif c == 'o':
+				if adding:
+					chan.userop(self.parent.user(args.pop(0)))
+				else:
+					chan.userdeop(self.parent.user(args.pop(0)))
+			elif c == 'v':
+				if adding:
+					chan.uservoice(self.parent.user(args.pop(0)))
+				else:
+					chan.userdevoice(self.parent.user(args.pop(0)))
+			else:
+				pass # don't care about other modes
 
 	def __debug_cbexception(self, source, *args, **kwargs):
 		if int(self.parent.cfg.get('debug', 'cbexc', default=0)) == 1:
