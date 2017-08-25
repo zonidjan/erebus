@@ -3,7 +3,7 @@
 # Erebus IRC bot - Author: John Runyon
 # "Bot" and "BotConnection" classes (handling a specific "arm")
 
-import socket, sys, time, threading, os
+import socket, sys, time, threading, os, random
 from collections import deque
 
 #bots = {'erebus': bot.Bot(nick='Erebus', user='erebus', bind='', server='irc.quakenet.org', port=6667, realname='Erebus')}
@@ -11,6 +11,7 @@ class Bot(object):
 	def __init__(self, parent, nick, user, bind, authname, authpass, server, port, realname):
 		self.parent = parent
 		self.nick = nick
+		self.permnick = nick
 		self.user = user
 		self.realname = realname
 
@@ -42,20 +43,27 @@ class Bot(object):
 	def getdata(self):
 		return self.conn.read()
 
+	def _checknick(self): # check if we're using the right nick, try changing
+		if self.nick != self.permnick and self.conn.registered():
+			self.conn.send("NICK %s" % (self.permnick))
+
 	def parse(self, line):
 		pieces = line.split()
 
 		# dispatch dict
 		zero = { #things to look for without source
-			'NOTICE': self._gotregistered,
+			'NOTICE': self._gotconnected,
 			'PING': self._gotping,
 			'ERROR': self._goterror,
 		}
 		one = { #things to look for after source
 			'001': self._got001,
+			'376': self._gotRegistered,
+			'422': self._gotRegistered,
 			'PRIVMSG': self._gotprivmsg,
 			'353': self._got353, #NAMES
 			'354': self._got354, #WHO
+			'433': self._got433, #nick in use
 			'JOIN': self._gotjoin,
 			'PART': self._gotpart,
 			'QUIT': self._gotquit,
@@ -76,11 +84,12 @@ class Bot(object):
 		elif pieces[1] in one:
 			one[pieces[1]](pieces)
 
-	def _gotregistered(self, pieces):
+	def _gotconnected(self, pieces):
 		if not self.conn.registered():
 			self.conn.register()
 	def _gotping(self, pieces):
 		self.conn.send("PONG %s" % (pieces[1]))
+		self._checknick()
 	def _goterror(self, pieces): #TODO handle more gracefully
 		curs = self.parent.db.cursor()
 		curs.execute("UPDATE bots SET connected = 0")
@@ -88,6 +97,8 @@ class Bot(object):
 		sys.exit(2)
 		os._exit(2)
 	def _got001(self, pieces):
+		pass # wait until the end of MOTD instead
+	def _gotRegistered(self, pieces):
 		self.conn.registered(True)
 
 		curs = self.parent.db.cursor()
@@ -141,6 +152,11 @@ class Bot(object):
 					self.msg(nick, "You are now known as #%s (not staff)" % (auth))
 			else:
 				self.msg(nick, "I tried, but you're not authed!")
+	def _got433(self, pieces):
+		if not self.conn.registered(): #we're trying to connect
+			newnick = "%s%d" % (self.nick, random.randint(111,999))
+			self.conn.send("NICK %s" % (newnick))
+			self.nick = newnick
 	def _gotjoin(self, pieces):
 		nick = pieces[0].split('!')[0][1:]
 		chan = self.parent.channel(pieces[2])
