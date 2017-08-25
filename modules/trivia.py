@@ -100,13 +100,22 @@ class TriviaState(object):
 	def __del__(self):
 		self.closeshop()
 	def closeshop(self):
-		if threading is not None and threading._Timer is not None:
-			if isinstance(self.steptimer, threading._Timer):
-				self.steptimer.cancel()
-			if isinstance(self.nextquestiontimer, threading._Timer):
-				self.nextquestiontimer.cancel()
-				self.nextquestiontimer = None
-		self.savedb()
+		try:
+			self.steptimer.cancel()
+			self.steptimer = None
+		except: pass
+		try:
+			self.nextquestiontimer.cancel()
+			self.nextquestiontimer = None
+		except: pass
+#TODO remove if the replacement works
+#		if threading is not None and threading._Timer is not None:
+#			if isinstance(self.steptimer, threading._Timer):
+#				self.steptimer.cancel()
+#			if isinstance(self.nextquestiontimer, threading._Timer):
+#				self.nextquestiontimer.cancel()
+#				self.nextquestiontimer = None
+#		self.savedb()
 
 	def savedb(self): #returns whether or not it was able to save
 		if json is not None and json.dump is not None:
