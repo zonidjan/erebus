@@ -29,6 +29,7 @@ class Bot(object):
 		self.msgqueue = deque()
 		self.slowmsgqueue = deque()
 		self.makemsgtimer()
+		self.msgtimer.start()
 
 	def __del__(self):
 		curs = self.parent.db.cursor()
@@ -299,22 +300,26 @@ class Bot(object):
 			__import__('traceback').print_stack()
 
 	def msg(self, target, msg):
-		if target is None or msg is None:
-			return self.__debug_nomsg(target, msg)
-
-		self.msgqueue.append((target, msg))
-		if not self.msgtimer.is_alive():
-			self._popmsg()
+		cmd = self._formatmsg(target, msg)
+		if self.conn.exceeded or self.conn.bytessent+len(cmd) >= self.conn.recvq:
+			self.msgqueue.append(cmd)
+		else:
+			self.conn.send(cmd)
+		self.conn.exceeded = True
 
 	def slowmsg(self, target, msg):
-		if target is None or msg is None:
-			return self.__debug_nomsg(target, msg)
-
-		self.slowmsgqueue.append((target, msg))
-		if not self.msgtimer.is_alive():
-			self.msgtimer.start()
+		cmd = self._formatmsg(target, msg)
+		if self.conn.exceeded or self.conn.bytessent+len(cmd) >= self.conn.recvq:
+			self.slowmsgqueue.append(cmd)
+		else:
+			self.conn.send(cmd)
+		self.conn.exceeded = True
 
 	def fastmsg(self, target, msg):
+		self.conn.send(self._formatmsg(target, msg))
+		self.conn.exceeded = True
+
+	def _formatmsg(self, target, msg):
 		if target is None or msg is None:
 			return self.__debug_nomsg(target, msg)
 
@@ -323,23 +328,32 @@ class Bot(object):
 		if target[0] == '#': command = "PRIVMSG %s :%s" % (target, msg)
 		else: command = "NOTICE %s :%s" % (target, msg)
 
-		self.conn.send(command)
+		return command
 
 	def _popmsg(self):
 		self.makemsgtimer()
+		self.conn.bytessent -= self.conn.recvq/3
+		if self.conn.bytessent < 0: self.conn.bytessent = 0
+		self.conn.exceeded = False
 
 		try:
-			self.fastmsg(*self.msgqueue.popleft())
-			self.msgtimer.start()
+			cmd = self.msgqueue.popleft()
+			if not self.conn.exceeded and self.conn.bytessent+len(cmd) < self.conn.recvq:
+				self.conn.send(cmd)
+				self.conn.exceeded = True
+			else: raise IndexError
 		except IndexError:
 			try:
-				self.fastmsg(*self.slowmsgqueue.popleft())
-				self.msgtimer.start()
+				cmd = self.slowmsgqueue.popleft()
+				if not self.conn.exceeded and self.conn.bytessent+len(cmd) < self.conn.recvq:
+					self.conn.send(cmd)
+					self.conn.exceeded = True
 			except IndexError:
 				pass
+		self.msgtimer.start()
 
 	def makemsgtimer(self):
-		self.msgtimer = threading.Timer(2, self._popmsg)
+		self.msgtimer = threading.Timer(3, self._popmsg)
 		self.msgtimer.daemon = True
 
 	def join(self, chan):
@@ -366,6 +380,10 @@ class BotConnection(object):
 
 		self.state = 0 # 0=disconnected, 1=registering, 2=connected
 
+		self.bytessent = 0
+		self.recvq = 500
+		self.exceeded = False
+
 	def connect(self):
 		self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.socket.bind((self.bind, 0))
@@ -385,6 +403,7 @@ class BotConnection(object):
 	def send(self, line):
 		self.parent.log('O', line)
 #		print "%09.3f %s [O] %s" % (time.time() % 100000, self.parent.nick, line)
+		self.bytessent += len(line)
 		self._write(line)
 
 	def _write(self, line):
