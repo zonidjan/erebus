@@ -1,14 +1,7 @@
-handle nick in use
-61901.935 Erebus [I] :underworld2.no.quakenet.org 433 * Erebus :Nickname is already in use.
-
 == other ==
-module: help (generic help system)
 module: user (global access) management
 module: channel access management
 module: chanop (kick/ban/etc)
-module: userinfo (store f.e. country code, for other modules)
-
-modlib: allow lib.hook with a first argument list or tuple (aliases)
 
 ctlmod: needs to print out a traceback. traceback.print_exc().
 
