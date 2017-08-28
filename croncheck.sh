@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cd /home/jrunyon/erebus
+cd "$(dirname $(readlink -f $0))"
 exec &>nohup.out
 
 if ! kill -0 "$(cat pidfile)"; then
