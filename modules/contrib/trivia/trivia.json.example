@@ -1,20 +1,39 @@
 {
-	"hofformat":"<TABLE BORDER='3' CELLSPACING='1' CELLPADDING='3' valign=center BORDERCOLOR='#999999' width=80%><TR><td width=33%><STRONG>Date:</STRONG> %(date)s</TD><td width=33%><STRONG>Round duration:</STRONG> %(duration)s</TD><td width=33%><STRONG>Target Score:</strong> %(targetscore)s</TD></TR><TR><td width=33%><FONT COLOR='#FFD700'>First: <strong>%(firstperson)s (%(firstscore)s)</strong></FONT></TD><td width=33%><FONT COLOR='#99999'>Second: <STRONG>%(secondperson)s (%(secondscore)s)</STRONG></FONT></TD><td width=33%><FONT COLOR='#996633'>Third: <STRONG>%(thirdperson)s (%(thirdscore)s)</STRONG></FONT></TD></TR></TABLE><br><br>",
-	"hoflines": 1,
-	"hofpath": null,
-	"votetimer": 300,
-	"targetoptions": [500,1000,1337,1500],
-	"hintnum": 3,
-	"hinttimer": 20.0,
-	"maxmissedquestions": 10,
-	"questionpause": 5.0,
-	"target": 500,
-	"chan": "##.test",
-    "ranks": [],
-    "users": {},
-    "questions": [
-		["Who is da boss?", ["dimecadmium","wibble","i am"]],
-		["!MONTH", "dynamic current month"],
-		["!MATH+", "dynamic random addition problem"],
-    ]
+    "category": "foo",
+    "questions": {
+        "foo": [
+            [
+                "foo",
+                "bar"
+            ],
+            [
+                "bar",
+                "baz"
+            ]
+        ]
+    },
+    "users": {
+    },
+    "lastwinner": "noone",
+    "hoflines": 2,
+    "hintnum": 3,
+    "hofformat": "<TABLE BORDER='3' CELLSPACING='1' CELLPADDING='3' valign=center BORDERCOLOR='#999999' width=80%%><TR><td width=33%%><STRONG>Date:</STRONG> %(date)s</TD><td width=33%%><STRONG>Round duration:</STRONG> %(duration)s</TD><td width=33%%><STRONG>Target Score:</strong> %(targetscore)s</TD></TR><TR><td width=33%%><FONT COLOR='#FFD700'>First: <strong>%(firstperson)s (%(firstscore)s)</strong></FONT></TD><td width=33%%><FONT COLOR='#99999'>Second: <STRONG>%(secondperson)s (%(secondscore)s)</STRONG></FONT></TD><td width=33%%><FONT COLOR='#996633'>Third: <STRONG>%(thirdperson)s (%(thirdscore)s)</STRONG></FONT></TD></TR></TABLE><br><br>",
+    "chan": "#foo",
+    "votetimer": 30,
+    "questionpause": 5.0,
+    "badqs": [],
+    "hofpath": "/home/hash/www/hof.html",
+    "topicformat": "\u00037Game is to \u001f%(target)s\u001f!\u0003 \u00035Last winner:\u0003 \u00036%(lastwinner)s\u0003 on \u00036%(lastwon)s\u0003. \u00035Top 3:\u0003 \u00036%(top3)s\u0003",
+    "ranks": [
+    ],
+    "targetoptions": [
+        500,
+        1000,
+        1337
+    ],
+    "lastwon": 0,
+    "maxmissedquestions": 25,
+    "hinttimer": 10.0,
+    "starttime": 0,
+    "target": 500
 }
