@@ -2,18 +2,12 @@
     "category": "foo",
     "questions": {
         "foo": [
-            [
-                "foo",
-                "bar"
-            ],
-            [
-                "bar",
-                "baz"
-            ]
+            ["foo", "bar"],
+            ["bar", "baz"]
         ]
     },
-    "users": {
-    },
+    "users": {},
+    "ranks": [],
     "lastwinner": "noone",
     "hoflines": 2,
     "hintnum": 3,
@@ -24,8 +18,6 @@
     "badqs": [],
     "hofpath": "/home/hash/www/hof.html",
     "topicformat": "\u00037Game is to \u001f%(target)s\u001f!\u0003 \u00035Last winner:\u0003 \u00036%(lastwinner)s\u0003 on \u00036%(lastwon)s\u0003. \u00035Top 3:\u0003 \u00036%(top3)s\u0003",
-    "ranks": [
-    ],
     "targetoptions": [
         500,
         1000,
