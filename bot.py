@@ -291,6 +291,8 @@ class Bot(object):
 						curs.execute("UPDATE bots SET connected = 0")
 						curs.close()
 						raise e
+		else:
+			self.msg(user, "I don't know that command.")
 
 	def __debug_nomsg(self, target, msg):
 		if int(self.parent.cfg.get('debug', 'nomsg', default=0)) == 1:
