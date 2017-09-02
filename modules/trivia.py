@@ -71,6 +71,7 @@ class TriviaState(object):
 		self.parent              = parent
 		self.questionfile        = self.parent.cfg.get('trivia', 'jsonpath', default="./modules/trivia.json")
 		self.db                  = json.load(open(self.questionfile, "r"))
+		self.questions           = self.db['questions'][self.db['category']]
 		self.chan                = self.db['chan']
 		self.curq                = None
 		self.nextq               = None
@@ -297,8 +298,8 @@ class TriviaState(object):
 			nextq = self.nextq
 			self.nextq = None
 		else:
-			nextqid = random.randrange(0, len(self.db['questions']))
-			nextq = self.db['questions'][nextqid]
+			nextqid = random.randrange(0, len(self.questions))
+			nextq = self.questions[nextqid]
 
 		if nextq[0][0] == "!":
 			nextqid = None
@@ -458,7 +459,7 @@ def give(bot, user, chan, realtarget, *args):
 def setnextid(bot, user, chan, realtarget, *args):
 	try:
 		qid = int(args[0])
-		state.nextq = state.db['questions'][qid]
+		state.nextq = state.questions[qid]
 		if user.glevel >= lib.STAFF:
 			respstr = "Done. Next question is: %s" % (state.nextq[0])
 		else:
@@ -535,7 +536,7 @@ def badq(bot, user, chan, realtarget, *args):
 	curqid = state.curqid
 
 	reason = ' '.join(args)
-	state.db['badqs'].append([lastqid, curqid, reason])
+	state.db['badqs'].append([state.db['category'], lastqid, curqid, reason])
 	bot.msg(user, "Reported bad question.")
 
 @lib.hook(glevel=lib.STAFF, needchan=False)
@@ -547,10 +548,10 @@ def badqs(bot, user, chan, realtarget, *args):
 	for i in range(len(state.db['badqs'])):
 		try:
 			report = state.db['badqs'][i]
-			bot.msg(user, "Report #%d: LastQ=%r CurQ=%r: %s" % (i, report[0], report[1], report[2]))
-			try: lq = state.db['questions'][int(report[0])]
+			bot.msg(user, "Report #%d: Cat=%s LastQ=%r CurQ=%r: %s" % (i, report[0], report[1], report[2], report[3]))
+			try: lq = state.db['questions'][report[0]][int(report[1])]
 			except Exception as e: lq = (None,None)
-			try: cq = state.db['questions'][int(report[1])]
+			try: cq = state.db['questions'][report[0]][int(report[2])]
 			except Exception as e: cq = (None, None)
 			bot.msg(user, "- Last: %s*%s" % (lq[0], lq[1]))
 			bot.msg(user, "- Curr: %s*%s" % (cq[0], cq[1]))
@@ -663,12 +664,19 @@ def questionpause(bot, user, chan, realtarget, *args):
 @lib.hook(glevel=1, needchan=False)
 @lib.help("<full question>", "finds a qid given a complete question")
 def findq(bot, user, chan, realtarget, *args):
+	args = list(args)
+	if args[0][0] == "@":
+		cat = args.pop(0)[1:].lower()
+		questions = state.db['questions'][cat]
+	else:
+		questions = state.questions
+
 	if len(args) == 0:
 		bot.msg(user, "You need to specify the question.")
 		return
 
 	searchkey = ' '.join(args).lower()
-	matches = [str(i) for i in range(len(state.db['questions'])) if state.db['questions'][i][0].lower() == searchkey]
+	matches = [str(i) for i in range(len(questions)) if questions[i][0].lower() == searchkey]
 	if len(matches) > 1:
 		bot.msg(user, "Multiple matches: %s" % (', '.join(matches)))
 	elif len(matches) == 1:
@@ -677,14 +685,21 @@ def findq(bot, user, chan, realtarget, *args):
 		bot.msg(user, "No match.")
 
 @lib.hook(glevel=1, needchan=False)
-@lib.help("<regex>", "finds a qid given a regex or partial question")
+@lib.help("[@<category>] <regex>", "finds a qid given a regex or partial question")
 def findqre(bot, user, chan, realtarget, *args):
+	args = list(args)
+	if args[0][0] == "@":
+		cat = args.pop(0)[1:].lower()
+		questions = state.db['questions'][cat]
+	else:
+		questions = state.questions
+
 	if len(args) == 0:
 		bot.msg(user, "You need to specify a search string.")
 		return
 
 	searcher = re.compile(' '.join(args), re.IGNORECASE)
-	matches = [str(i) for i in range(len(state.db['questions'])) if searcher.search(state.db['questions'][i][0]) is not None]
+	matches = [str(i) for i in range(len(questions)) if searcher.search(questions[i][0]) is not None]
 	if len(matches) > 25:
 		bot.msg(user, "Too many matches! (>25)")
 	elif len(matches) > 1:
@@ -695,33 +710,54 @@ def findqre(bot, user, chan, realtarget, *args):
 		bot.msg(user, "No match.")
 
 @lib.hook(glevel=lib.STAFF, needchan=False)
-@lib.help("<qid>", "displays the q*a for a qid")
+@lib.help("[@<category>] <qid>", "displays the q*a for a qid", "category defaults to current")
 def showq(bot, user, chan, realtarget, *args):
+	args = list(args)
+	if args[0][0] == "@":
+		cat = args.pop(0)[1:].lower()
+		questions = state.db['questions'][cat]
+	else:
+		questions = state.questions
+
 	try:
 		qid = int(args[0])
 	except:
 		bot.msg(user, "Specify a numeric question ID.")
 		return
 	try:
-		q = state.db['questions'][qid]
+		q = questions[qid]
 	except:
 		bot.msg(user, "ID not valid.")
 		return
 	bot.msg(user, "%s: %s*%s" % (qid, q[0], q[1]))
 
 @lib.hook(('delq', 'deleteq'), glevel=lib.STAFF, needchan=False)
-@lib.help("<qid>", "removes a question from the database")
+@lib.help("[@<category>] <qid>", "removes a question from the database")
 def delq(bot, user, chan, realtarget, *args):
+	args = list(args)
+	if args[0][0] == "@":
+		cat = args.pop(0)[1:].lower()
+		questions = state.db['questions'][cat]
+	else:
+		questions = state.questions
+
 	try:
-		backup = state.db['questions'][int(args[0])]
-		del state.db['questions'][int(args[0])]
+		backup = questions[int(args[0])]
+		del questions[int(args[0])]
 		bot.msg(user, "Deleted %s*%s" % (backup[0], backup[1]))
 	except:
 		bot.msg(user, "Couldn't delete that question. %r" % (e))
 
 @lib.hook(glevel=lib.STAFF, needchan=False)
-@lib.help("<q>*<a>", "adds a question")
+@lib.help("[@<category>] <q>*<a>", "adds a question")
 def addq(bot, user, chan, realtarget, *args):
+	args = list(args)
+	if args[0][0] == "@":
+		cat = args.pop(0)[1:].lower()
+		questions = state.db['questions'][cat]
+	else:
+		questions = state.questions
+
 	line = ' '.join([str(arg) for arg in args])
 	linepieces = line.split('*')
 	if len(linepieces) < 2:
@@ -729,9 +765,48 @@ def addq(bot, user, chan, realtarget, *args):
 		return
 	question = linepieces[0].strip()
 	answer = linepieces[1].strip()
-	state.db['questions'].append([question, answer])
-	bot.msg(user, "Done. Question is #%s" % (len(state.db['questions'])-1))
+	questions.append([question, answer])
+	bot.msg(user, "Done. Question is #%s" % (len(questions)-1))
 
+@lib.hook(glevel=1, needchan=False)
+@lib.help("<category>", "change category")
+def setcat(bot, user, chan, realtarget, *args):
+	category = args[0].lower()
+	if category in state.db['questions']:
+		state.db['category'] = category
+		state.questions = state.db['questions'][category]
+		bot.msg(user, "Changed category to %s" % (category))
+	else:
+		bot.msg(user, "That category doesn't exist.")
+
+@lib.hook(needchan=False)
+@lib.help(None, "list categories")
+def listcats(bot, user, chan, realtarget, *args):
+	cats = ["%s (%d)" % (c, len(state.db['questions'][c])) for c in state.db['questions'].keys()]
+	bot.msg(user, "Categories: %s" % (', '.join(cats)))
+
+@lib.hook(glevel=lib.STAFF, needchan=False)
+@lib.help("<category>", "adds an empty category")
+def addcat(bot, user, chan, realtarget, *args):
+	category = args[0].lower()
+	if category not in state.db['questions']:
+		state.db['questions'][category] = []
+		bot.msg(user, "Added category %s" % (category))
+	else:
+		bot.msg(user, "Category already exists.")
+
+@lib.hook(glevel=lib.MANAGER, needchan=False)
+@lib.help("<category>", "deletes an entire category")
+def delcat(bot, user, chan, realtarget, *args):
+	category = args[0].lower()
+	if category == state.db['category']:
+		bot.msg(user, "Category currently in use!")
+	elif category in state.db['questions']:
+		length = len(state.db['questions'][category])
+		del state.db['questions'][category]
+		bot.msg(user, "Deleted category %s (%d questions)" % (category, length))
+	else:
+		bot.msg(user, "Category does not exist.")
 
 @lib.hook(needchan=False)
 def triviahelp(bot, user, chan, realtarget, *args):

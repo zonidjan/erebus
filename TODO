@@ -10,7 +10,6 @@ core: watchdog timer (check how long since last received, if >5m restart)
 
 == ?????? ==
 - Store User and Channel objects
-- Add no-such-command error to Bot().parsemsg
 
 
 == trivia ==
@@ -28,14 +27,12 @@ core: watchdog timer (check how long since last received, if >5m restart)
 [X] error reporting system (one exists with hashie but it sucked and no one checked it)
 [X] live high score table on webpage (stats accessible)
 [X] auto topic changes for last round won (configurable by a text file or similar)
+[X] question categories (able to change different question lists currently in use. i.e. tv/movies/music/general/etc categories)
 
 
 convert to using MySQL for question/stat/game storage
 multi-channel
 team play (Create/edit/addplayer/removeplayer) needs password & email address for team captain
 stats. lots of them. (per round/lifetime stats, fastest, biggest streak, team stats, etc)
-question categories (able to change different question lists currently in use. i.e. tv/movies/music/general/etc categories)
 small challenges for preset targets (e.g. 1st to 20 points/most points in 10 mins) player vs player, team vs team, free for all)
 question management system done via web
-team play (Create/edit/addplayer/removeplayer) needs password & email address for team captain
-question categories (able to change different question lists currently in use. i.e. tv/movies/music/general/etc categories)
