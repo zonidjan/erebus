@@ -5,7 +5,7 @@ import ConfigParser
 
 class Config(object):
 	def __init__(self, filename, writeout=True):
-		self.__dict__['config'] = ConfigParser.SafeConfigParser()
+		self.__dict__['config'] = ConfigParser.RawConfigParser()
 		self.__dict__['filename'] = filename
 		self.__dict__['writeout'] = writeout
 		self.config.read(filename)
