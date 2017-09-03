@@ -6,8 +6,9 @@
 modinfo = {
 	'author': 'Erebus Team',
 	'license': 'public domain',
-	'compatible': [1], # compatible module API versions
-	'depends': [], # other modules required to work properly?
+	'compatible': [1,2],
+	'depends': [],
+	'softdeps': [],
 }
 
 # http://embed.ly/tools/generator

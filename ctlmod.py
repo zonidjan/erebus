@@ -19,17 +19,24 @@ def load(parent, modname, dependent=False):
 		print "%09.3f [MOD] [?] Loading %s..." % (time.time() % 100000, modname),
 	modstatus = _load(parent, modname, dependent)
 	if not modstatus:
-		print str(modstatus)
+		if dependent:
+			print "failed: %s)" % (modstatus),
+		else:
+			print "failed: %s." % (modstatus)
 	elif modstatus == True:
 		if dependent:
 			print "OK)",
 		else:
 			print "OK."
 	else:
-		print modstatus
+		if dependent:
+			print "OK: %s)" % (modstatus),
+		else:
+			print "OK: %s." % (modstatus)
 	return modstatus
 
 def _load(parent, modname, dependent=False):
+	successstatus = []
 	if not isloaded(modname):
 		try:
 			mod = __import__('modules.'+modname, globals(), locals(), ['*'], -1)
@@ -49,20 +56,44 @@ def _load(parent, modname, dependent=False):
 		dependents[modname] = []
 
 		for dep in mod.modinfo['depends']:
-			if dep not in modules:
-				depret = load(parent, dep, dependent=True)
-				if depret is not None and not depret:
-					return depret #TODO FIXME
+			if bool(int(parent.cfg.get('autoloads', dep, default=1))):
+				if dep not in modules:
+					depret = load(parent, dep, dependent=True)
+					if depret is not None and not depret:
+						return depret
+			else:
+				return modlib.error("dependent %s disabled" % (dep))
 			dependents[dep].append(modname)
+
+		for dep in mod.modinfo['softdeps']:
+			if bool(int(parent.cfg.get('autoloads', dep, default=1))):
+				if dep not in modules:
+					depret = load(parent, dep, dependent=True)
+					if depret is not None:
+						if not depret:
+							successstatus.append("softdep %s failed" % (dep))
+			else:
+				successstatus.append("softdep %s disabled" % (dep))
+			#swallow errors loading - softdeps are preferred, not required
 
 
 		ret = mod.modstart(parent)
-		if ret is not None and not ret:
+		if ret is None:
+			ret = True
+		if not ret:
 			del modules[modname]
 			del dependents[modname]
 			for dep in mod.modinfo['depends']:
 				dependents[dep].remove(modname)
-		return ret
+
+		successstatus = ';'.join(successstatus)
+		if len(successstatus) > 0 and ret:
+			if ret == True:
+				return successstatus
+			else:
+				return "%s (%s)" % (ret, successstatus)
+		else:
+			return ret
 	else: #if not isloaded...else:
 		return modlib.error('already loaded')
 

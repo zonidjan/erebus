@@ -6,8 +6,9 @@
 modinfo = {
 	'author': 'Erebus Team',
 	'license': 'public domain',
-	'compatible': [1],
+	'compatible': [1,2],
 	'depends': [],
+	'softdeps': ['help'],
 }
 
 # preamble

@@ -1,13 +1,14 @@
 # Erebus IRC bot - Author: Erebus Team
-# simple module example
+# resource-usage module
 # This file is released into the public domain; see http://unlicense.org/
 
 # module info
 modinfo = {
 	'author': 'Erebus Team',
 	'license': 'public domain',
-	'compatible': [1], # compatible module API versions
-	'depends': [], # other modules required to work properly?
+	'compatible': [1,2],
+	'depends': [],
+	'softdeps': ['help'],
 }
 
 # preamble

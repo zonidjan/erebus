@@ -42,6 +42,13 @@ class modlib(object):
 		self.name = (name.split("."))[-1]
 
 	def modstart(self, parent):
+		#modstart can return a few things...
+		# None: unspecified success
+		# False: unspecified error
+		# modlib.error (or anything else False-y): specified error
+		# True: unspecified success
+		# non-empty string (or anything else True-y): specified success
+		#"specified" values will be printed. unspecified values will result in "OK" or "failed"
 		self.parent = parent
 		for cmd, func in self.hooks.iteritems():
 			self.parent.hook(cmd, func)

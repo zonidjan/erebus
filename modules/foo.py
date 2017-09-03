@@ -6,9 +6,15 @@
 modinfo = {
 	'author': 'Erebus Team',
 	'license': 'public domain',
-	'compatible': [1], # compatible module API versions
+	'compatible': [1,2], # compatible module API versions
 	'depends': [], # other modules required to work properly?
+	'softdeps': ['help'], # modules which are preferred but not required
 }
+# note: softdeps will be loaded before this module, IF not disabled in the configuration (autoload.module = 0) (and if it exists)
+# however, if it is disabled it will be silently ignored, and if it is unloaded at runtime it won't cause this one to unload.
+#
+# basically, softdeps are things this module will use if available, but does not require (no errors will occur if it's not loaded)
+# for example, @lib.help() will attempt to use the help module, but swallow errors if it is not loaded
 
 # preamble
 import modlib
