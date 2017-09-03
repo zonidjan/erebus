@@ -44,7 +44,7 @@ def modload(bot, user, chan, realtarget, *args):
 		bot.msg(user, "Error loading %s: %r" % (args[0], okay))
 
 @lib.hook(needchan=False, glevel=lib.MANAGER)
-@lib.help("<mod>", "unloads a module")
+@lib.help("<mod> [FORCE]", "unloads a module", "will refuse to unload a module which is depended on by others", "unless you specify FORCE.")
 @lib.argsGE(1)
 def modunload(bot, user, chan, realtarget, *args):
 	if len(ctlmod.dependents[args[0]]) > 0:
