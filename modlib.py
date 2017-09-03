@@ -109,6 +109,7 @@ class modlib(object):
 			func.reqglevel = glevel
 			func.reqclevel = clevel
 			func.cmd = cmd
+			func.module = func.__module__.split('.')[1]
 
 			for c in cmd:
 				self.hooks[c] = func
