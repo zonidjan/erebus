@@ -66,12 +66,12 @@ class modlib(object):
 		return True
 	def modstop(self, parent):
 		for cmd, func in self.hooks.iteritems():
-			self.parent.unhook(cmd, func)
-			self.parent.unhook("%s.%s" % (self.name, cmd), func)
+			parent.unhook(cmd, func)
+			parent.unhook("%s.%s" % (self.name, cmd), func)
 		for num, func in self.numhooks.iteritems():
-			self.parent.unhooknum(num, func)
+			parent.unhooknum(num, func)
 		for chan, func in self.chanhooks.iteritems():
-			self.parent.unhookchan(chan, func)
+			parent.unhookchan(chan, func)
 
 		for func, args, kwargs in self.helps:
 			try:
