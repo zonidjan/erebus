@@ -1,7 +1,6 @@
 == other ==
 module: user (global access) management
 module: channel access management (addchanuser/delchanuser)
-module: chanop (kick/ban/etc)
 module: autoop (op/voice/etc on join)
 channel management bans,kicks,voices,ops,bot-ignores...
 
