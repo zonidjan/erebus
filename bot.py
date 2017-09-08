@@ -23,6 +23,8 @@ class Bot(object):
 			chansres = curs.fetchall()
 			curs.close()
 			self.chans = [self.parent.newchannel(self, row['chname']) for row in chansres]
+		else:
+			self.chans = []
 
 		self.conn = BotConnection(self, bind, server, port)
 
@@ -71,6 +73,7 @@ class Bot(object):
 			'433': self._got433, #nick in use
 			'JOIN': self._gotjoin,
 			'PART': self._gotpart,
+			'KICK': self._gotkick,
 			'QUIT': self._gotquit,
 			'NICK': self._gotnick,
 			'MODE': self._gotmode,
@@ -172,16 +175,21 @@ class Bot(object):
 			user = self.parent.user(nick, justjoined=True)
 			chan.userjoin(user)
 			user.join(chan)
-	def _gotpart(self, pieces):
-		nick = pieces[0].split('!')[0][1:]
-		chan = self.parent.channel(pieces[2])
-
+	def _clientLeft(self, nick, chan):
 		if nick != self.nick:
 			gone = self.parent.user(nick).part(chan)
 			chan.userpart(self.parent.user(nick))
 			if gone:
 				self.parent.user(nick).quit()
 				del self.parent.users[nick.lower()]
+	def _gotpart(self, pieces):
+		nick = pieces[0].split('!')[0][1:]
+		chan = self.parent.channel(pieces[2])
+		self._clientLeft(nick, chan)
+	def _gotkick(self, pieces):
+		nick = pieces[3]
+		chan = self.parent.channel(pieces[2])
+		self._clientLeft(nick, chan)
 	def _gotquit(self, pieces):
 		nick = pieces[0].split('!')[0][1:]
 		if nick != self.nick:
@@ -231,6 +239,7 @@ class Bot(object):
 
 	def parsemsg(self, user, target, msg):
 		chan = None
+		chanparam = None # was the channel specified as part of the command?
 		if len(msg) == 0:
 			return
 
@@ -244,14 +253,12 @@ class Bot(object):
 				if msg == "VERSION":
 					self.msg(user, "\001VERSION Erebus v%d.%d - http://github.com/zonidjan/erebus" % (self.parent.APIVERSION, self.parent.RELEASE))
 				return
-			if len(pieces) > 1:
-				chanword = pieces[1]
-				if chanword[0] == '#':
-					chan = self.parent.channel(chanword)
-					if chan is not None: #if chan is still none, there's no bot on "chanword", and chanword is used as a parameter.
-						pieces.pop(1)
+		if len(pieces) > 1:
+			chanword = pieces[1]
+			if chanword[0] == '#':
+				chanparam = self.parent.channel(chanword)
 
-		else: # message was sent to a channel
+		if target != self.nick: # message was sent to a channel
 			chan = self.parent.channel(target)
 			try:
 				if msg[0] == '*': # message may be addressed to bot by "*BOTNICK" trigger?
@@ -273,12 +280,17 @@ class Bot(object):
 				return # "message" is empty
 
 		cmd = pieces[0].lower()
-
+		rancmd = False
 		if self.parent.hashook(cmd):
 			for callback in self.parent.gethook(cmd):
+				if chanparam is not None and callback.needchan:
+					chan = chanparam
+					pieces.pop(1)
 				if chan is None and callback.needchan:
+					rancmd = True
 					self.msg(user, "You need to specify a channel for that command.")
 				elif user.glevel >= callback.reqglevel and (not callback.needchan or chan.levelof(user.auth) >= callback.reqclevel):
+					rancmd = True
 					try:
 						cbret = callback(self, user, chan, target, *pieces[1:])
 					except NotImplementedError:
@@ -292,7 +304,10 @@ class Bot(object):
 						curs.close()
 						raise e
 		else:
+			rancmd = True
 			self.msg(user, "I don't know that command.")
+		if not rancmd:
+			self.msg(user, "You don't have enough access to run that command.")
 
 	def __debug_nomsg(self, target, msg):
 		if int(self.parent.cfg.get('debug', 'nomsg', default=0)) == 1:
