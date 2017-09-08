@@ -207,6 +207,9 @@ class Erebus(object): #singleton to pass around
 	def log(self, source, level, message):
 		print "%09.3f %s [%s] %s" % (time.time() % 100000, source, level, message)
 
+	def getuserbyauth(self, auth):
+		return [u for u in self.users.itervalues() if u.auth == auth.lower()]
+
 	#bind functions
 	def hook(self, word, handler):
 		try:
@@ -250,6 +253,8 @@ class Erebus(object): #singleton to pass around
 
 class MyCursor(MySQLdb.cursors.DictCursor):
 	def execute(self, *args, **kwargs):
+		if 'norecurse' in kwargs: norecurse = kwargs['norecurse']
+		else: norecurse = False
 		main.log("[SQL]", "?", "MyCursor.execute(self, %s, %s)" % (', '.join([repr(i) for i in args]), ', '.join([str(key)+"="+repr(kwargs[key]) for key in kwargs])))
 #		print "%09.3f [SQL] [#] MyCursor.execute(self, %s, %s)" % (time.time() % 100000, ', '.join([repr(i) for i in args]), ', '.join([str(key)+"="+repr(kwargs[key]) for key in kwargs]))
 		try:
@@ -257,7 +262,9 @@ class MyCursor(MySQLdb.cursors.DictCursor):
 		except MySQLdb.MySQLError as e:
 			main.log("[SQL]", "!", "MySQL error! %r" % (e))
 #			print "%09.3f [SQL] [!] MySQL error! %r" % (time.time() % 100000, e)
-			dbsetup()
+			if not norecurse:
+				dbsetup()
+				return self.execute(norecurse=True, *args, **kwargs)
 			return False
 		return True
 
