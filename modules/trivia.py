@@ -858,8 +858,8 @@ def num_TOPIC(bot, textline):
 			"%s (%s)" % (person(x), pts(x))
 			for x in range(3) if x < len(state.db['ranks'])
 		]),
-		'top3c': ' '.join([
-			"%s (%s, %s)" % (person(x), pts(x), country(x))
+		'top3c': ', '.join([
+			"%s (%s) %s" % (person(x), country(x), pts(x))
 			for x in range(3) if x < len(state.db['ranks'])
 		]),
 		'top10': ' '.join([
@@ -890,6 +890,7 @@ def specialQuestion(oldq):
 		randnum2 = random.randrange(0, 11)
 		newq[0] = "What is %d + %d?" % (randnum1, randnum2)
 		newq[1] = spellout(randnum1+randnum2)
+	else: pass #default to not modifying
 	return newq
 
 def spellout(num):
