@@ -238,6 +238,7 @@ class Bot(object):
 
 
 	def parsemsg(self, user, target, msg):
+		if user.glevel <= -2: return # short circuit if user is IGNORED
 		chan = None
 		chanparam = None # was the channel specified as part of the command?
 		if len(msg) == 0:
