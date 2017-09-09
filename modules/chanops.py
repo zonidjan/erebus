@@ -25,9 +25,6 @@ import ctlmod
 def module(name):
 	return lib.mod(name)
 
-@lib.hook(None, clevel=lib.OP)
-@lib.help("<nick|#auth> [<reason>]", "kick <nick>, or all using <#auth>")
-@lib.argsGE(1)
 def _kick(bot, user, chan, realtarget, *args):
 	people = []
 	if args[0][0] == "#":
@@ -90,14 +87,14 @@ def deop(bot, user, chan, realtarget, *args):
 	bot.msg(user, "Deopped.")
 
 @lib.hook(None, clevel=lib.OP)
-@lib.help("[<nick>] [...]", "")
+@lib.help("[<nick>] [...]", "voices yourself or <nick>s")
 def voice(bot, user, chan, realtarget, *args):
 	if len(args) == 0: args = (user.nick,)
 	_mode(bot, chan, "+", "v", args)
 	bot.msg(user, "Voiced.")
 
 @lib.hook(None, clevel=lib.OP)
-@lib.help("[<nick>] [...]", "")
+@lib.help("[<nick>] [...]", "devoices yourself or <nick>s")
 def devoice(bot, user, chan, realtarget, *args):
 	if len(args) == 0: args = (user.nick,)
 	_mode(bot, chan, "-", "v", args)
