@@ -58,34 +58,39 @@ def dereghelp(func, *args, **kwargs):
 	del helps[func]
 
 class HelpLine(object):
-	def __init__(self, cmd, syntax, shorthelp, admin, level, module):
+	def __init__(self, cmd, syntax, shorthelp, admin, glevel, module, clevel):
 		self.cmd = cmd
 		self.syntax = syntax
 		self.shorthelp = shorthelp
 		self.admin = admin
-		self.level = level
+		self.glevel = glevel
 		self.module = module
+		self.clevel = clevel
 
 	def __cmp__(self, other):
-		if self.level == other.level:
+		if self.glevel == other.glevel:
 			return cmp(self.cmd, other.cmd)
 		else:
-			return cmp(self.level, other.level)
+			return cmp(self.glevel, other.glevel)
 
 
 	def __str__(self):
 		if self.admin:
-			return "%-35s(%3s) - %-10s - %-50s" % (self.cmd+' '+self.syntax, self.level, self.module, self.shorthelp)
+			ret = "%-35s(%3s) - %-10s - " % (self.cmd+' '+self.syntax, self.glevel, self.module)
 		else:
-			return "%-40s - %-50s" % (self.cmd+' '+self.syntax, self.shorthelp)
+			ret = "%-40s - " % (self.cmd+' '+self.syntax)
+		if self.clevel != 0:
+			ret += "(%s) " % (lib.clevs[self.clevel])
+		ret += str(self.shorthelp)
+		return ret
 
 def _mkhelp(level, func):
 	lines = []
 	if level >= func.reqglevel:
-		lines.append(HelpLine(func.cmd[0], func.syntax, func.shorthelp, (level > 0), func.reqglevel, func.module))
+		lines.append(HelpLine(func.cmd[0], func.syntax, func.shorthelp, (level > 0), func.reqglevel, func.module, func.reqclevel))
 		if len(func.cmd) > 1:
 			for c in func.cmd[1:]:
-				lines.append(HelpLine(c, "", "Alias of %s" % (func.cmd[0]), (level > 0), func.reqglevel, func.module))
+				lines.append(HelpLine(c, "", "Alias of %s" % (func.cmd[0]), (level > 0), func.reqglevel, func.module, func.reqclevel))
 	return lines
 
 def _genhelp(bot, user, chan, realtarget, *args):
@@ -120,7 +125,7 @@ def help(bot, user, chan, realtarget, *args):
 	cmd = str(' '.join(args)).lower()
 	if cmd in cmds and user.glevel >= cmds[cmd].reqglevel:
 		func = cmds[cmd]
-		bot.slowmsg(user, str(HelpLine(func.cmd[0], func.syntax, func.shorthelp, (user.glevel > 0), func.reqglevel, func.module)))
+		bot.slowmsg(user, str(HelpLine(func.cmd[0], func.syntax, func.shorthelp, (user.glevel > 0), func.reqglevel, func.module, func.reqclevel)))
 		for line in func.longhelps:
 			bot.slowmsg(user, "  %s" % (line))
 		bot.slowmsg(user, "End of help for %s." % (func.cmd[0]))
