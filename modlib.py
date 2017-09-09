@@ -30,6 +30,8 @@ class modlib(object):
 	KNOWN   =   1
 	PUBLIC  =   0 #anyone (use glevel to control auth-needed)
 	BANNED  =  -1
+	#         [   0         1        2     3         4        5    -1]
+	clevs   = [None, 'Friend', 'Voice', 'Op', 'Master', 'Owner', None]
 
 	# messages
 	WRONGARGS = "Wrong number of arguments."
