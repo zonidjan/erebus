@@ -20,6 +20,7 @@ class modlib(object):
 	STAFF   =  50
 	AUTHED  =   0
 	ANYONE  =  -1
+	IGNORED =  -2
 
 	# (channel) access levels
 	COWNER  =   5
@@ -28,6 +29,7 @@ class modlib(object):
 	VOICE   =   2
 	KNOWN   =   1
 	PUBLIC  =   0 #anyone (use glevel to control auth-needed)
+	BANNED  =  -1
 
 	# messages
 	WRONGARGS = "Wrong number of arguments."
