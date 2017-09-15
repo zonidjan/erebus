@@ -110,7 +110,6 @@ def _genhelp(bot, user, chan, realtarget, *args):
 
 @lib.hook(glevel=1, needchan=False)
 @lib.help(None, "generates help file", "default path: ./help/<level>.txt", "config as: [help]", "path = ./help/%d.txt")
-#TODO: use args... "[@<module>] [#<level>] [<file>]"
 def genhelp(bot, user, chan, realtarget, *args):
 	ret = _genhelp(bot, user, chan, realtarget, *args)
 	if not isinstance(ret, BaseException):

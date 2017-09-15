@@ -98,7 +98,7 @@ class Bot(object):
 	def _gotping(self, pieces):
 		self.conn.send("PONG %s" % (pieces[1]))
 		self._checknick()
-	def _goterror(self, pieces): #TODO handle more gracefully
+	def _goterror(self, pieces):
 		curs = self.parent.db.cursor()
 		curs.execute("UPDATE bots SET connected = 0")
 		curs.close()

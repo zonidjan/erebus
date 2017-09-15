@@ -110,14 +110,6 @@ class TriviaState(object):
 			self.nextquestiontimer.cancel()
 			self.nextquestiontimer = None
 		except: pass
-#TODO remove if the replacement works
-#		if threading is not None and threading._Timer is not None:
-#			if isinstance(self.steptimer, threading._Timer):
-#				self.steptimer.cancel()
-#			if isinstance(self.nextquestiontimer, threading._Timer):
-#				self.nextquestiontimer.cancel()
-#				self.nextquestiontimer = None
-#		self.savedb()
 
 	def savedb(self): #returns whether or not it was able to save
 		if json is not None and json.dump is not None:
@@ -138,7 +130,7 @@ class TriviaState(object):
 						os.unlink(tmpfn)
 					except OSError: # temp file is already gone
 						pass
-					raise #TODO: we may be better off just swallowing exceptions?
+					raise # we may be better off just swallowing exceptions?
 		return False
 
 	def getchan(self):
