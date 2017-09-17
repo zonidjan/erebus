@@ -16,6 +16,9 @@ class Config(object):
 	def __setattr__(self, key, value):
 		self.config.set('erebus', key, value)
 
+	def __getitem__(self, section): #!! READ-ONLY !!
+		return {item: self.config.get(section, item) for item in self.config.options(section)}
+
 	def level(self, cmd):
 		return self.config.get('levels', cmd)
 
@@ -30,6 +33,12 @@ class Config(object):
 			return self.config.get(section, key)
 		except:
 			return default
+	def getboolean(self, section, key):
+		val = self.get(section, key, False)
+		if val == False or val == "0" or val.lower() == "false" or val.strip() == "":
+			return False
+		else:
+			return True
 
 	def set(self, section, key, value):
 		self.config.set(section, key, value)
@@ -41,6 +50,8 @@ class Config(object):
 	def __del__(self):
 		if self.writeout: self.write()
 
+def setup(fn='bot.config', writeout=True):
+	return Config(fn, writeout)
 
 if __name__ == '__main__':
 	import sys
@@ -48,6 +59,6 @@ if __name__ == '__main__':
 
 	for s in cfg.config.sections():
 		for k, v in cfg.items(s):
-			print s+'.'+k, '=', v
+			print "[%r][%r] = %r" % (s, k, v)
 #	for k, v in cfg.items():
 #		print 'erebus.'+k, '=', v
