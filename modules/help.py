@@ -94,28 +94,26 @@ def _mkhelp(level, func):
 	return lines
 
 def _genhelp(bot, user, chan, realtarget, *args):
-	try:
-		filepath = bot.parent.cfg.get('help', 'path', default='./help/%d.txt')
-		for level in range(-1, 101):
-			filename = filepath % (level)
-			fo = open(filename, 'w')
-			lines = []
-			for func in helps.itervalues():
-				lines += _mkhelp(level, func)
-			for line in sorted(lines):
-				fo.write(str(line)+"\n")
-	except Exception as e:
-		return e
+	filepath = bot.parent.cfg.get('help', 'path', default='./help/%d.txt')
+	for level in range(-1, 101):
+		filename = filepath % (level)
+		fo = open(filename, 'w')
+		lines = []
+		for func in helps.itervalues():
+			lines += _mkhelp(level, func)
+		for line in sorted(lines):
+			fo.write(str(line)+"\n")
 	return True
 
 @lib.hook(glevel=1, needchan=False)
 @lib.help(None, "generates help file", "default path: ./help/<level>.txt", "config as: [help]", "path = ./help/%d.txt")
 def genhelp(bot, user, chan, realtarget, *args):
-	ret = _genhelp(bot, user, chan, realtarget, *args)
-	if not isinstance(ret, BaseException):
-		bot.msg(user, "Help written.")
-	else:
-		bot.msg(user, "Failed writing help. %s" % (ret))
+	try:
+		_genhelp(bot, user, chan, realtarget, *args)
+	except Exception as e:
+		bot.msg(user, "Failed writing help. %s" % (e))
+		return
+	bot.msg(user, "Help written.")
 
 @lib.hook(needchan=False)
 @lib.help("<command>", "describes a command")
@@ -137,7 +135,10 @@ def help(bot, user, chan, realtarget, *args):
 @lib.help(None, "provides command list")
 def showcommands(bot, user, chan, realtarget, *args):
 	if bool(int(bot.parent.cfg.get('help', 'autogen', default=0))):
-		_genhelp(bot, user, chan, realtarget, *args)
+		try:
+			_genhelp(bot, user, chan, realtarget, *args)
+		except: pass
+
 	url = bot.parent.cfg.get('help', 'url', default=None)
 	if url is None:
 		try:
