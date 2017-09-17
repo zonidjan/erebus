@@ -94,15 +94,34 @@ def _mkhelp(level, func):
 	return lines
 
 def _genhelp(bot, user, chan, realtarget, *args):
+	module = None
+	minlevel = -1
+	maxlevel = 100
 	filepath = bot.parent.cfg.get('help', 'path', default='./help/%d.txt')
-	for level in range(-1, 101):
-		filename = filepath % (level)
+	for arg in args:
+		if arg[0] == "@":
+			module = arg[1:]
+		elif arg[0] == "#" and user.glevel >= lib.OWNER:
+			minlevel = maxlevel = int(arg[1:])
+		else:
+			filepath = arg
+			if minlevel != maxlevel:
+				minlevel = maxlevel
+	print "%r %r %r %r" % (module, minlevel, maxlevel, filepath)
+	for level in range(minlevel, maxlevel+1):
+		if '%d' in filepath:
+			filename = filepath % (level)
+		else:
+			filename = filepath
 		fo = open(filename, 'w')
 		lines = []
 		for func in helps.itervalues():
+			if module is not None and func.module != module:
+					continue
 			lines += _mkhelp(level, func)
 		for line in sorted(lines):
 			fo.write(str(line)+"\n")
+		fo.close()
 	return True
 
 @lib.hook(glevel=1, needchan=False)
