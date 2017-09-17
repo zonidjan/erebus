@@ -276,7 +276,7 @@ def dbsetup():
 def setup():
 	global cfg, main
 
-	cfg = config.Config('bot.config')
+	cfg = config.setup('bot.config')
 
 	pidfile = open(cfg.pidfile, 'w')
 	pidfile.write(str(os.getpid()))
