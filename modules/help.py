@@ -125,7 +125,7 @@ def _genhelp(bot, user, chan, realtarget, *args):
 	return True
 
 @lib.hook(glevel=1, needchan=False)
-@lib.help(None, "generates help file", "default path: ./help/<level>.txt", "config as: [help]", "path = ./help/%d.txt")
+@lib.help("[@<module>] [#<level>] [file]", "generates help file", "arguments are all optional and may be specified in any order", "default file: ./help/<level>.txt", "config as: [help]", "path = ./help/%d.txt")
 def genhelp(bot, user, chan, realtarget, *args):
 	try:
 		_genhelp(bot, user, chan, realtarget, *args)
