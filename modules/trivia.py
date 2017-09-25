@@ -261,9 +261,9 @@ class TriviaState(object):
 			if 'topicformat' in self.db and self.db['topicformat'] is not None:
 				self.getbot().conn.send("TOPIC %s" % (self.db['chan']))
 
-		if isinstance(self.steptimer, threading._Timer):
+		if isinstance(self.steptimer, MyTimer):
 			self.steptimer.cancel()
-		if isinstance(self.nextquestiontimer, threading._Timer):
+		if isinstance(self.nextquestiontimer, MyTimer):
 			self.nextquestiontimer.cancel()
 			self.nextquestiontimer = None
 
