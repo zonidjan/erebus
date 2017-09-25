@@ -6,6 +6,12 @@
 import socket, sys, time, threading, os, random
 from collections import deque
 
+class MyTimer(threading._Timer):
+	def __init__(self, *args, **kwargs):
+		threading._Timer.__init__(self, *args, **kwargs)
+		self.daemon = True
+
+
 #bots = {'erebus': bot.Bot(nick='Erebus', user='erebus', bind='', server='irc.quakenet.org', port=6667, realname='Erebus')}
 class Bot(object):
 	def __init__(self, parent, nick, user, bind, authname, authpass, server, port, realname):
@@ -28,6 +34,9 @@ class Bot(object):
 
 		self.conn = BotConnection(self, bind, server, port)
 
+		self.lastreceived = time.time() #time we last received a line from the server
+		self.watchdogtimer = MyTimer(self.parent.cfg.get('watchdog', 'interval', default=30), self.watchdog)
+
 		self.msgqueue = deque()
 		self.slowmsgqueue = deque()
 		self.makemsgtimer()
@@ -38,6 +47,10 @@ class Bot(object):
 		curs.execute("UPDATE bots SET connected = 0 WHERE nick = %s", (self.nick,))
 		curs.close()
 
+	def watchdog(self):
+		if time.time() > self.parent.cfg.get('watchdog', 'maxtime', default=300)+self.lastreceived:
+			self.parse("ERROR :Fake-error from watchdog timer.")
+
 
 	def log(self, *args, **kwargs):
 		self.parent.log(self.nick, *args, **kwargs)
@@ -47,6 +60,7 @@ class Bot(object):
 			self.parent.newfd(self, self.conn.socket.fileno())
 
 	def getdata(self):
+		self.lastreceived = time.time()
 		return self.conn.read()
 
 	def _checknick(self): # check if we're using the right nick, try changing
@@ -99,6 +113,8 @@ class Bot(object):
 		self.conn.send("PONG %s" % (pieces[1]))
 		self._checknick()
 	def _goterror(self, pieces):
+		try: self.quit("Error detected: %s" % ' '.join(pieces))
+		except: pass
 		curs = self.parent.db.cursor()
 		curs.execute("UPDATE bots SET connected = 0")
 		curs.close()
