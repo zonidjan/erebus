@@ -146,9 +146,9 @@ class Bot(object):
 		names[0] = names[0][1:] #remove colon
 		for n in names:
 			user = self.parent.user(n.lstrip('@+'))
-			if n[0] == '@':
+			if n.startswith('@'):
 				chan.userjoin(user, 'op')
-			elif n[0] == '+':
+			elif n.startswith('+'):
 				chan.userjoin(user, 'voice')
 			else:
 				chan.userjoin(user)
@@ -260,25 +260,25 @@ class Bot(object):
 		if len(msg) == 0:
 			return
 
-		triggerused = msg[0] == self.parent.trigger
-		if triggerused: msg = msg[1:]
+		triggerused = msg.startswith(self.parent.trigger)
+		if triggerused: msg = msg[len(self.parent.trigger):]
 		pieces = msg.split()
 
 		if target == self.nick:
-			if msg[0] == "\001": #ctcp
+			if msg.startswith("\001"): #ctcp
 				msg = msg.strip("\001")
 				if msg == "VERSION":
 					self.msg(user, "\001VERSION Erebus v%d.%d - http://github.com/zonidjan/erebus" % (self.parent.APIVERSION, self.parent.RELEASE))
 				return
 		if len(pieces) > 1:
 			chanword = pieces[1]
-			if chanword[0] == '#':
+			if chanword.startswith('#'):
 				chanparam = self.parent.channel(chanword)
 
 		if target != self.nick: # message was sent to a channel
 			chan = self.parent.channel(target)
 			try:
-				if msg[0] == '*': # message may be addressed to bot by "*BOTNICK" trigger?
+				if msg.startswith('*'): # message may be addressed to bot by "*BOTNICK" trigger?
 					if pieces[0][1:].lower() == self.nick.lower():
 						pieces.pop(0) # command actually starts with next word
 						msg = ' '.join(pieces) # command actually starts with next word
@@ -359,7 +359,7 @@ class Bot(object):
 
 		target = str(target)
 
-		if target[0] == '#': command = "PRIVMSG %s :%s" % (target, msg)
+		if target.startswith('#'): command = "PRIVMSG %s :%s" % (target, msg)
 		else: command = "NOTICE %s :%s" % (target, msg)
 
 		return command

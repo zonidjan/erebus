@@ -27,7 +27,7 @@ def module(name):
 
 def _kick(bot, user, chan, realtarget, *args):
 	people = []
-	if args[0][0] == "#":
+	if args[0].startswith("#"):
 		people = bot.parent.getuserbyauth(args[0][1:])
 	else:
 		people = [args[0]]

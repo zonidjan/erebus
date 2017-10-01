@@ -294,7 +294,7 @@ class TriviaState(object):
 			nextqid = random.randrange(0, len(self.questions))
 			nextq = self.questions[nextqid]
 
-		if nextq[0][0] == "!":
+		if nextq[0].startswith("!"):
 			nextqid = None
 			nextq = specialQuestion(nextq)
 
@@ -658,7 +658,7 @@ def questionpause(bot, user, chan, realtarget, *args):
 @lib.help("<full question>", "finds a qid given a complete question")
 def findq(bot, user, chan, realtarget, *args):
 	args = list(args)
-	if args[0][0] == "@":
+	if args[0].startswith("@"):
 		cat = args.pop(0)[1:].lower()
 		questions = state.db['questions'][cat]
 	else:
@@ -681,7 +681,7 @@ def findq(bot, user, chan, realtarget, *args):
 @lib.help("[@<category>] <regex>", "finds a qid given a regex or partial question")
 def findqre(bot, user, chan, realtarget, *args):
 	args = list(args)
-	if args[0][0] == "@":
+	if args[0].startswith("@"):
 		cat = args.pop(0)[1:].lower()
 		questions = state.db['questions'][cat]
 	else:
@@ -706,7 +706,7 @@ def findqre(bot, user, chan, realtarget, *args):
 @lib.help("[@<category>] <qid>", "displays the q*a for a qid", "category defaults to current")
 def showq(bot, user, chan, realtarget, *args):
 	args = list(args)
-	if args[0][0] == "@":
+	if args[0].startswith("@"):
 		cat = args.pop(0)[1:].lower()
 		questions = state.db['questions'][cat]
 	else:
@@ -728,7 +728,7 @@ def showq(bot, user, chan, realtarget, *args):
 @lib.help("[@<category>] <qid>", "removes a question from the database")
 def delq(bot, user, chan, realtarget, *args):
 	args = list(args)
-	if args[0][0] == "@":
+	if args[0].startswith("@"):
 		cat = args.pop(0)[1:].lower()
 		questions = state.db['questions'][cat]
 	else:
@@ -745,7 +745,7 @@ def delq(bot, user, chan, realtarget, *args):
 @lib.help("[@<category>] <q>*<a>", "adds a question")
 def addq(bot, user, chan, realtarget, *args):
 	args = list(args)
-	if args[0][0] == "@":
+	if args[0].startswith("@"):
 		cat = args.pop(0)[1:].lower()
 		questions = state.db['questions'][cat]
 	else:

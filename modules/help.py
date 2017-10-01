@@ -99,9 +99,9 @@ def _genhelp(bot, user, chan, realtarget, *args):
 	maxlevel = 100
 	filepath = bot.parent.cfg.get('help', 'path', default='./help/%d.txt')
 	for arg in args:
-		if arg[0] == "@":
+		if arg.startswith("@"):
 			module = arg[1:]
-		elif arg[0] == "#" and user.glevel >= lib.OWNER:
+		elif arg.startswith("#") and user.glevel >= lib.ADMIN:
 			minlevel = maxlevel = int(arg[1:])
 		else:
 			filepath = arg
@@ -182,7 +182,7 @@ def help(bot, user, chan, realtarget, *args):
 		for line in sorted(lines):
 			bot.slowmsg(user, str(line))
 		bot.slowmsg(user, "End of command listing.")
-	elif args[0][0] == "@":
+	elif args[0].startswith("@"):
 		lines = []
 		mod = args[0][1:].lower()
 		for func in helps.itervalues():

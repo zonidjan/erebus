@@ -26,7 +26,7 @@ def cmsg(bot, user, chan, realtarget, *args):
 
 def _getbot(bot, user, chan, realtarget, *args):
 	target = None
-	if args[0][0] == "#":
+	if args[0].startswith("#"):
 		target = bot.parent.channel(args[0])
 		print "target = %s" % (target)
 	if target is not None:

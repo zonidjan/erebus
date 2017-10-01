@@ -44,7 +44,7 @@ def getauth(thing):
 		if thing.auth is not None:
 			return "#"+thing.auth
 	elif isinstance(thing, basestring):
-		if thing[0] == "#":
+		if thing.startswith("#"):
 			return thing
 		else:
 			if parent.user(thing).auth is not None:
