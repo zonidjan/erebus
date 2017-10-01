@@ -141,16 +141,16 @@ class Bot(object):
 		msg = ' '.join(pieces[3:])[1:]
 		self.parsemsg(user, target, msg)
 	def _got353(self, pieces):
+		prefixes = {'@': 'op', '+': 'voice'}
 		chan = self.parent.channel(pieces[4])
 		names = pieces[5:]
 		names[0] = names[0][1:] #remove colon
 		for n in names:
-			user = self.parent.user(n.lstrip('@+'))
-			if n.startswith('@'):
-				chan.userjoin(user, 'op')
-			elif n.startswith('+'):
-				chan.userjoin(user, 'voice')
+			if n[0] in prefixes:
+				user = self.parent.user(n[1:])
+				chan.userjoin(user, prefixes[n[0]])
 			else:
+				user = self.parent.user(n)
 				chan.userjoin(user)
 			user.join(chan)
 	def _got354(self, pieces):
