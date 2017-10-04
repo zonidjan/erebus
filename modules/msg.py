@@ -17,6 +17,8 @@ modstart = lib.modstart
 modstop = lib.modstop
 
 # module code
+import time
+
 @lib.hook(clevel=lib.OP)
 @lib.help('<message>', 'sends message to channel')
 @lib.argsGE(1)
@@ -48,7 +50,13 @@ def pmsg(bot, user, chan, realtarget, *args):
 	target, sendbot = _getbot(bot, user, chan, realtarget, *args)
 	sendbot.conn.send("PRIVMSG %s :%s" % (args[0], ' '.join(args[1:])))
 
-@lib.hook()
+@lib.hook(glevel=lib.MANAGER, needchan=False)
+@lib.argsEQ(1)
 def moo(bot, user, chan, realtarget, *args):
-	for i in ['          .=     ,        =.\n', "  _  _   /'/    )\\,/,/(_   \\ \\\n", '   `//-.|  (  ,\\\\)\\//\\)\\/_  ) |\n', "   //___\\   `\\\\\\/\\\\/\\/\\\\///'  /\n", ',-"~`-._ `"--\'_   `"""`  _ \\`\'"~-,_\n', '\\       `-.  \'_`.      .\'_` \\ ,-"~`/\n', " `.__.-'`/   (-\\        /-) |-.__,'\n", '   ||   |     \\O)  /^\\ (O/  |\n', '   `\\\\  |         /   `\\    /\n', '     \\\\  \\       /      `\\ /\n', "      `\\\\ `-.  /' .---.--.\\\n", "        `\\\\/`~(, '()      ('\n", '         /(O) \\\\   _,.-.,_)\n', "        //  \\\\ `\\'`      /\n", '       / |  ||   `""""~"`\n', "     /'  |__||\n", '           `o\n']:
-		bot.fastmsg(chan, i.rstrip("\n"))
+	lines= ['          .=     ,        =.', "  _  _   /'/    )\\,/,/(_   \\ \\", '   `//-.|  (  ,\\\\)\\//\\)\\/_  ) |', "   //___\\   `\\\\\\/\\\\/\\/\\\\///'  /", ',-"~`-._ `"--\'_   `"""`  _ \\`\'"~-,_', '\\       `-.  \'_`.      .\'_` \\ ,-"~`/', " `.__.-'`/   (-\\        /-) |-.__,'", '   ||   |     \\O)  /^\\ (O/  |', '   `\\\\  |         /   `\\    /', '     \\\\  \\       /      `\\ /', "      `\\\\ `-.  /' .---.--.\\", "        `\\\\/`~(, '()      ('", '         /(O) \\\\   _,.-.,_)', "        //  \\\\ `\\'`      /", '       / |  ||   `""""~"`', "     /'  |__||", '           `o']
+	for i in range(len(lines)):
+		sender = bot.parent.bots.values()[i%len(bot.parent.bots.values())]
+		mylen = len(sender.nick)
+		padding = 15-mylen
+		sender.fastmsg(args[0], " "*padding + lines[i])
+		time.sleep(0.1)
