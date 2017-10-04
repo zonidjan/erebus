@@ -107,7 +107,6 @@ def _genhelp(bot, user, chan, realtarget, *args):
 			filepath = arg
 			if minlevel != maxlevel:
 				minlevel = maxlevel
-	print "%r %r %r %r" % (module, minlevel, maxlevel, filepath)
 	for level in range(minlevel, maxlevel+1):
 		if '%d' in filepath:
 			filename = filepath % (level)
