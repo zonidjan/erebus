@@ -270,6 +270,17 @@ class Bot(object):
 				if msg == "VERSION":
 					self.msg(user, "\001VERSION Erebus v%d.%d - http://github.com/zonidjan/erebus" % (self.parent.APIVERSION, self.parent.RELEASE))
 				return
+
+		if target != self.nick: # message was sent to a channel
+			try:
+				if msg.startswith('*'): # message may be addressed to bot by "*BOTNICK" trigger?
+					if pieces[0][1:].lower() == self.nick.lower():
+						pieces.pop(0) # command actually starts with next word
+						msg = ' '.join(pieces) # command actually starts with next word
+						triggerused = True
+			except IndexError:
+				return # "message" is empty
+
 		if len(pieces) > 1:
 			chanword = pieces[1]
 			if chanword.startswith('#'):
@@ -277,30 +288,23 @@ class Bot(object):
 
 		if target != self.nick: # message was sent to a channel
 			chan = self.parent.channel(target)
-			try:
-				if msg.startswith('*'): # message may be addressed to bot by "*BOTNICK" trigger?
-					if pieces[0][1:].lower() == self.nick.lower():
-						pieces.pop(0) # command actually starts with next word
-						msg = ' '.join(pieces) # command actually starts with next word
-				elif not triggerused:
-					if self.parent.haschanhook(target.lower()):
-						for callback in self.parent.getchanhook(target.lower()):
-							try:
-								cbret = callback(self, user, chan, *pieces)
-							except NotImplementedError:
-								self.msg(user, "Command not implemented.")
-							except:
-								self.msg(user, "Command failed. Code: CBEXC%09.3f" % (time.time() % 100000))
-								self.__debug_cbexception("chanhook", user=user, target=target, msg=msg)
-					return # not to bot, don't process!
-			except IndexError:
-				return # "message" is empty
+			if not triggerused:
+				if self.parent.haschanhook(target.lower()):
+					for callback in self.parent.getchanhook(target.lower()):
+						try:
+							cbret = callback(self, user, chan, *pieces)
+						except NotImplementedError:
+							self.msg(user, "Command not implemented.")
+						except:
+							self.msg(user, "Command failed. Code: CBEXC%09.3f" % (time.time() % 100000))
+							self.__debug_cbexception("chanhook", user=user, target=target, msg=msg)
+				return # not to bot, don't process!
 
 		cmd = pieces[0].lower()
 		rancmd = False
 		if self.parent.hashook(cmd):
 			for callback in self.parent.gethook(cmd):
-				if chanparam is not None and callback.needchan:
+				if chanparam is not None and (callback.needchan or callback.wantchan):
 					chan = chanparam
 					pieces.pop(1)
 				if chan is None and callback.needchan:

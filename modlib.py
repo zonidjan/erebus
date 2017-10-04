@@ -100,7 +100,8 @@ class modlib(object):
 			return func
 		return realhook
 
-	def hook(self, cmd=None, needchan=True, glevel=ANYONE, clevel=PUBLIC):
+	def hook(self, cmd=None, needchan=True, glevel=ANYONE, clevel=PUBLIC, wantchan=None):
+		if wantchan is None: wantchan = needchan
 		_cmd = cmd #save this since it gets wiped out...
 		def realhook(func):
 			cmd = _cmd #...and restore it
@@ -110,6 +111,7 @@ class modlib(object):
 				cmd = (cmd,)
 
 			func.needchan = needchan
+			func.wantchan = wantchan
 			func.reqglevel = glevel
 			func.reqclevel = clevel
 			func.cmd = cmd

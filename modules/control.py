@@ -99,7 +99,7 @@ def _whois(user, chan, showglevel=True, showclevel=True):
 			fmt += " (not a channel user)"
 	return fmt % fillers
 
-@lib.hook(needchan=False)
+@lib.hook(needchan=False, wantchan=True)
 @lib.help("<user|#auth>", "shows who someone is")
 @lib.argsEQ(1)
 def whois(bot, user, chan, realtarget, *args):
