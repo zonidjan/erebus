@@ -28,14 +28,11 @@ def _getbot(bot, user, chan, realtarget, *args):
 	target = None
 	if args[0].startswith("#"):
 		target = bot.parent.channel(args[0])
-		print "target = %s" % (target)
 	if target is not None:
 		sendbot = target.bot
-		print "bot = %s" % (sendbot)
 	else:
 		target = args[0]
 		sendbot = bot.parent.randbot()
-		print "bot = random"
 	return (target, sendbot)
 
 @lib.hook(glevel=lib.STAFF, needchan=False)
