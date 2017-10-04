@@ -143,7 +143,6 @@ def help(bot, user, chan, realtarget, *args):
 		bot.slowmsg(user, str(HelpLine(func.cmd[0], func.syntax, func.shorthelp, (user.glevel > 0), func.reqglevel, func.module, func.reqclevel)))
 		for line in func.longhelps:
 			bot.slowmsg(user, "  %s" % (line))
-		bot.slowmsg(user, "End of help for %s." % (func.cmd[0]))
 		if len(func.cmd) > 1:
 			bot.slowmsg(user, "  Aliases: %s" % (' '.join(func.cmd[1:])))
 	else:
