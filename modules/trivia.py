@@ -99,8 +99,8 @@ class TriviaState(object):
 		else:
 			self.pointvote = None
 
-	def __del__(self):
-		self.closeshop()
+#	def __del__(self):
+#		self.closeshop()
 	def closeshop(self):
 		try:
 			self.steptimer.cancel()
@@ -761,6 +761,11 @@ def addq(bot, user, chan, realtarget, *args):
 	questions.append([question, answer])
 	bot.msg(user, "Done. Question is #%s" % (len(questions)-1))
 
+@lib.hook(needchan=False)
+@lib.help(None, "show current category")
+def showcat(bot, user, chan, realtarget, *args):
+	bot.msg(user, "Current category: %s" % (state.db['category']))
+
 @lib.hook(glevel=1, needchan=False)
 @lib.help("<category>", "change category")
 def setcat(bot, user, chan, realtarget, *args):
@@ -773,9 +778,9 @@ def setcat(bot, user, chan, realtarget, *args):
 		bot.msg(user, "That category doesn't exist.")
 
 @lib.hook(needchan=False)
-@lib.help(None, "list categories")
+@lib.help(None, "list categories", "the current category will be marked with a *")
 def listcats(bot, user, chan, realtarget, *args):
-	cats = ["%s (%d)" % (c, len(state.db['questions'][c])) for c in state.db['questions'].keys()]
+	cats = ["%s%s (%d)" % ("*" if c == state.db['category'] else "", c, len(state.db['questions'][c])) for c in state.db['questions'].keys()]
 	bot.msg(user, "Categories: %s" % (', '.join(cats)))
 
 @lib.hook(glevel=lib.STAFF, needchan=False)
@@ -865,6 +870,7 @@ def num_TOPIC(bot, textline):
 		'lastwinner': state.db['lastwinner'],
 		'lastwon': time.strftime("%b %d", time.gmtime(state.db['lastwon'])),
 		'target': state.db['target'],
+		'category': state.db['category'],
 	}
 	if gottopic != formatted:
 		state.getbot().conn.send("TOPIC %s :%s" % (state.db['chan'], formatted))
