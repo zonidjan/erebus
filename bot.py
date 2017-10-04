@@ -35,7 +35,7 @@ class Bot(object):
 		self.conn = BotConnection(self, bind, server, port)
 
 		self.lastreceived = time.time() #time we last received a line from the server
-		self.watchdogtimer = MyTimer(self.parent.cfg.get('watchdog', 'interval', default=30), self.watchdog)
+		self.watchdog()
 
 		self.msgqueue = deque()
 		self.slowmsgqueue = deque()
@@ -50,7 +50,7 @@ class Bot(object):
 	def watchdog(self):
 		if time.time() > self.parent.cfg.get('watchdog', 'maxtime', default=300)+self.lastreceived:
 			self.parse("ERROR :Fake-error from watchdog timer.")
-
+		self.watchdogtimer = MyTimer(self.parent.cfg.get('watchdog', 'interval', default=30), self.watchdog)
 
 	def log(self, *args, **kwargs):
 		self.parent.log(self.nick, *args, **kwargs)
