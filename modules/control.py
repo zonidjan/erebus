@@ -103,7 +103,11 @@ def _whois(user, chan, showglevel=True, showclevel=True):
 @lib.help("<user>", "shows who someone is")
 @lib.argsEQ(1)
 def whois(bot, user, chan, realtarget, *args):
-	target = bot.parent.user(args[0], create=False)
+	name = args[0]
+	if name.startswith("#"):
+		target = bot.parent.User(name, name[1:])
+	else:
+		target = bot.parent.user(name, create=False)
 	if target is None:
 		bot.msg(user, "I don't know %s." % (args[0]))
 	else:
