@@ -3,7 +3,7 @@
 # Erebus IRC bot - Author: John Runyon
 # main startup code
 
-import os, sys, select, MySQLdb, MySQLdb.cursors, time, random
+import os, sys, select, MySQLdb, MySQLdb.cursors, time, random, gc
 import bot, config, ctlmod
 
 class Erebus(object): #singleton to pass around
@@ -253,8 +253,11 @@ class Erebus(object): #singleton to pass around
 
 class MyCursor(MySQLdb.cursors.DictCursor):
 	def execute(self, *args, **kwargs):
-		if 'norecurse' in kwargs: norecurse = kwargs['norecurse']
-		else: norecurse = False
+		if 'norecurse' in kwargs:
+			norecurse = kwargs['norecurse']
+			del kwargs['norecurse']
+		else:
+			norecurse = False
 		main.log("[SQL]", "?", "MyCursor.execute(self, %s, %s)" % (', '.join([repr(i) for i in args]), ', '.join([str(key)+"="+repr(kwargs[key]) for key in kwargs])))
 #		print "%09.3f [SQL] [#] MyCursor.execute(self, %s, %s)" % (time.time() % 100000, ', '.join([repr(i) for i in args]), ', '.join([str(key)+"="+repr(kwargs[key]) for key in kwargs]))
 		try:
@@ -277,6 +280,9 @@ def setup():
 	global cfg, main
 
 	cfg = config.setup('bot.config')
+
+	if int(cfg.get('debug', 'gc', default=0)) == 1:
+		gc.set_debug(gc.DEBUG_LEAK)
 
 	pidfile = open(cfg.pidfile, 'w')
 	pidfile.write(str(os.getpid()))
