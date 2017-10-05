@@ -113,7 +113,7 @@ def whois(bot, user, chan, realtarget, *args):
 	else:
 		bot.msg(user, "%s is %s" % (args[0], _whois(target, chan, (user.glevel >= 1), (chan is not None and chan.levelof(user.auth) >= 1))))
 
-@lib.hook(needchan=False)
+@lib.hook(needchan=False, wantchan=True)
 @lib.help(None, "shows who you are")
 def whoami(bot, user, chan, realtarget, *args):
 	bot.msg(user, "You are %s" % (_whois(user, chan)))
@@ -130,7 +130,7 @@ def qstat(bot, user, chan, realtarget, *args):
 	bot.fastmsg(user, "Regular: %d -- Slow: %d" % (len(bot.msgqueue), len(bot.slowmsgqueue)))
 
 @lib.hook(needchan=False, glevel=lib.ADMIN)
-@lib.help("[regular|slow]", "clears both or a specific msgqueue")
+@lib.help(('qclear','clearq','clearqueue'), "[regular|slow]", "clears both or a specific msgqueue")
 def qclear(bot, user, chan, realtarget, *args):
 	if len(args) == 0:
 		bot.msgqueue = deque()
