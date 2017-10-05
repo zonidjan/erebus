@@ -6,7 +6,7 @@
 modinfo = {
 	'author': 'Erebus Team',
 	'license': 'public domain',
-	'compatible': [1,2],
+	'compatible': [2],
 	'depends': [],
 	'softdeps': ['help'],
 }
@@ -20,10 +20,10 @@ modstop = lib.modstop
 # module code
 import resource
 
-@lib.hook(needchan=False, glevel=lib.MANAGER)
+@lib.hook(needchan=False, wantchan=True, glevel=lib.MANAGER)
 @lib.help(None, "show RAM usage")
 def ram(bot, user, chan, realtarget, *args):
-	if chan is not None and realtarget == chan.name: replyto = chan
+	if chan is not None: replyto = chan
 	else: replyto = user
 
 	try:
@@ -33,10 +33,10 @@ def ram(bot, user, chan, realtarget, *args):
 
 	bot.fastmsg(replyto, "Memory usage (MiB): %r" % (res.ru_maxrss/1024.0))
 
-@lib.hook(needchan=False, glevel=lib.MANAGER)
+@lib.hook(needchan=False, wantchan=True, glevel=lib.MANAGER)
 @lib.help(None, "show resource usage")
 def resources(bot, user, chan, realtarget, *args):
-	if chan is not None and realtarget == chan.name: replyto = chan
+	if chan is not None: replyto = chan
 	else: replyto = user
 
 	try:

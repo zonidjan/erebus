@@ -6,7 +6,7 @@
 modinfo = {
 	'author': 'Erebus Team',
 	'license': 'public domain',
-	'compatible': [1,2], # compatible module API versions
+	'compatible': [2], # compatible module API versions
 	'depends': [], # other modules required to work properly?
 	'softdeps': ['help'], # modules which are preferred but not required
 }
@@ -23,10 +23,10 @@ modstart = lib.modstart
 modstop = lib.modstop
 
 # module code
-@lib.hook(needchan=False) #since no cmd= is provided, defaults to function name
+@lib.hook(needchan=False, wantchan=True) #since no cmd= is provided, defaults to function name
 @lib.help('<args>', 'tells you what you said')
 def test(bot, user, chan, realtarget, *args):
-	if chan is not None and realtarget == chan.name: replyto = chan
+	if chan is not None: replyto = chan
 	else: replyto = user
 
 	bot.msg(replyto, "You said: %s" % (' '.join([str(arg) for arg in args])))
@@ -40,3 +40,10 @@ def foobar(bot, user, chan, realtarget, *args):
 @lib.help(None, 'a command that does nothing but requires you specify a channel')
 def needchan(bot, user, chan, realtarget, *args):
 	bot.msg(user, "You did it!")
+
+@lib.hook(needchan=False, wantchan=True)
+@lib.help(None, 'a command which will consume a channel if given')
+	if chan is not None:
+		bot.msg(user, "Channel provided: %s" % (chan))
+	else:
+		bot.msg(user, "No channel provided")

@@ -6,7 +6,7 @@
 modinfo = {
 	'author': 'Erebus Team',
 	'license': 'public domain',
-	'compatible': [1,2],
+	'compatible': [2],
 	'depends': [],
 	'softdeps': [],
 }

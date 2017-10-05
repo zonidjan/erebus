@@ -6,7 +6,7 @@
 modinfo = {
 	'author': 'Erebus Team',
 	'license': 'public domain',
-	'compatible': [1,2],
+	'compatible': [2],
 	'depends': [],
 	'softdeps': ['help'],
 }
@@ -72,10 +72,10 @@ def _set(user, key, value):
 	db.setdefault(str(user).lower(), {})[key] = value #but set nick too
 
 #commands
-@lib.hook(needchan=False)
+@lib.hook(needchan=False, wantchan=True)
 @lib.help("[<target>]", "lists info items known about someone", "<target> may be a nick, or an auth in format '#auth'", "it defaults to yourself")
 def getitems(bot, user, chan, realtarget, *args):
-	if chan is not None and realtarget == chan.name: replyto = chan
+	if chan is not None: replyto = chan
 	else: replyto = user
 
 	if len(args) > 0:
@@ -85,11 +85,11 @@ def getitems(bot, user, chan, realtarget, *args):
 
 	bot.msg(replyto, "%(user)s: %(target)s has the following info items: %(items)s" % {'user':user,'target':target,'items':(', '.join(_keys(target)))})
 
-@lib.hook(needchan=False)
+@lib.hook(needchan=False, wantchan=True)
 @lib.help("[<target>] <item>", "gets an info item about someone", "<target> may be a nick, or an auth in format '#auth'", "it defaults to yourself")
 @lib.argsGE(1)
 def getinfo(bot, user, chan, realtarget, *args):
-	if chan is not None and realtarget == chan.name: replyto = chan
+	if chan is not None: replyto = chan
 	else: replyto = user
 
 	if len(args) > 1:

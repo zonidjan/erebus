@@ -6,7 +6,7 @@
 modinfo = {
 	'author': 'Erebus Team',
 	'license': 'public domain',
-	'compatible': [1,2],
+	'compatible': [2],
 	'depends': [],
 	'softdeps': ['help'],
 }
@@ -25,11 +25,11 @@ import ctlmod
 def module(name):
 	return lib.mod(name)
 
-@lib.hook('eval', needchan=False, glevel=lib.MANAGER)
+@lib.hook('eval', needchan=False, wantchan=True, glevel=lib.MANAGER)
 @lib.help("<python>", "eval")
 @lib.argsGE(1)
 def cmd_eval(bot, user, chan, realtarget, *args):
-	if chan is not None and realtarget == chan.name: replyto = chan
+	if chan is not None: replyto = chan
 	else: replyto = user
 
 	try: ret = eval(' '.join(args))
@@ -37,11 +37,11 @@ def cmd_eval(bot, user, chan, realtarget, *args):
 	else: bot.msg(replyto, "Done: %r" % (ret,))
 
 
-@lib.hook('exec', needchan=False, glevel=lib.MANAGER)
+@lib.hook('exec', needchan=False, wantchan=True, glevel=lib.MANAGER)
 @lib.help("<python>", "exec")
 @lib.argsGE(1)
 def cmd_exec(bot, user, chan, realtarget, *args):
-	if chan is not None and realtarget == chan.name: replyto = chan
+	if chan is not None: replyto = chan
 	else: replyto = user
 
 	try: exec ' '.join(args)

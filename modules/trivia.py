@@ -6,7 +6,7 @@
 modinfo = {
 	'author': 'Erebus Team',
 	'license': 'public domain',
-	'compatible': [1,2],
+	'compatible': [2],
 	'depends': ['userinfo'],
 	'softdeps': ['help'],
 }
@@ -411,10 +411,10 @@ def trivia_checkanswer(bot, user, chan, *args):
 			bot.msg(chan, "\00312%s\003 got an extra point for getting it before the hints! New score: %d." % (user, state.addpoint(user)))
 		state.nextquestion()
 
-@lib.hook(glevel=1, needchan=False)
+@lib.hook(glevel=1, needchan=False, wantchan=True)
 @lib.help(None, "saves the trivia database")
 def save(bot, user, chan, realtarget, *args):
-	if chan is not None and realtarget == chan.name: replyto = chan
+	if chan is not None: replyto = chan
 	else: replyto = user
 
 	if state.savedb():
@@ -422,10 +422,10 @@ def save(bot, user, chan, realtarget, *args):
 	else:
 		bot.msg(replyto, "Save failed!")
 
-@lib.hook(needchan=False)
+@lib.hook(needchan=False, wantchan=True)
 @lib.help("[<user>]", "shows how many points you or someone has")
 def points(bot, user, chan, realtarget, *args):
-	if chan is not None and realtarget == chan.name: replyto = chan
+	if chan is not None: eplyto = chan
 	else: replyto = user
 
 	if len(args) != 0: who = args[0]
@@ -480,10 +480,10 @@ def setnext(bot, user, chan, realtarget, *args):
 def skip(bot, user, chan, realtarget, *args):
 	state.nextquestion(qskipped=True, skipwait=True)
 
-@lib.hook(needchan=False)
+@lib.hook(needchan=False, wantchan=True)
 @lib.help(None, "starts the trivia game")
 def start(bot, user, chan, realtarget, *args):
-	if chan is not None and realtarget == chan.name: replyto = chan
+	if chan is not None: replyto = chan
 	else: replyto = user
 
 	if chan is not None and chan.name != state.db['chan']:
@@ -568,10 +568,10 @@ def delbadq(bot, user, chan, realtarget, *args):
 	except:
 		bot.msg(user, "Failed!")
 
-@lib.hook(needchan=False)
+@lib.hook(needchan=False, wantchan=True)
 @lib.help("[<user>]", "shows you or someone else's rank")
 def rank(bot, user, chan, realtarget, *args):
-	if chan is not None and realtarget == chan.name: replyto = chan
+	if chan is not None: replyto = chan
 	else: replyto = user
 
 	if len(args) != 0: who = args[0]

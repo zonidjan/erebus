@@ -1,12 +1,12 @@
 # Erebus IRC bot - Author: Erebus Team
-# !EVAL and !EXEC commands
+# chanop commands
 # This file is released into the public domain; see http://unlicense.org/
 
 # module info
 modinfo = {
 	'author': 'Erebus Team',
 	'license': 'public domain',
-	'compatible': [1,2],
+	'compatible': [2],
 	'depends': [],
 	'softdeps': ['help'],
 }
