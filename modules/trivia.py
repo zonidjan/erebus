@@ -884,16 +884,50 @@ def specialQuestion(oldq):
 		newq[0] = "What month is it currently (in UTC)?"
 		newq[1] = time.strftime("%B", time.gmtime()).lower()
 	elif qtype == "!MATH+":
-		randnum1 = random.randrange(0, 11)
-		randnum2 = random.randrange(0, 11)
+		try:
+			maxnum = int(oldq[1])
+		except ValueError:
+			maxnum = 10
+		randnum1 = random.randrange(0, maxnum+1)
+		randnum2 = random.randrange(0, maxnum+1)
 		newq[0] = "What is %d + %d?" % (randnum1, randnum2)
 		newq[1] = spellout(randnum1+randnum2)
+	elif qtype == "!ALGEBRA+":
+		try:
+			num1, num2 = [int(i) for i in oldq[1].split('!')]
+		except ValueError:
+			num1, num2 = 10, 10
+		randnum1 = random.randrange(0, num1+1)
+		randnum2 = random.randrange(randnum1, num2+1)
+		newq[0] = "What is x? %d = %d + x" % (randnum2, randnum1)
+		newq[1] = spellout(randnum2-randnum1)
 	else: pass #default to not modifying
 	return newq
 
 def spellout(num):
-	return [
-		"zero", "one", "two", "three", "four", "five", "six", "seven", "eight",
-		"nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen",
-		"sixteen", "seventeen", "eighteen", "nineteen", "twenty"
-	][num]
+	ones = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine']
+	teens = ['ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen']
+	tens = ['', '', 'twenty', 'thirty', 'fourty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety']
+
+	if num == 0:
+		return 'zero'
+
+	ihundreds = num / 100
+	itens = num % 100 / 10
+	iones = num % 10
+	buf = []
+
+	if ihundreds > 0:
+		buf.append("%s hundred" % (ones[ihundreds]))
+	if itens > 1:
+		buf.append(tens[itens])
+	if itens == 1:
+		buf.append(teens[iones])
+	elif iones > 0:
+		buf.append(ones[iones])
+	return ' '.join(buf)
+#	return [
+#		"zero", "one", "two", "three", "four", "five", "six", "seven", "eight",
+#		"nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen",
+#		"sixteen", "seventeen", "eighteen", "nineteen", "twenty"
+#	][num]
