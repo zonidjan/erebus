@@ -298,7 +298,7 @@ class TriviaState(object):
 			nextqid = None
 			nextq = specialQuestion(nextq)
 
-		if len(nextq) > 2 and nextq[2] - time.time() < 7*24*60*60 and iteration < 10:
+		if len(nextq) > 2 and time.time() - nextq[2] < 7*24*60*60 and iteration < 10:
 			return self._nextquestion(iteration=iteration+1) #short-circuit to pick another question
 		if len(nextq) > 2:
 			nextq[2] = time.time()
@@ -466,7 +466,7 @@ def setnextid(bot, user, chan, realtarget, *args):
 @lib.argsGE(1)
 def setnext(bot, user, chan, realtarget, *args):
 	line = ' '.join([str(arg) for arg in args])
-	linepieces = line.split('*')
+	linepieces = line.split('*', 1)
 	if len(linepieces) < 2:
 		bot.msg(user, "Error: need <question>*<answer>")
 		return
@@ -752,7 +752,7 @@ def addq(bot, user, chan, realtarget, *args):
 		questions = state.questions
 
 	line = ' '.join([str(arg) for arg in args])
-	linepieces = line.split('*')
+	linepieces = line.split('*', 1)
 	if len(linepieces) < 2:
 		bot.msg(user, "Error: need <question>*<answer>")
 		return
