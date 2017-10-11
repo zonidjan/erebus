@@ -26,10 +26,11 @@ from collections import deque
 @lib.hook(('die','restart'), needchan=False, glevel=lib.MANAGER)
 @lib.help(None, "stops the bot")
 def die(bot, user, chan, realtarget, *args):
+	quitmsg = ' '.join(args)
 	for botitem in bot.parent.bots.itervalues():
 		for chan in botitem.chans:
-			chan.fastmsg("Bot is restarting! %s" % ' '.join(args))
-		bot.conn.send("QUIT :Restarting.")
+			chan.fastmsg("Bot is restarting! %s" % (quitmsg))
+		bot.conn.send("QUIT :Restarting. %s" % (quitmsg))
 	sys.exit(0)
 	os._exit(0)
 

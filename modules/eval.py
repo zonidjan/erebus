@@ -25,7 +25,7 @@ import ctlmod
 def module(name):
 	return lib.mod(name)
 
-@lib.hook('eval', needchan=False, wantchan=True, glevel=lib.MANAGER)
+@lib.hook('eval', needchan=False, wantchan=True, glevel=lib.OWNER)
 @lib.help("<python>", "eval")
 @lib.argsGE(1)
 def cmd_eval(bot, user, chan, realtarget, *args):
@@ -37,7 +37,7 @@ def cmd_eval(bot, user, chan, realtarget, *args):
 	else: bot.msg(replyto, "Done: %r" % (ret,))
 
 
-@lib.hook('exec', needchan=False, wantchan=True, glevel=lib.MANAGER)
+@lib.hook('exec', needchan=False, wantchan=True, glevel=lib.OWNER)
 @lib.help("<python>", "exec")
 @lib.argsGE(1)
 def cmd_exec(bot, user, chan, realtarget, *args):
