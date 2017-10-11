@@ -16,7 +16,7 @@ import modlib
 lib = modlib.modlib(__name__)
 def modstart(parent, *args, **kwargs):
 	if parent.cfg.getboolean('erebus', 'nofakelag'):
-		lib.hook(needchan=False)(lib.help('[@<module>|<command>]', 'lists commands or describes a command', 'with @<module>, lists all commands in <module>')(help_nolag))
+		lib.hook('help', needchan=False)(lib.help('[@<module>|<command>]', 'lists commands or describes a command', 'with @<module>, lists all commands in <module>')(help_nolag))
 	else:
 		lib.hook(needchan=False)(lib.help("<command>", "describes a command")(help))
 	return lib.modstart(parent, *args, **kwargs)
