@@ -838,7 +838,8 @@ def triviahelp(bot, user, chan, realtarget, *args):
 @lib.hooknum(417)
 def num_417(bot, textline):
 #	bot.fastmsg(state.db['chan'], "Whoops, it looks like that question didn't quite go through! (E:417). Let's try another...")
-	state.nextquestion(qskipped=False, skipwait=True)
+	if state.curq is not None:
+		state.nextquestion(qskipped=False, skipwait=True)
 
 @lib.hooknum(332)
 def num_TOPIC(bot, textline):

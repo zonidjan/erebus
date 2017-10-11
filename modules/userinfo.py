@@ -54,11 +54,13 @@ def getauth(thing):
 def _keys(user):
 	return list(set(db.get(getauth(user), {}).keys() + db.get(str(user).lower(), {}).keys())) #list-to-set-to-list to remove duplicates
 def _has(user, key):
+	key = key.lower()
 	return (
 		key in db.get(getauth(user), {}) or
 		key in db.get(str(user).lower(), {})
 	)
 def _get(user, key, default=None):
+	key = key.lower()
 	return (
 		db.get(getauth(user), {}). #try to get the auth
 			get(key, #try to get the info-key by auth
@@ -67,6 +69,7 @@ def _get(user, key, default=None):
 				default #otherwise throw out whatever default
 	)))
 def _set(user, key, value):
+	key = key.lower()
 	if getauth(user) is not None:
 		db.setdefault(getauth(user), {})[key] = value #use auth if we can
 	db.setdefault(str(user).lower(), {})[key] = value #but set nick too
