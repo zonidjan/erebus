@@ -76,9 +76,9 @@ class HelpLine(object):
 
 	def __str__(self):
 		if self.admin:
-			ret = "%-35s(%3s) - %-10s - " % (self.cmd+' '+self.syntax, self.glevel, self.module)
+			ret = "%-25s(%3s) - %-10s - " % (self.cmd+' '+self.syntax, self.glevel, self.module)
 		else:
-			ret = "%-40s - " % (self.cmd+' '+self.syntax)
+			ret = "%-30s - " % (self.cmd+' '+self.syntax)
 		if self.clevel != 0:
 			ret += "(%s) " % (lib.clevs[self.clevel])
 		ret += str(self.shorthelp)

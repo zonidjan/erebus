@@ -129,8 +129,8 @@ def auth(bot, user, chan, realtarget, *args):
 def qstat(bot, user, chan, realtarget, *args):
 	bot.fastmsg(user, "Regular: %d -- Slow: %d" % (len(bot.msgqueue), len(bot.slowmsgqueue)))
 
-@lib.hook(needchan=False, glevel=lib.ADMIN)
-@lib.help(('qclear','clearq','clearqueue'), "[regular|slow]", "clears both or a specific msgqueue")
+@lib.hook(('qclear','clearq','clearqueue'), needchan=False, glevel=lib.ADMIN)
+@lib.help("[regular|slow]", "clears both or a specific msgqueue")
 def qclear(bot, user, chan, realtarget, *args):
 	if len(args) == 0:
 		bot.msgqueue = deque()
