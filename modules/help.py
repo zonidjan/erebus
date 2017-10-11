@@ -14,7 +14,12 @@ modinfo = {
 # preamble
 import modlib
 lib = modlib.modlib(__name__)
-modstart = lib.modstart
+def modstart(parent, *args, **kwargs):
+	if parent.cfg.getboolean('erebus', 'nofakelag'):
+		lib.hook(needchan=False)(lib.help('[@<module>|<command>]', 'lists commands or describes a command', 'with @<module>, lists all commands in <module>')(help_nolag))
+	else:
+		lib.hook(needchan=False)(lib.help("<command>", "describes a command")(help))
+	return lib.modstart(parent, *args, **kwargs)
 modstop = lib.modstop
 
 # module code
@@ -133,8 +138,8 @@ def genhelp(bot, user, chan, realtarget, *args):
 		return
 	bot.msg(user, "Help written.")
 
-@lib.hook(needchan=False)
-@lib.help("<command>", "describes a command")
+#@lib.hook(needchan=False)
+#@lib.help("<command>", "describes a command")
 @lib.argsGE(1)
 def help(bot, user, chan, realtarget, *args):
 	cmd = str(' '.join(args)).lower()
@@ -169,10 +174,9 @@ def showcommands(bot, user, chan, realtarget, *args):
 	else:
 		bot.msg(user, "I don't know where help is. Sorry. Contact my owner.")
 
-"""#DISABLED
-@lib.hook(needchan=False)
-@lib.help('[@<module>|<command>]', 'lists commands or describes a command', 'with @<module>, lists all commands in <module>')
-def help(bot, user, chan, realtarget, *args):
+#@lib.hook(needchan=False)
+#@lib.help('[@<module>|<command>]', 'lists commands or describes a command', 'with @<module>, lists all commands in <module>')
+def help_nolag(bot, user, chan, realtarget, *args):
 	if len(args) == 0: # list commands
 		lines = []
 		for func in helps.itervalues():
@@ -202,5 +206,3 @@ def help(bot, user, chan, realtarget, *args):
 				bot.slowmsg(user, "  Aliases: %s" % (' '.join(func.cmd[1:])))
 		else:
 			bot.slowmsg(user, "No help found for %s" % (cmd))
-"""
-pass

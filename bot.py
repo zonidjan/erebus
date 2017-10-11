@@ -340,6 +340,7 @@ class Bot(object):
 			__import__('traceback').print_stack()
 
 	def msg(self, target, msg):
+		if self.parent.cfg.getboolean('erebus', 'nofakelag'): return self.fastmsg(target, msg)
 		cmd = self._formatmsg(target, msg)
 		if self.conn.exceeded or self.conn.bytessent+len(cmd) >= self.conn.recvq:
 			self.msgqueue.append(cmd)
@@ -348,6 +349,7 @@ class Bot(object):
 		self.conn.exceeded = True
 
 	def slowmsg(self, target, msg):
+		if self.parent.cfg.getboolean('erebus', 'nofakelag'): return self.fastmsg(target, msg)
 		cmd = self._formatmsg(target, msg)
 		if self.conn.exceeded or self.conn.bytessent+len(cmd) >= self.conn.recvq:
 			self.slowmsgqueue.append(cmd)
