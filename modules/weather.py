@@ -22,7 +22,7 @@ import json, urllib, time, rfc822
 
 def location(person, default=None): return lib.mod('userinfo')._get(person, 'location', default=None)
 
-@lib.hook(needchan=False)
+@lib.hook(('weather','w'), needchan=False)
 @lib.help('[<location>]', 'show weather for your location')
 def weather(bot, user, chan, realtarget, *args):
 	if len(args) == 0:
