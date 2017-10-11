@@ -222,6 +222,8 @@ class Bot(object):
 		self.parent.users[newnick.lower()].nickchange(newnick)
 	def _gotmode(self, pieces):
 		source = pieces[0].split('!')[0][1:]
+		chan = pieces[2]
+		if not chan.startswith("#"): return
 		chan = self.parent.channel(pieces[2])
 		mode = pieces[3]
 		args = pieces[4:]
