@@ -24,8 +24,8 @@ class Bot(object):
 		self.authname = authname
 		self.authpass = authpass
 
-		curs = self.parent.db.cursor()
-		if curs.execute("SELECT chname FROM chans WHERE bot = %s AND active = 1", (self.nick,)):
+		curs = self.parent.query("SELECT chname FROM chans WHERE bot = %s AND active = 1", (self.nick,))
+		if curs:
 			chansres = curs.fetchall()
 			curs.close()
 			self.chans = [self.parent.newchannel(self, row['chname']) for row in chansres]
@@ -43,9 +43,10 @@ class Bot(object):
 		self.msgtimer.start()
 
 	def __del__(self):
-		curs = self.parent.db.cursor()
-		curs.execute("UPDATE bots SET connected = 0 WHERE nick = %s", (self.nick,))
-		curs.close()
+		try:
+			curs = self.parent.query("UPDATE bots SET connected = 0 WHERE nick = %s", (self.nick,))
+			curs.close()
+		except: pass
 
 	def watchdog(self):
 		if time.time() > self.parent.cfg.get('watchdog', 'maxtime', default=300)+self.lastreceived:
@@ -113,11 +114,11 @@ class Bot(object):
 		self.conn.send("PONG %s" % (pieces[1]))
 		self._checknick()
 	def _goterror(self, pieces):
-		try: self.quit("Error detected: %s" % ' '.join(pieces))
+		try:
+			self.quit("Error detected: %s" % ' '.join(pieces))
+			curs = self.parent.query("UPDATE bots SET connected = 0")
+			curs.close()
 		except: pass
-		curs = self.parent.db.cursor()
-		curs.execute("UPDATE bots SET connected = 0")
-		curs.close()
 		sys.exit(2)
 		os._exit(2)
 	def _got001(self, pieces):
@@ -125,9 +126,8 @@ class Bot(object):
 	def _gotRegistered(self, pieces):
 		self.conn.registered(True)
 
-		curs = self.parent.db.cursor()
-		curs.execute("UPDATE bots SET connected = 1 WHERE nick = %s", (self.nick,))
-		curs.close()
+		curs = self.parent.query("UPDATE bots SET connected = 1 WHERE nick = %s", (self.nick,))
+		if curs: curs.close()
 
 		self.conn.send("MODE %s +x" % (pieces[2]))
 		if self.authname is not None and self.authpass is not None:
@@ -322,9 +322,10 @@ class Bot(object):
 						self.msg(user, "Command failed. Code: CBEXC%09.3f" % (time.time() % 100000))
 						self.__debug_cbexception("hook", user=user, target=target, msg=msg)
 					except SystemExit as e:
-						curs = self.parent.db.cursor()
-						curs.execute("UPDATE bots SET connected = 0")
-						curs.close()
+						try:
+							curs = self.parent.query("UPDATE bots SET connected = 0")
+							curs.close()
+						except: pass
 						raise e
 		else:
 			rancmd = True

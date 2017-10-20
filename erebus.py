@@ -45,8 +45,8 @@ class Erebus(object): #singleton to pass around
 			if self.auth is None:
 				self.glevel = -1
 			else:
-				c = main.db.cursor()
-				if c.execute("SELECT level FROM users WHERE auth = %s", (self.auth,)):
+				c = main.query("SELECT level FROM users WHERE auth = %s", (self.auth,))
+				if c:
 					row = c.fetchone()
 					if row is not None:
 						self.glevel = row['level']
@@ -81,8 +81,8 @@ class Erebus(object): #singleton to pass around
 			self.voices = []
 			self.ops = []
 
-			c = main.db.cursor()
-			if c.execute("SELECT user, level FROM chusers WHERE chan = %s", (self.name,)):
+			c = main.query("SELECT user, level FROM chusers WHERE chan = %s", (self.name,))
+			if c:
 				row = c.fetchone()
 				while row is not None:
 					self.levels[row['user']] = row['level']
@@ -108,8 +108,8 @@ class Erebus(object): #singleton to pass around
 		def setlevel(self, auth, level, savetodb=True):
 			auth = auth.lower()
 			if savetodb:
-				c = main.db.cursor()
-				if c.execute("REPLACE INTO chusers (chan, user, level) VALUES (%s, %s, %s)", (self.name, auth, level)):
+				c = main.query("REPLACE INTO chusers (chan, user, level) VALUES (%s, %s, %s)", (self.name, auth, level))
+				if c:
 					self.levels[auth] = level
 					return True
 				else:
@@ -145,6 +145,29 @@ class Erebus(object): #singleton to pass around
 		else: # f.e. os.name == "nt" (Windows)
 			self.potype = "select"
 			self.fdlist = []
+
+	def query(self, *args, **kwargs):
+		if 'norecurse' in kwargs:
+			norecurse = kwargs['norecurse']
+			del kwargs['norecurse']
+		else:
+			norecurse = False
+
+		self.log("[SQL]", "?", "query(%s, %s)" % (', '.join([repr(i) for i in args]), ', '.join([str(key)+"="+repr(kwargs[key]) for key in kwargs])))
+		try:
+			curs = self.db.cursor()
+			res = curs.execute(*args, **kwargs)
+			if res:
+				return curs
+			else:
+				return res
+		except MySQLdb.MySQLError as e:
+			self.log("[SQL]", "!", "MySQL error! %r" % (e))
+			if not norecurse:
+				dbsetup()
+				return self.query(*args, norecurse=True, **kwargs)
+			else:
+				raise e
 
 	def newbot(self, nick, user, bind, authname, authpass, server, port, realname):
 		if bind is None: bind = ''
@@ -251,30 +274,9 @@ class Erebus(object): #singleton to pass around
 		return self.chanhandlers[chan]
 
 
-class MyCursor(MySQLdb.cursors.DictCursor):
-	def execute(self, *args, **kwargs):
-		if 'norecurse' in kwargs:
-			norecurse = kwargs['norecurse']
-			del kwargs['norecurse']
-		else:
-			norecurse = False
-		main.log("[SQL]", "?", "MyCursor.execute(self, %s, %s)" % (', '.join([repr(i) for i in args]), ', '.join([str(key)+"="+repr(kwargs[key]) for key in kwargs])))
-#		print "%09.3f [SQL] [#] MyCursor.execute(self, %s, %s)" % (time.time() % 100000, ', '.join([repr(i) for i in args]), ', '.join([str(key)+"="+repr(kwargs[key]) for key in kwargs]))
-		try:
-			return super(self.__class__, self).execute(*args, **kwargs)
-		except MySQLdb.MySQLError as e:
-			main.log("[SQL]", "!", "MySQL error! %r" % (e))
-#			print "%09.3f [SQL] [!] MySQL error! %r" % (time.time() % 100000, e)
-			if not norecurse:
-				dbsetup()
-				return self.execute(norecurse=True, *args, **kwargs)
-			return False
-		return True
-
-
 def dbsetup():
 	main.db = None
-	main.db = MySQLdb.connect(host=cfg.dbhost, user=cfg.dbuser, passwd=cfg.dbpass, db=cfg.dbname, cursorclass=MyCursor)
+	main.db = MySQLdb.connect(host=cfg.dbhost, user=cfg.dbuser, passwd=cfg.dbpass, db=cfg.dbname, cursorclass=MySQLdb.cursors.DictCursor)
 
 def setup():
 	global cfg, main
@@ -295,8 +297,8 @@ def setup():
 		ctlmod.load(main, mod)
 
 	dbsetup()
-	c = main.db.cursor()
-	if c.execute("SELECT nick, user, bind, authname, authpass FROM bots WHERE active = 1"):
+	c = main.query("SELECT nick, user, bind, authname, authpass FROM bots WHERE active = 1")
+	if c:
 		rows = c.fetchall()
 		c.close()
 		for row in rows:
