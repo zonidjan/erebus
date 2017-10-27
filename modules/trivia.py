@@ -76,6 +76,7 @@ class TriviaState(object):
 		self.chan                = self.db['chan']
 		self.curq                = None
 		self.nextq               = None
+		self.nextqid             = None
 		self.nextquestiontimer   = None
 		self.steptimer           = None
 		self.hintstr             = None
@@ -290,6 +291,10 @@ class TriviaState(object):
 			nextqid = None
 			nextq = self.nextq
 			self.nextq = None
+		elif self.nextqid is not None:
+			nextqid = self.nextqid
+			nextq = self.questions[nextqid]
+			self.nextqid = None
 		else:
 			nextqid = random.randrange(0, len(self.questions))
 			nextq = self.questions[nextqid]
@@ -319,7 +324,10 @@ class TriviaState(object):
 				range(0x61,0x7A) + ([0x20]*4)
 			)
 			qtext += "\00304,01"+qword+"\00301,01"+chr(spacer) #a-z
-		self.getbot().fastmsg(self.chan, qtext)
+		if not self.getbot().fastmsg(self.chan, qtext): #if message is too long:
+			if nextqid is None: nextqid = "manual"
+			self.getbot().slowmsg(self.chan, "(Unable to ask question #%s: line too long)" % (nextqid))
+			return self._nextquestion(iteration) #retry; don't increment the iteration
 
 		self.curq = nextq
 		self.curqid = nextqid
@@ -452,14 +460,14 @@ def give(bot, user, chan, realtarget, *args):
 def setnextid(bot, user, chan, realtarget, *args):
 	try:
 		qid = int(args[0])
-		state.nextq = state.questions[qid]
-		if user.glevel >= lib.STAFF:
-			respstr = "Done. Next question is: %s" % (state.nextq[0])
-		else:
-			respstr = "Done."
-		bot.msg(user, respstr)
-	except Exception as e:
-		bot.msg(user, "Error: %s" % (e))
+	except ValueError:
+		bot.msg(user, "Error: QID must be a number.")
+		return
+	if qid >= len(state.questions):
+		bot.msg(user, "Error: no such QID.")
+		return
+	state.nextqid = qid
+	bot.msg(user, "Done. Next question is %d: %s" % (qid, state.questions[qid][0]))
 
 @lib.hook(glevel=lib.STAFF, needchan=False)
 @lib.help("<q>*<a>", "sets next question to one not in database")
@@ -834,12 +842,6 @@ def triviahelp(bot, user, chan, realtarget, *args):
 				bot.slowmsg(user, "HINTTIMER     <float seconds>   (ADMIN)")
 				bot.slowmsg(user, "HINTNUM       <hints>           (ADMIN)")
 				bot.slowmsg(user, "QUESTIONPAUSE <float seconds>   (ADMIN)")
-
-@lib.hooknum(417)
-def num_417(bot, textline):
-#	bot.fastmsg(state.db['chan'], "Whoops, it looks like that question didn't quite go through! (E:417). Let's try another...")
-	if state.curq is not None:
-		state.nextquestion(qskipped=False, skipwait=True)
 
 @lib.hooknum(332)
 def num_TOPIC(bot, textline):
