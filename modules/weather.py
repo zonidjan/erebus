@@ -32,9 +32,14 @@ def weather(bot, user, chan, realtarget, *args):
 
 	if place is not None:
 		weather = json.load(urllib.urlopen('http://api.wunderground.com/api/8670e6d2e69ff3c7/conditions/q/%s.json' % (place)))
-		if 'error' in weather:
-			bot.msg(chan, "Error from Wunderground: %s" % (weather['error']['description']))
-			return
+		print `weather`
+		if 'response' in weather:
+			if 'error' in weather['response']:
+				bot.msg(chan, "Error from Wunderground: %s" % (weather['response']['error']['description']))
+				return
+			if 'results' in weather['response']:
+				bot.msg(chan, "That search term is ambiguous. Please be more specific.")
+				return
 
 		current = weather['current_observation']
 		measuredat = rfc822.parsedate_tz(current['observation_time_rfc822'])[:-1] # parsedate_tz returns a 10-tuple which strftime DOESN'T ACCEPT
