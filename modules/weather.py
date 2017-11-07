@@ -32,7 +32,6 @@ def weather(bot, user, chan, realtarget, *args):
 
 	if place is not None:
 		weather = json.load(urllib.urlopen('http://api.wunderground.com/api/8670e6d2e69ff3c7/conditions/q/%s.json' % (place)))
-		print `weather`
 		if 'response' in weather:
 			if 'error' in weather['response']:
 				bot.msg(chan, "Error from Wunderground: %s" % (weather['response']['error']['description']))
@@ -42,7 +41,7 @@ def weather(bot, user, chan, realtarget, *args):
 				return
 
 		current = weather['current_observation']
-		measuredat = rfc822.parsedate_tz(current['observation_time_rfc822'])[:-1] # parsedate_tz returns a 10-tuple which strftime DOESN'T ACCEPT
+		measuredat = rfc822.parsedate(current['observation_time_rfc822']) # parsedate_tz returns a 10-tuple which strftime DOESN'T ACCEPT
 		measuredatTZ = current['local_tz_short']
 		output = u"Weather in %(location)s: As of %(time)s %(tz)s, %(conditions)s, %(cel)s\u00B0C (%(far)s\u00B0F) (feels like %(flcel)s\u00B0C (%(flfar)s\u00B0F)). Wind %(wind)s. %(link)s" % {
 			'location': current['observation_location']['full'],
