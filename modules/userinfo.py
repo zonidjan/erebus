@@ -20,7 +20,7 @@ def modstart(parent_arg, *args, **kwargs):
 	gotParent()
 	return lib.modstart(parent, *args, **kwargs)
 def modstop(*args, **kwargs):
-	closeshop()
+	savedb()
 	return lib.modstop(*args, **kwargs)
 
 # module code
@@ -34,12 +34,12 @@ def gotParent():
 		db = json.load(open(jsonfile, "r"))
 	except:
 		db = {}
-def closeshop():
+def savedb():
 	if json is not None and json.dump is not None and db != {}:
 		json.dump(db, open(jsonfile, "w"))#, indent=4, separators=(',', ': '))
 
 #functions
-def getauth(thing):
+def _getauth(thing):
 	if isinstance(thing, parent.User):
 		if thing.auth is not None:
 			return "#"+thing.auth
@@ -52,17 +52,17 @@ def getauth(thing):
 	return None
 
 def _keys(user):
-	return list(set(db.get(getauth(user), {}).keys() + db.get(str(user).lower(), {}).keys())) #list-to-set-to-list to remove duplicates
+	return list(set(db.get(_getauth(user), {}).keys() + db.get(str(user).lower(), {}).keys())) #list-to-set-to-list to remove duplicates
 def _has(user, key):
 	key = key.lower()
 	return (
-		key in db.get(getauth(user), {}) or
+		key in db.get(_getauth(user), {}) or
 		key in db.get(str(user).lower(), {})
 	)
 def _get(user, key, default=None):
 	key = key.lower()
 	return (
-		db.get(getauth(user), {}). #try to get the auth
+		db.get(_getauth(user), {}). #try to get the auth
 			get(key, #try to get the info-key by auth
 			db.get(str(user).lower(), {}). #fallback to using the nick
 				get(key, #and try to get the info-key from that
@@ -70,12 +70,12 @@ def _get(user, key, default=None):
 	)))
 def _set(user, key, value):
 	key = key.lower()
-	if getauth(user) is not None:
-		db.setdefault(getauth(user), {})[key] = value #use auth if we can
+	if _getauth(user) is not None:
+		db.setdefault(_getauth(user), {})[key] = value #use auth if we can
 	db.setdefault(str(user).lower(), {})[key] = value #but set nick too
 def _del(user, key):
 	key = key.lower()
-	auth = getauth(user)
+	auth = _getauth(user)
 	if auth is not None and auth in db and key in db[auth]:
 		del db[auth][key]
 	target = str(user).lower()
@@ -121,7 +121,7 @@ def getinfo(bot, user, chan, realtarget, *args):
 @lib.argsGE(2)
 def setinfo(bot, user, chan, realtarget, *args):
 	_set(user, args[0], ' '.join(args[1:]))
-	closeshop()
+	savedb()
 	bot.msg(user, "Done.")
 
 @lib.hook(needchan=False)
@@ -129,7 +129,7 @@ def setinfo(bot, user, chan, realtarget, *args):
 @lib.argsEQ(1)
 def delinfo(bot, user, chan, realtarget, *args):
 	_del(user, args[0])
-	closeshop()
+	savedb()
 	bot.msg(user, "Done.")
 
 @lib.hook(glevel=lib.ADMIN, needchan=False)
@@ -137,7 +137,7 @@ def delinfo(bot, user, chan, realtarget, *args):
 @lib.argsGE(3)
 def osetinfo(bot, user, chan, realtarget, *args):
 	_set(args[0], args[1], ' '.join(args[2:]))
-	closeshop()
+	savedb()
 	bot.msg(user, "Done.")
 
 @lib.hook(glevel=lib.STAFF, needchan=False)
@@ -145,5 +145,5 @@ def osetinfo(bot, user, chan, realtarget, *args):
 @lib.argsEQ(2)
 def odelinfo(bot, user, chan, realtarget, *args):
 	_del(args[0], args[1])
-	closeshop()
+	savedb()
 	bot.msg(user, "Done.")
