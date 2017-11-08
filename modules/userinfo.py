@@ -73,6 +73,14 @@ def _set(user, key, value):
 	if getauth(user) is not None:
 		db.setdefault(getauth(user), {})[key] = value #use auth if we can
 	db.setdefault(str(user).lower(), {})[key] = value #but set nick too
+def _del(user, key):
+	key = key.lower()
+	auth = getauth(user)
+	if auth is not None and auth in db and key in db[auth]:
+		del db[auth][key]
+	target = str(user).lower()
+	if target in db and key in db[target]:
+		del db[target][key]
 
 #commands
 @lib.hook(needchan=False, wantchan=True)
@@ -116,10 +124,26 @@ def setinfo(bot, user, chan, realtarget, *args):
 	closeshop()
 	bot.msg(user, "Done.")
 
-@lib.hook(glevel=lib.STAFF, needchan=False)
+@lib.hook(needchan=False)
+@lib.help("<item>", "deletes an info item about you")
+@lib.argsEQ(1)
+def delinfo(bot, user, chan, realtarget, *args):
+	_del(user, args[0])
+	closeshop()
+	bot.msg(user, "Done.")
+
+@lib.hook(glevel=lib.ADMIN, needchan=False)
 @lib.help("<target> <item> <value>", "sets an info item about someone else", "<target> may be a nick, or an auth in format '#auth'")
 @lib.argsGE(3)
 def osetinfo(bot, user, chan, realtarget, *args):
 	_set(args[0], args[1], ' '.join(args[2:]))
+	closeshop()
+	bot.msg(user, "Done.")
+
+@lib.hook(glevel=lib.STAFF, needchan=False)
+@lib.help("<target> <item>", "deletes an info item about someone else", "<target> may be a nick, or an auth in format '#auth'")
+@lib.argsEQ(2)
+def odelinfo(bot, user, chan, realtarget, *args):
+	_del(args[0], args[1])
 	closeshop()
 	bot.msg(user, "Done.")
