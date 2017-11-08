@@ -54,4 +54,4 @@ def weather(bot, user, chan, realtarget, *args):
 		}
 		bot.msg(chan, output)
 	else:
-		bot.msg(chan, "I don't know where to look! Try SETINFO LOCATION <your location>")
+		bot.msg(chan, "I don't know where to look! Try %sSETINFO LOCATION <your location>" % (bot.parent.trigger))
