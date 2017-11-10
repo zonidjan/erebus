@@ -283,7 +283,7 @@ def setup():
 
 	cfg = config.setup('bot.config')
 
-	if int(cfg.get('debug', 'gc', default=0)) == 1:
+	if cfg.getboolean('debug', 'gc'):
 		gc.set_debug(gc.DEBUG_LEAK)
 
 	pidfile = open(cfg.pidfile, 'w')

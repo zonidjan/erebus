@@ -156,7 +156,7 @@ def help(bot, user, chan, realtarget, *args):
 @lib.hook(needchan=False)
 @lib.help(None, "provides command list")
 def showcommands(bot, user, chan, realtarget, *args):
-	if bool(int(bot.parent.cfg.get('help', 'autogen', default=0))):
+	if bot.parent.cfg.getboolean('help', 'autogen'):
 		try:
 			_genhelp(bot, user, chan, realtarget, *args)
 		except: pass

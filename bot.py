@@ -51,9 +51,9 @@ class Bot(object):
 		except: pass
 
 	def watchdog(self):
-		if time.time() > self.parent.cfg.get('watchdog', 'maxtime', default=300)+self.lastreceived:
+		if time.time() > int(self.parent.cfg.get('watchdog', 'maxtime', default=300))+self.lastreceived:
 			self.parse("ERROR :Fake-error from watchdog timer.")
-		self.watchdogtimer = MyTimer(self.parent.cfg.get('watchdog', 'interval', default=30), self.watchdog)
+		self.watchdogtimer = MyTimer(int(self.parent.cfg.get('watchdog', 'interval', default=30)), self.watchdog)
 
 	def log(self, *args, **kwargs):
 		self.parent.log(self.nick, *args, **kwargs)
