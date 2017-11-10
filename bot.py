@@ -71,7 +71,8 @@ class Bot(object):
 			self.conn.send("NICK %s" % (self.permnick))
 
 	def parse(self, line):
-		self.log('I', line)
+		if self.parent.cfg.getboolean('debug', 'io'):
+			self.log('I', line)
 		pieces = line.split()
 
 		# dispatch dict
@@ -250,7 +251,7 @@ class Bot(object):
 				pass # don't care about other modes
 
 	def __debug_cbexception(self, source, *args, **kwargs):
-		if int(self.parent.cfg.get('debug', 'cbexc', default=0)) == 1:
+		if self.parent.cfg.getboolean('debug', 'cbexc'):
 			self.conn.send("PRIVMSG %s :%09.3f 4!!! CBEXC %s" % (self.parent.cfg.get('debug', 'owner'), time.time() % 100000, source))
 			__import__('traceback').print_exc()
 			self.log('!', "CBEXC %s %r %r" % (source, args, kwargs))
@@ -336,7 +337,7 @@ class Bot(object):
 			self.msg(user, "You don't have enough access to run that command.")
 
 	def __debug_nomsg(self, target, msg):
-		if int(self.parent.cfg.get('debug', 'nomsg', default=0)) == 1:
+		if self.parent.cfg.getboolean('debug', 'nomsg'):
 			self.conn.send("PRIVMSG %s :%09.3f 4!!! NOMSG %r, %r" % (self.parent.cfg.get('debug', 'owner'), time.time() % 100000, target, msg))
 			self.log('!', "!!! NOMSG")
 #			print "%09.3f %s [!] %s" % (time.time() % 100000, self.nick, "!!! NOMSG")
@@ -453,7 +454,8 @@ class BotConnection(object):
 		return self.state == 2
 
 	def send(self, line):
-		self.parent.log('O', line)
+		if self.parent.cfg.getboolean('debug', 'io'):
+			self.parent.log('O', line)
 #		print "%09.3f %s [O] %s" % (time.time() % 100000, self.parent.nick, line)
 		self.bytessent += len(line)
 		self._write(line)
