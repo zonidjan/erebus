@@ -28,7 +28,7 @@ def modstop(*args, **kwargs):
 	return lib.modstop(*args, **kwargs)
 
 # module code
-import json, random, threading, re, time, datetime, os
+import json, random, threading, re, time, datetime, os, collections
 
 try:
 	import twitter
@@ -70,8 +70,10 @@ class TriviaState(object):
 
 	def gotParent(self, parent, pointvote=False):
 		self.parent              = parent
+		self._query              = staticmethod(self.parent._query)
 		self.questionfile        = self.parent.cfg.get('trivia', 'jsonpath', default="./modules/trivia.json")
-		self.db                  = json.load(open(self.questionfile, "r"))
+#		self.db                  = json.load(open(self.questionfile, "r"))
+		self.db                  = self.loaddb()
 		self.questions           = self.db['questions'][self.db['category']]
 		self.chan                = self.db['chan']
 		self.curq                = None
@@ -111,6 +113,45 @@ class TriviaState(object):
 			self.nextquestiontimer.cancel()
 			self.nextquestiontimer = None
 		except: pass
+
+	def _load_config(self, key):
+		res = self._query("SELECT value FROM trivia_config WHERE key = %s", (key,))
+		if res:
+			row = res.fetchone()
+			if row is not None:
+				return row['value']
+		raise KeyError('trivia database schema invalid, missing config:', key)
+	def _load_badqs(self):
+		res = self._query("SELECT category, lastqid, curqid, reason FROM trivia_badqs WHERE deleted = 0")
+		if res:
+			rows = res.fetchall()
+			return [(row['category'], row['lastqid'], row['curqid'], row['reason']) for row in rows]
+		raise KeyError('trivia database schema invalid, missing badqs')
+	def _load_questions(self): pass # do we want to cache the questions or look only one up from the database at a time? TODO abound
+	def _load_ranks(self): pass # maybe we should sort in the DB? is ORDER BY (SELECT) valid?
+	def _load_users(self): pass
+	def loaddb(self):
+		self.category = self._load_config('category')
+		self.chan = self._load_config('chan')
+		self.hintnum = self._load_config('hintnum')
+		self.hinttimer = self._load_config('hinttimer')
+		self.hofformat = self._load_config('hofformat')
+		self.hoflines = self._load_config('hoflines')
+		self.hofpath = self._load_config('hofpath')
+		self.lastwinner = self._load_config('lastwinner')
+		self.lastwon = self._load_config('lastwon')
+		self.maxmissedquestions = self._load_config('maxmissedquestions')
+		self.questionpause = self._load_config('questionpause')
+		self.targetoptions = self._load_config('targetoptions').split(',')
+		self.target = self._load_config('target')
+		self.topicformat = self._load_config('topicformat')
+		self.votetimer = self._load_config('votetimer')
+
+		self.badqs = self._load_badqs()
+		self.questions = self._load_questions()
+		self.ranks = self._load_ranks()
+		self.users = self._load_users()
+
 
 	def savedb(self): #returns whether or not it was able to save
 		if json is not None and json.dump is not None:
