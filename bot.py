@@ -454,7 +454,7 @@ class BotConnection(object):
 		return self.state == 2
 
 	def send(self, line):
-		if self.parent.cfg.getboolean('debug', 'io'):
+		if self.parent.parent.cfg.getboolean('debug', 'io'):
 			self.parent.log('O', line)
 #		print "%09.3f %s [O] %s" % (time.time() % 100000, self.parent.nick, line)
 		self.bytessent += len(line)

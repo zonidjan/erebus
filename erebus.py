@@ -7,7 +7,7 @@ import os, sys, select, MySQLdb, MySQLdb.cursors, time, random, gc
 import bot, config, ctlmod
 
 class Erebus(object): #singleton to pass around
-	APIVERSION = 2
+	APIVERSION = 0
 	RELEASE = 0
 
 	bots = {}
