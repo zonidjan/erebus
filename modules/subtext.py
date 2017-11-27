@@ -7,7 +7,7 @@
 modinfo = {
 	'author': 'Erebus Team',
 	'license': 'public domain',
-	'compatible': [2], # compatible module API versions
+	'compatible': [0], # compatible module API versions
 	'depends': [], # other modules required to work properly?
 	'softdeps': [], # modules which are preferred but not required
 }
