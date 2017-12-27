@@ -26,10 +26,10 @@ from BeautifulSoup import BeautifulSoup
 html_parser = HTMLParser.HTMLParser()
 
 hostmask_regex = re.compile(r'^(.*)!(.*)@(.*)$')
-url_regex = re.compile(r'((?:https?://|spotify:)[^\s]+)')
+url_regex = re.compile(r'https?://[^/\s]+\.[^/\s]+(?:/\S+)?')
 spotify_regex = (
 	re.compile(r'spotify:(?P<type>\w+):(?P<track_id>\w{22})'),
-	re.compile(r'https?://open.spotify.com/(?P<type>\w+)/(?P<track_id>\w{22})')
+	re.compile(r'https?://open.spotify.com/(?P<type>\w+)/(?P<track_id>\w+)')
 )
 youtube_regex = (
 	re.compile(r'https?://(?:www\.)?youtube\.com/watch\?[a-zA-Z0-9=&_\-]+'),
@@ -87,23 +87,9 @@ def privmsg_hook(bot, textline):
 
 	for match in url_regex.findall(line):
 		if match:
-			if 'open.spotify.com' in match or 'spotify:' in match:
-				for r in spotify_regex:
-					for sptype, track in r.findall(match):
-						bot.msg(chan, gotspotify(sptype, track))
-
-			elif 'youtube.com' in match or 'youtu.be' in match:
-				for r in youtube_regex:
-					for url in r.findall(match):
-						bot.msg(chan, gotyoutube(url))
-
-			elif 'twitch.tv' in match:
-				for r in twitch_regex:
-					for uri in r.findall(match):
-						bot.msg(chan, gottwitch(uri))
-
-			else:
-				bot.msg(chan, goturl(match))
+			response = goturl(match)
+			if response is not None:
+				bot.msg(chan, response)
 
 def unescape(line):
 	return html_parser.unescape(line)
@@ -168,4 +154,4 @@ def goturl(url):
 		soup = BeautifulSoup(opener.open(request, timeout=2))
 		return unescape('Title: %s' % (soup.title.string))
 	except:
-		return 'Invalid URL/Timeout'
+		return None
