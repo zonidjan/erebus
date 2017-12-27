@@ -37,7 +37,7 @@ def _weather(place):
 		measuredat = rfc822.parsedate(current['observation_time_rfc822']) # parsedate_tz returns a 10-tuple which strftime DOESN'T ACCEPT
 		measuredatTZ = current['local_tz_short']
 		loc = current['observation_location']
-		if loc['city'] == "": loc = current['display_location']
+		if loc['city'] == "" or loc['state'] == "": loc = current['display_location']
 		return u"Weather in %(location)s: As of %(time)s %(tz)s, %(conditions)s, %(cel)s\u00B0C (%(far)s\u00B0F) (feels like %(flcel)s\u00B0C (%(flfar)s\u00B0F)). Wind %(wind)s. %(link)s" % {
 			'location': loc['full'],
 			'time': time.strftime("%a %H:%M", measuredat), 'tz': measuredatTZ,
