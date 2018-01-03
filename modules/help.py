@@ -197,7 +197,7 @@ def help_nolag(bot, user, chan, realtarget, *args):
 		cmd = str(' '.join(args)).lower()
 		if cmd in cmds and user.glevel >= cmds[cmd].reqglevel:
 			func = cmds[cmd]
-			bot.slowmsg(user, str(HelpLine(func.cmd[0], func.syntax, func.shorthelp, (user.glevel > 0), func.reqglevel, func.module)))
+			bot.slowmsg(user, str(HelpLine(func.cmd[0], func.syntax, func.shorthelp, (user.glevel > 0), func.reqglevel, func.module, func.reqclevel)))
 			for line in func.longhelps:
 				bot.slowmsg(user, "  %s" % (line))
 			bot.slowmsg(user, "End of help for %s." % (func.cmd[0]))
