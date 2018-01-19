@@ -22,6 +22,9 @@ import json, urllib, time, rfc822
 
 def location(person, default=None): return lib.mod('userinfo')._get(person, 'location', default=None)
 
+def _dayofweek(dayname):
+	return ['mon','tue','wed','thu','fri','sat','sun'].index(dayname.lower())
+
 def _weather(place):
 	if place is not None:
 		weather = json.load(urllib.urlopen('http://api.wunderground.com/api/8670e6d2e69ff3c7/conditions/q/%s.json' % (place)))
@@ -34,7 +37,8 @@ def _weather(place):
 				return "That search term is ambiguous. Please be more specific."
 
 		current = weather['current_observation']
-		measuredat = rfc822.parsedate(current['observation_time_rfc822']) # parsedate_tz returns a 10-tuple which strftime DOESN'T ACCEPT
+		measuredat = list(rfc822.parsedate(current['observation_time_rfc822']))
+		measuredat[6] = _dayofweek(current['observation_time_rfc822'][0:3])
 		measuredatTZ = current['local_tz_short']
 		loc = current['observation_location']
 		if loc['city'] == "" or loc['state'] == "": loc = current['display_location']
