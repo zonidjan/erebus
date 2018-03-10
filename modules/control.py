@@ -144,3 +144,19 @@ def qclear(bot, user, chan, realtarget, *args):
 			bot.fastmsg(user, "Syntax: QCLEAR [regular|slow]")
 			return #short-circuit
 		bot.fastmsg(user, "Cleared that msgqueue.")
+
+@lib.hook(needchan=False, wantchan=True, glevel=lib.ADMIN)
+@lib.help("<nick> <message>", "inject a line as though it came from <nick>", "note that this injects lines, not commands", "ex: INJECT DimeCadmium !WHOAMI")
+def inject(bot, user, chan, realtarget, *args):
+	targetuser = bot.parent.user(args[0], create=False)
+	if targetuser is None:
+		bot.msg(user, "User is unknown.")
+		return
+	if targetuser.glevel > user.glevel:
+		bot.msg(user, "That user has a higher access level than you.")
+		return
+
+	if chan is not None:
+		bot.parsemsg(bot.parent.user(args[0], create=False), str(chan), ' '.join(args[1:]))
+	else:
+		bot.parsemsg(bot.parent.user(args[0], create=False), str(bot), ' '.join(args[1:]))
