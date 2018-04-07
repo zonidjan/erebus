@@ -119,7 +119,7 @@ def _genhelp(bot, user, chan, realtarget, *args):
 			filename = filepath
 		fo = open(filename, 'w')
 		lines = []
-		for func in helps.itervalues():
+		for func in helps.values():
 			if module is not None and func.module != module:
 					continue
 			lines += _mkhelp(level, func)
@@ -179,7 +179,7 @@ def showcommands(bot, user, chan, realtarget, *args):
 def help_nolag(bot, user, chan, realtarget, *args):
 	if len(args) == 0: # list commands
 		lines = []
-		for func in helps.itervalues():
+		for func in helps.values():
 			lines += _mkhelp(user, func)
 		for line in sorted(lines):
 			bot.slowmsg(user, str(line))
@@ -187,7 +187,7 @@ def help_nolag(bot, user, chan, realtarget, *args):
 	elif args[0].startswith("@"):
 		lines = []
 		mod = args[0][1:].lower()
-		for func in helps.itervalues():
+		for func in helps.values():
 			if func.module == mod:
 				lines += _mkhelp(user, func)
 		for line in sorted(lines):

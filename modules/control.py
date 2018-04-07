@@ -27,7 +27,7 @@ from collections import deque
 @lib.help(None, "stops the bot")
 def die(bot, user, chan, realtarget, *args):
 	quitmsg = ' '.join(args)
-	for botitem in bot.parent.bots.itervalues():
+	for botitem in bot.parent.bots.values():
 		bot.conn.send("QUIT :Restarting. %s" % (quitmsg))
 	sys.exit(0)
 	os._exit(0)
@@ -71,7 +71,7 @@ def modreload(bot, user, chan, realtarget, *args):
 @lib.argsEQ(0)
 def modlist(bot, user, chan, realtarget, *args):
 	mods = ctlmod.modules
-	for modname, mod in mods.iteritems():
+	for modname, mod in mods.items():
 		bot.msg(user, "- %s (%s) [%s]" % ((modname, mod.__file__, ', '.join(ctlmod.dependents[modname]))))
 	bot.msg(user, "Done.")
 

@@ -32,16 +32,13 @@ def privmsg_hook(bot, line):
 	msg = pieces[3][1:]
 	mo = re_findsub.match(msg)
 	if mo:
-		print lastline[chan]
-		print mo.groupdict()
 		if mo.group('global') is not None:
 			count = 0 # unlimited
 		else:
 			count = 1 # only first
 		try:
 			newline = re.sub(mo.group('search'), mo.group('replace'), lastline[chan].msg, count)
-		except Exception as e: print e; return # ignore it if it doesn't work
-		print newline
+		except Exception as e: return # ignore it if it doesn't work
 		if newline != lastline[chan].msg:
 			if lastline[chan].sender == fromnick:
 				bot.msg(chan, "<%s> %s" % (lastline[chan].sender, newline))

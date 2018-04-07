@@ -1,7 +1,13 @@
 # Erebus IRC bot - Author: John Runyon
 # "Config" class (reading/providing access to bot.config)
 
-import ConfigParser
+from __future__ import print_function
+import sys
+
+if sys.version_info.major < 3:
+	import ConfigParser
+else:
+	import configparser as ConfigParser
 
 class Config(object):
 	def __init__(self, filename, writeout=True):
@@ -59,6 +65,4 @@ if __name__ == '__main__':
 
 	for s in cfg.config.sections():
 		for k, v in cfg.items(s):
-			print "[%r][%r] = %r" % (s, k, v)
-#	for k, v in cfg.items():
-#		print 'erebus.'+k, '=', v
+			print("[%r][%r] = %r" % (s, k, v))

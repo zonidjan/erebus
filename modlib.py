@@ -2,6 +2,13 @@
 # module helper functions, see modules/modtest.py for usage
 # This file is released into the public domain; see http://unlicense.org/
 
+import sys
+
+if sys.version_info.major < 3:
+	stringbase = basestring
+else:
+	stringbase = str
+
 class error(object):
 	def __init__(self, desc):
 		self.errormsg = desc
@@ -54,12 +61,12 @@ class modlib(object):
 		# non-empty string (or anything else True-y): specified success
 		#"specified" values will be printed. unspecified values will result in "OK" or "failed"
 		self.parent = parent
-		for cmd, func in self.hooks.iteritems():
+		for cmd, func in self.hooks.items():
 			self.parent.hook(cmd, func)
 			self.parent.hook("%s.%s" % (self.name, cmd), func)
-		for num, func in self.numhooks.iteritems():
+		for num, func in self.numhooks.items():
 			self.parent.hooknum(num, func)
-		for chan, func in self.chanhooks.iteritems():
+		for chan, func in self.chanhooks.items():
 			self.parent.hookchan(chan, func)
 
 		for func, args, kwargs in self.helps:
@@ -69,12 +76,12 @@ class modlib(object):
 				pass
 		return True
 	def modstop(self, parent):
-		for cmd, func in self.hooks.iteritems():
+		for cmd, func in self.hooks.items():
 			parent.unhook(cmd, func)
 			parent.unhook("%s.%s" % (self.name, cmd), func)
-		for num, func in self.numhooks.iteritems():
+		for num, func in self.numhooks.items():
 			parent.unhooknum(num, func)
-		for chan, func in self.chanhooks.iteritems():
+		for chan, func in self.chanhooks.items():
 			parent.unhookchan(chan, func)
 
 		for func, args, kwargs in self.helps:
@@ -107,7 +114,7 @@ class modlib(object):
 			cmd = _cmd #...and restore it
 			if cmd is None:
 				cmd = func.__name__ # default to function name
-			if isinstance(cmd, basestring):
+			if isinstance(cmd, stringbase):
 				cmd = (cmd,)
 
 			func.needchan = needchan

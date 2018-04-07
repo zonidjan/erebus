@@ -44,7 +44,7 @@ def cmd_exec(bot, user, chan, realtarget, *args):
 	if chan is not None: replyto = chan
 	else: replyto = user
 
-	try: exec ' '.join(args)
+	try: exec(' '.join(args))
 	except Exception: bot.msg(replyto, "Error: %s %s" % (sys.exc_info()[0], sys.exc_info()[1]))
 	else: bot.msg(replyto, "Done.")
 

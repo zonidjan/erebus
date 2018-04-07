@@ -20,8 +20,19 @@ modstart = lib.modstart
 modstop = lib.modstop
 
 # module code
-import re, urllib2, urlparse, json, HTMLParser
-from BeautifulSoup import BeautifulSoup
+import sys
+if sys.version_info.major < 3:
+	import urllib2
+	import urlparse
+	import HTMLParser
+	from BeautifulSoup import BeautifulSoup
+else:
+	import urllib.request as urllib2
+	import urllib.parse as urlparse
+	import html.parser as HTMLParser
+	from bs4 import BeautifulSoup
+
+import re, json
 
 html_parser = HTMLParser.HTMLParser()
 

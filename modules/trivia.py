@@ -2,6 +2,8 @@
 # trivia module
 # This file is released into the public domain; see http://unlicense.org/
 
+from __future__ import print_function
+
 # module info
 modinfo = {
 	'author': 'Erebus Team',
@@ -28,7 +30,13 @@ def modstop(*args, **kwargs):
 	return lib.modstop(*args, **kwargs)
 
 # module code
-import json, random, threading, re, time, datetime, os
+import json, random, threading, re, time, datetime, os, sys
+
+if sys.version_info.major < 3:
+	timerbase = threading._Timer
+else:
+	timerbase = threading.Timer
+
 
 try:
 	import twitter
@@ -58,9 +66,9 @@ def pts(num):
 def country(num, default="??"):
 	return lib.mod('userinfo')._get(person(num), 'country', default=default).upper()
 
-class MyTimer(threading._Timer):
+class MyTimer(timerbase):
 	def __init__(self, *args, **kwargs):
-		threading._Timer.__init__(self, *args, **kwargs)
+		timerbase.__init__(self, *args, **kwargs)
 		self.daemon = True
 
 class TriviaState(object):
@@ -520,12 +528,12 @@ def stop():
 	try:
 		state.steptimer.cancel()
 	except Exception as e:
-		print "!!! steptimer.cancel(): %s %r" % (e,e)
+		print("!!! steptimer.cancel(): %s %r" % (e,e))
 	state.steptimer = None
 	try:
 		state.nextquestiontimer.cancel()
 	except Exception as e:
-		print "!!! nextquestiontimer.cancel(): %s %r" % (e,e)
+		print("!!! nextquestiontimer.cancel(): %s %r" % (e,e))
 	state.nextquestiontimer = None
 	return True
 
@@ -611,7 +619,7 @@ def settarget(bot, user, chan, realtarget, *args):
 			state.pointvote = None
 			bot.msg(state.db['chan'], "Vote has been cancelled!")
 	except Exception as e:
-		print e
+		print(e)
 		bot.msg(user, "Failed to set target.")
 
 @lib.hook(needchan=False)

@@ -1,8 +1,13 @@
 # Erebus IRC bot - Author: John Runyon
 # module loading/unloading/tracking code
 
+from __future__ import print_function
+
 import sys, time
 import modlib
+
+if sys.version_info.major >= 3:
+	from importlib import reload
 
 modules = {}
 dependents = {}
@@ -14,32 +19,32 @@ def modhas(modname, attname): return getattr(modules[modname], attname, None) is
 def load(parent, modname, dependent=False):
 	#wrapper to call _load and print return
 	if dependent:
-		print "(Loading dependency %s..." % (modname),
+		print("(Loading dependency %s..." % (modname), end=' ')
 	else:
-		print "%09.3f [MOD] [?] Loading %s..." % (time.time() % 100000, modname),
+		print("%09.3f [MOD] [?] Loading %s..." % (time.time() % 100000, modname), end=' ')
 	modstatus = _load(parent, modname, dependent)
 	if not modstatus:
 		if dependent:
-			print "failed: %s)" % (modstatus),
+			print("failed: %s)" % (modstatus), end=' ')
 		else:
-			print "failed: %s." % (modstatus)
+			print("failed: %s." % (modstatus))
 	elif modstatus == True:
 		if dependent:
-			print "OK)",
+			print("OK)", end=' ')
 		else:
-			print "OK."
+			print("OK.")
 	else:
 		if dependent:
-			print "OK: %s)" % (modstatus),
+			print("OK: %s)" % (modstatus), end=' ')
 		else:
-			print "OK: %s." % (modstatus)
+			print("OK: %s." % (modstatus))
 	return modstatus
 
 def _load(parent, modname, dependent=False):
 	successstatus = []
 	if not isloaded(modname):
 		try:
-			mod = __import__('modules.'+modname, globals(), locals(), ['*'], -1)
+			mod = __import__('modules.'+modname, globals(), locals(), ['*'], 0)
 			# ^ fromlist doesn't actually do anything(?) but it means we don't have to worry about this returning the top-level "modules" object
 			reload(mod) #in case it's been previously loaded.
 		except Exception as e:

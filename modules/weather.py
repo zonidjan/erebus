@@ -18,7 +18,8 @@ modstart = lib.modstart
 modstop = lib.modstop
 
 # module code
-import json, urllib, time, rfc822
+import json, urllib, time
+from email.utils import parsedate
 
 def location(person, default=None): return lib.mod('userinfo')._get(person, 'location', default=None)
 
@@ -37,7 +38,7 @@ def _weather(place):
 				return "That search term is ambiguous. Please be more specific."
 
 		current = weather['current_observation']
-		measuredat = list(rfc822.parsedate(current['observation_time_rfc822']))
+		measuredat = list(parsedate(current['observation_time_rfc822']))
 		measuredat[6] = _dayofweek(current['observation_time_rfc822'][0:3])
 		measuredatTZ = current['local_tz_short']
 		loc = current['observation_location']

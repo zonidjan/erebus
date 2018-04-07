@@ -3,6 +3,8 @@
 # Erebus IRC bot - Author: John Runyon
 # main startup code
 
+from __future__ import print_function
+
 import os, sys, select, MySQLdb, MySQLdb.cursors, time, random, gc
 import bot, config, ctlmod
 
@@ -220,7 +222,7 @@ class Erebus(object): #singleton to pass around
 			return select.select(self.fdlist, [], [])[0]
 
 	def connectall(self):
-		for bot in self.bots.itervalues():
+		for bot in self.bots.values():
 			if bot.conn.state == 0:
 				bot.connect()
 
@@ -228,10 +230,10 @@ class Erebus(object): #singleton to pass around
 		return ctlmod.modules[name]
 
 	def log(self, source, level, message):
-		print "%09.3f %s [%s] %s" % (time.time() % 100000, source, level, message)
+		print("%09.3f %s [%s] %s" % (time.time() % 100000, source, level, message))
 
 	def getuserbyauth(self, auth):
-		return [u for u in self.users.itervalues() if u.auth == auth.lower()]
+		return [u for u in self.users.values() if u.auth == auth.lower()]
 
 	#bind functions
 	def hook(self, word, handler):
