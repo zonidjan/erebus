@@ -21,7 +21,7 @@ Some modules require additional supporting materials, which can be found in `mod
 
 *****
 Module API
-==========
+----------
 The module API has largely remained backwards-compatible and likely will remain so into the future. However, it is still currently unstable, primarily because it's only tested with the included modules. If you find a change was introduced which breaks something you relied on, please raise a bug.
 
 There is currently no documentation as to... well, anything. A good starter template for a new module is `modules/eval.py`. `modules/control.py` uses a significant subset of the API features available. `modules/foo.py` is intended as a demonstration module, and documents some of the major features.
