@@ -4,4 +4,4 @@
 # Startup script
 
 cd "$(dirname $(readlink -f $0))"
-PYTHONPATH=".:$PYTHONPATH" exec python -O -B "$@" erebus.py
+PYTHONPATH=".:$PYTHONPATH" exec python -O -B $@ erebus.py
