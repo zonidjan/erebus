@@ -14,6 +14,7 @@ class error(object):
 		self.errormsg = desc
 	def __nonzero__(self):
 		return False #object will test to False
+	__bool__ = __nonzero__ #py3 compat
 	def __repr__(self):
 		return '<modlib.error %r>' % self.errormsg
 	def __str__(self):
@@ -179,6 +180,6 @@ class modlib(object):
 					self.mod('help').reghelp(func, *args, **kwargs)
 				except:
 					pass
-			self.helps.append((func,args,kwargs))
+			self.helps.append((func, args, kwargs))
 			return func
 		return realhook

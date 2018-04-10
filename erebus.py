@@ -71,7 +71,7 @@ class Erebus(object): #singleton to pass around
 			self.nick = newnick
 
 		def __str__(self): return self.nick
-		def __repr__(self): return "<User %r (%d)>" % (self.nick,self.glevel)
+		def __repr__(self): return "<User %r (%d)>" % (self.nick, self.glevel)
 
 	class Channel(object):
 		def __init__(self, name, bot):
@@ -188,7 +188,7 @@ class Erebus(object): #singleton to pass around
 	def fd(self, fileno): #get Bot() by fd/fileno
 		return self.fds[fileno]
 	def randbot(self): #get Bot() randomly
-		return self.bots[random.choice(self.bots.keys())]
+		return self.bots[random.choice(list(self.bots.keys()))]
 
 	def user(self, _nick, justjoined=False, create=True):
 		nick = _nick.lower()

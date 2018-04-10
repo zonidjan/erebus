@@ -185,7 +185,7 @@ class Bot(object):
 				self.msg(nick, "I tried, but you're not authed!")
 	def _got433(self, pieces):
 		if not self.conn.registered(): #we're trying to connect
-			newnick = "%s%d" % (self.nick, random.randint(111,999))
+			newnick = "%s%d" % (self.nick, random.randint(111, 999))
 			self.conn.send("NICK %s" % (newnick))
 			self.nick = newnick
 	def _gotjoin(self, pieces):
