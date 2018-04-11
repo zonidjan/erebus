@@ -43,6 +43,7 @@ def needchan(bot, user, chan, realtarget, *args):
 
 @lib.hook(needchan=False, wantchan=True)
 @lib.help(None, 'a command which will consume a channel if given')
+def wantchan(bot, user, chan, realtarget, *args):
 	if chan is not None:
 		bot.msg(user, "Channel provided: %s" % (chan))
 	else:

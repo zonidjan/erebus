@@ -18,8 +18,13 @@ modstart = lib.modstart
 modstop = lib.modstop
 
 # module code
-import json, urllib, time
+import json, time, sys
 from email.utils import parsedate
+
+if sys.version_info.major < 3:
+	from urllib import urlopen
+else:
+	from urllib.request import urlopen
 
 def location(person, default=None): return lib.mod('userinfo')._get(person, 'location', default=None)
 
@@ -28,7 +33,7 @@ def _dayofweek(dayname):
 
 def _weather(place):
 	if place is not None:
-		weather = json.load(urllib.urlopen('http://api.wunderground.com/api/8670e6d2e69ff3c7/conditions/q/%s.json' % (place)))
+		weather = json.load(urlopen('http://api.wunderground.com/api/8670e6d2e69ff3c7/conditions/q/%s.json' % (place)))
 		if lib.parent.cfg.getboolean('debug', 'weather'):
 			lib.parent.log('*', "?", repr(weather))
 		if 'response' in weather:
@@ -38,14 +43,15 @@ def _weather(place):
 				return "That search term is ambiguous. Please be more specific."
 
 		current = weather['current_observation']
-		measuredat = list(parsedate(current['observation_time_rfc822']))
+		measuredat = list(parsedate(current['observation_time_rfc822'])) # we have to turn this into a list so that we can assign to it.
 		measuredat[6] = _dayofweek(current['observation_time_rfc822'][0:3])
 		measuredatTZ = current['local_tz_short']
 		loc = current['observation_location']
 		if loc['city'] == "" or loc['state'] == "": loc = current['display_location']
 		return u"Weather in %(location)s: As of %(time)s %(tz)s, %(conditions)s, %(cel)s\u00B0C (%(far)s\u00B0F) (feels like %(flcel)s\u00B0C (%(flfar)s\u00B0F)). Wind %(wind)s. %(link)s" % {
 			'location': loc['full'],
-			'time': time.strftime("%a %H:%M", measuredat), 'tz': measuredatTZ,
+			'time': time.strftime("%a %H:%M", tuple(measuredat)), # now we have to turn it back into a tuple because Py3's time.strftime requires it.
+			'tz': measuredatTZ,
 			'conditions': current['weather'],
 			'cel': current['temp_c'], 'far': current['temp_f'],
 			'flcel': current['feelslike_c'], 'flfar': current['feelslike_f'],

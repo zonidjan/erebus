@@ -3,11 +3,13 @@
 
 from __future__ import print_function
 
-import sys, time
+import sys, time, importlib
 import modlib
 
 if sys.version_info.major >= 3:
 	from importlib import reload
+else:
+	importlib.invalidate_caches = lambda: None
 
 modules = {}
 dependents = {}
@@ -17,7 +19,7 @@ def isloaded(modname): return modname in modules
 def modhas(modname, attname): return getattr(modules[modname], attname, None) is not None
 
 def load(parent, modname, dependent=False):
-	#wrapper to call _load and print return
+	"""Wrapper to call _load and print the return value."""
 	if dependent:
 		print("(Loading dependency %s..." % (modname), end=' ')
 	else:
@@ -41,11 +43,12 @@ def load(parent, modname, dependent=False):
 	return modstatus
 
 def _load(parent, modname, dependent=False):
+	"""Load and return the new status of the module."""
 	successstatus = []
 	if not isloaded(modname):
+		importlib.invalidate_caches()
 		try:
-			mod = __import__('modules.'+modname, globals(), locals(), ['*'], 0)
-			# ^ fromlist doesn't actually do anything(?) but it means we don't have to worry about this returning the top-level "modules" object
+			mod = importlib.import_module('modules.'+modname)
 			reload(mod) #in case it's been previously loaded.
 		except Exception as e:
 			return modlib.error(e)

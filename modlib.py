@@ -10,6 +10,7 @@ else:
 	stringbase = str
 
 class error(object):
+	"""Used to return an error to the bot core."""
 	def __init__(self, desc):
 		self.errormsg = desc
 	def __nonzero__(self):
