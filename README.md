@@ -7,7 +7,7 @@ Getting started
 - `vim bot.config`
 - Create a MySQL database, i.e. `CREATE DATABASE foo; GRANT ALL ON foo.* TO ...`
 - `mysql <dump.sql`
-- `./run.sh`
+- `./run`
 
 Install croncheck.sh in your crontab, if desired.  
 `* * * * * /path/to/erebus/croncheck.sh`  

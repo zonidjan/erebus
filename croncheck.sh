@@ -8,5 +8,5 @@ if [ -e dontstart ]; then
 fi
 
 if ! kill -0 "$(cat pidfile)"; then
-	nohup ./run.sh &
+	nohup ./run &
 fi
