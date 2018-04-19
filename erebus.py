@@ -283,7 +283,7 @@ def dbsetup():
 def setup():
 	global cfg, main
 
-	cfg = config.setup('bot.config')
+	cfg = config.Config('bot.config')
 
 	if cfg.getboolean('debug', 'gc'):
 		gc.set_debug(gc.DEBUG_LEAK)
