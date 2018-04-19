@@ -41,13 +41,14 @@ class Config(object):
 			return default
 	def getboolean(self, section, key):
 		val = self.get(section, key, False)
-		if val == False or val == "0" or val.lower() == "false" or val.strip() == "":
+		if val == False or val == "0" or val.lower() == "false":
 			return False
 		else:
 			return True
 
 	def set(self, section, key, value):
 		self.config.set(section, key, value)
+		if self.writeout: self.write()
 
 	def write(self):
 		with open(self.filename, 'wb') as configfile:
@@ -56,12 +57,12 @@ class Config(object):
 	def __del__(self):
 		if self.writeout: self.write()
 
-def setup(fn='bot.config', writeout=True):
-	return Config(fn, writeout)
-
 if __name__ == '__main__':
 	import sys
-	cfg = Config(sys.argv[1], False)
+	if len(sys.argv) > 1:
+		cfg = Config(sys.argv[1], False)
+	else:
+		cfg = Config('bot.config', False)
 
 	for s in cfg.config.sections():
 		for k, v in cfg.items(s):
