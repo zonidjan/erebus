@@ -22,6 +22,7 @@ con = twitter consumer
 con_sec = twitter consumer secret
 token = twitter token
 token_sec = twitter token secret
+topiccommand = TOPIC %(chan)s :%(topic)s
 
 [sms]
 account_sid = twilio AccountSid

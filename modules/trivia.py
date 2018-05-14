@@ -851,7 +851,8 @@ def triviahelp(bot, user, chan, realtarget, *args):
 				bot.slowmsg(user, "HINTNUM       <hints>           (ADMIN)")
 				bot.slowmsg(user, "QUESTIONPAUSE <float seconds>   (ADMIN)")
 
-@lib.hooknum(332)
+@lib.hooknum(332) # topic is...
+@lib.hooknum(331) # no topic set
 def num_TOPIC(bot, textline):
 	pieces = textline.split(None, 4)
 	chan = pieces[3]
@@ -884,7 +885,7 @@ def num_TOPIC(bot, textline):
 		'category': state.db['category'],
 	}
 	if gottopic != formatted:
-		state.getbot().conn.send("TOPIC %s :%s" % (state.db['chan'], formatted))
+		state.getbot().conn.send(bot.parent.cfg.get('trivia', 'topiccommand', default="TOPIC %(chan)s :%(topic)s") % {'chan': state.db['chan'], 'topic': formatted})
 
 
 def specialQuestion(oldq):
