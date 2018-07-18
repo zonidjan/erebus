@@ -269,16 +269,16 @@ class Bot(object):
 		if len(msg) == 0:
 			return
 
-		triggerused = msg.startswith(self.parent.trigger)
-		if triggerused: msg = msg[len(self.parent.trigger):]
-		pieces = msg.split()
-
 		if target == self.nick:
 			if msg.startswith("\001"): #ctcp
 				msg = msg.strip("\001")
 				if msg == "VERSION":
 					self.msg(user, "\001VERSION Erebus v%d.%d - http://github.com/zonidjan/erebus" % (self.parent.APIVERSION, self.parent.RELEASE))
 				return
+
+		triggerused = msg.startswith(self.parent.trigger)
+		if triggerused: msg = msg[len(self.parent.trigger):]
+		pieces = msg.split()
 
 		if target != self.nick: # message was sent to a channel
 			try:
@@ -289,6 +289,9 @@ class Bot(object):
 						triggerused = True
 			except IndexError:
 				return # "message" is empty
+
+		if len(pieces) == 0:
+			return
 
 		if len(pieces) > 1:
 			chanword = pieces[1]
@@ -323,6 +326,8 @@ class Bot(object):
 					rancmd = True
 					try:
 						cbret = callback(self, user, chan, target, *pieces[1:])
+						if cbret is NotImplemented:
+							raise NotImplementedError
 					except NotImplementedError:
 						self.msg(user, "Command not implemented.")
 					except Exception:
