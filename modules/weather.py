@@ -43,9 +43,13 @@ def _weather(place):
 				return "That search term is ambiguous. Please be more specific."
 
 		current = weather['current_observation']
-		measuredat = list(parsedate(current['observation_time_rfc822'])) # we have to turn this into a list so that we can assign to it.
-		measuredat[6] = _dayofweek(current['observation_time_rfc822'][0:3])
-		measuredatTZ = current['local_tz_short']
+		try:
+			measuredat = list(parsedate(current['observation_time_rfc822'])) # we have to turn this into a list so that we can assign to it.
+			measuredat[6] = _dayofweek(current['observation_time_rfc822'][0:3])
+			measuredatTZ = current['local_tz_short']
+		except:
+			measuredat = time.gmtime()
+			measuredatTZ = '(actual time unknown)'
 		loc = current['observation_location']
 		if loc['city'] == "" or loc['state'] == "": loc = current['display_location']
 		return u"Weather in %(location)s: As of %(time)s %(tz)s, %(conditions)s, %(cel)s\u00B0C (%(far)s\u00B0F) (feels like %(flcel)s\u00B0C (%(flfar)s\u00B0F)). Wind %(wind)s. %(link)s" % {
