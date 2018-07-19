@@ -19,10 +19,10 @@ modstop = lib.modstop
 # module code
 import time
 
-@lib.hook(clevel=lib.OP)
+@lib.hook(('say','cmsg'), clevel=lib.OP)
 @lib.help('<message>', 'sends message to channel')
 @lib.argsGE(1)
-def cmsg(bot, user, chan, realtarget, *args):
+def say(bot, user, chan, realtarget, *args):
 	chan.msg(' '.join(args))
 
 
@@ -30,7 +30,6 @@ def _getbot(bot, user, chan, realtarget, *args):
 	target = None
 	if args[0].startswith("#"):
 		target = bot.parent.channel(args[0])
-	if target is not None:
 		sendbot = target.bot
 	else:
 		target = args[0]
