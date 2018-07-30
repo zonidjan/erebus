@@ -64,7 +64,7 @@ def _weather(place):
 			'link': current['forecast_url'],
 		}
 	else:
-		return "I don't know where to look! Try %sSETINFO LOCATION <your location>" % (lib.parent.trigger)
+		return "I don't know where to look! Try %sSETINFO LOCATION <your location>" % (lib.parent.trigger,)
 
 @lib.hook(('weather','w'), needchan=False, wantchan=True)
 @lib.help('[<location>]', 'show weather for your location')
