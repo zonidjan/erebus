@@ -1,4 +1,5 @@
 # Erebus IRC bot - Author: John Runyon
+# vim: fileencoding=utf-8
 # module loading/unloading/tracking code
 
 from __future__ import print_function

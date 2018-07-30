@@ -1,4 +1,5 @@
 # Erebus IRC bot - Author: John Runyon
+# vim: fileencoding=utf-8
 # module helper functions, see modules/modtest.py for usage
 # This file is released into the public domain; see http://unlicense.org/
 

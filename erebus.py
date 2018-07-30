@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# vim: fileencoding=utf-8
 
 # Erebus IRC bot - Author: John Runyon
 # main startup code

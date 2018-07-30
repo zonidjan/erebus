@@ -1,4 +1,5 @@
 # Erebus IRC bot - Author: Erebus Team
+# vim: fileencoding=utf-8
 # simple coin module
 # This file is released into the public domain; see http://unlicense.org/
 

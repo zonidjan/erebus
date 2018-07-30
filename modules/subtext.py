@@ -1,4 +1,5 @@
 # Erebus IRC bot - Author: Erebus Team
+# vim: fileencoding=utf-8
 # module for 's/regex/replacement/' style correction
 # see for usage examples: https://github.com/zonidjan/erebus/commit/d7e9802778477f1faa26a03078cb1b3c018a5e5c
 # This file is released into the public domain; see http://unlicense.org/

@@ -1,4 +1,5 @@
 # Erebus IRC bot - Author: John Runyon
+# vim: fileencoding=utf-8
 # "Config" class (reading/providing access to bot.config)
 
 from __future__ import print_function

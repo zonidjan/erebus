@@ -1,4 +1,5 @@
 # Erebus IRC bot - Author: Erebus Team
+# vim: fileencoding=utf-8
 # weather module
 # This file is released into the public domain; see http://unlicense.org/
 
@@ -33,7 +34,7 @@ def _dayofweek(dayname):
 
 def _weather(place):
 	if place is not None:
-		weather = json.load(urlopen('http://api.wunderground.com/api/8670e6d2e69ff3c7/conditions/q/%s.json' % (place)))
+		weather = json.load(urlopen(('http://api.wunderground.com/api/8670e6d2e69ff3c7/conditions/q/%s.json' % (place)).encode('utf8')))
 		if lib.parent.cfg.getboolean('debug', 'weather'):
 			lib.parent.log('*', "?", repr(weather))
 		if 'response' in weather:
@@ -52,7 +53,7 @@ def _weather(place):
 			measuredatTZ = '(actual time unknown)'
 		loc = current['observation_location']
 		if loc['city'] == "" or loc['state'] == "": loc = current['display_location']
-		return u"Weather in %(location)s: As of %(time)s %(tz)s, %(conditions)s, %(cel)s\u00B0C (%(far)s\u00B0F) (feels like %(flcel)s\u00B0C (%(flfar)s\u00B0F)). Wind %(wind)s. %(link)s" % {
+		return u"Weather in %(location)s: As of %(time)s %(tz)s, %(conditions)s, %(cel)s°C (%(far)s°F) (feels like %(flcel)s°C (%(flfar)s°F)). Wind %(wind)s. %(link)s" % {
 			'location': loc['full'],
 			'time': time.strftime("%a %H:%M", tuple(measuredat)), # now we have to turn it back into a tuple because Py3's time.strftime requires it.
 			'tz': measuredatTZ,
@@ -78,5 +79,6 @@ def weather(bot, user, chan, realtarget, *args):
 
 @lib.hook(('weatheruser','wu'))
 @lib.help('<user>', 'show weather for <user>\'s location')
+@lib.argsEQ(1)
 def wu(bot, user, chan, realtarget, *args):
 	bot.msg(chan, _weather(location(' '.join(args))))
