@@ -18,7 +18,7 @@ def modstart(parent, *args, **kwargs):
 	if parent.cfg.getboolean('erebus', 'nofakelag'):
 		lib.hook('help', needchan=False)(lib.help('[@<module>|<command>]', 'lists commands or describes a command', 'with @<module>, lists all commands in <module>')(help_nolag))
 	else:
-		lib.hook(needchan=False)(lib.help("<command>", "describes a command")(help))
+		lib.hook('help', needchan=False)(lib.help("<command>", "describes a command")(help))
 	return lib.modstart(parent, *args, **kwargs)
 modstop = lib.modstop
 
@@ -99,28 +99,34 @@ def _mkhelp(level, func):
 	return lines
 
 def _genhelp(bot, user, chan, realtarget, *args):
-	module = None
+	module = ''
 	minlevel = -1
 	maxlevel = 100
-	filepath = bot.parent.cfg.get('help', 'path', default='./help/%d.txt')
+	filepath = bot.parent.cfg.get('help', 'path', default='./help/%(@)s%(#)d.txt')
 	for arg in args:
 		if arg.startswith("@"):
+			if "." in arg[1:]:
+				raise Exception('Module option must not contain "."')
 			module = arg[1:]
 		elif arg.startswith("#") and user.glevel >= lib.ADMIN:
 			minlevel = maxlevel = int(arg[1:])
+		elif arg.startswith("+"):
+			maxlevel = int(arg[1:])
+		elif arg.startswith("-"):
+			minlevel = int(arg[1:])
+		elif arg.startswith("./"):
+			if "./" in arg[1:]:
+				raise Exception('Filename option must not contain "./" except as the first two characters')
+			else:
+				filepath = os.path.join('help', arg[2:])
 		else:
-			filepath = arg
-			if minlevel != maxlevel:
-				minlevel = maxlevel
+			raise Exception('Unknown option given to GENHELP: %s' % (arg))
 	for level in range(minlevel, maxlevel+1):
-		if '%d' in filepath:
-			filename = filepath % (level)
-		else:
-			filename = filepath
+		filename = filepath % {'#': level, '+': maxlevel, '-': minlevel, '@': module}
 		fo = open(filename, 'w')
 		lines = []
 		for func in helps.values():
-			if module is not None and func.module != module:
+			if module != '' and func.module != module:
 					continue
 			lines += _mkhelp(level, func)
 		for line in sorted(lines):
@@ -129,7 +135,7 @@ def _genhelp(bot, user, chan, realtarget, *args):
 	return True
 
 @lib.hook(glevel=1, needchan=False)
-@lib.help("[@<module>] [#<level>] [file]", "generates help file", "arguments are all optional and may be specified in any order", "default file: ./help/<level>.txt", "config as: [help]", "path = ./help/%d.txt")
+@lib.help("[@<module>] [#<exact_level>] [+<max_level>] [-<min_level>] [./<filename>]", "generates help file", "arguments are all optional and may be specified in any order", "default file: ./help/<module><level>.txt, with module blank if not supplied", "filename can also contain %(@)s, %(#)s, %(+)s, %(-)s", "for module, current (single) level, max and min level, respectively")
 def genhelp(bot, user, chan, realtarget, *args):
 	try:
 		_genhelp(bot, user, chan, realtarget, *args)
