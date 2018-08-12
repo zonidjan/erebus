@@ -109,14 +109,14 @@ def whois(bot, user, chan, realtarget, *args):
 	else:
 		target = bot.parent.user(name, create=False)
 	if target is None:
-		bot.msg(user, "I don't know %s." % (args[0]))
+		return  "I don't know %s." % (args[0])
 	else:
-		bot.msg(user, "%s is %s" % (args[0], _whois(target, chan, (user.glevel >= 1), (chan is not None and chan.levelof(user.auth) >= 1))))
+		return "%s is %s" % (args[0], _whois(target, chan, (user.glevel >= 1), (chan is not None and chan.levelof(user.auth) >= 1)))
 
 @lib.hook(needchan=False, wantchan=True)
 @lib.help(None, "shows who you are")
 def whoami(bot, user, chan, realtarget, *args):
-	bot.msg(user, "You are %s" % (_whois(user, chan)))
+	return "You are %s" % (_whois(user, chan))
 
 @lib.hook(needchan=False)
 @lib.help(None, "tries to read your auth and access level again")
