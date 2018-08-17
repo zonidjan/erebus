@@ -48,7 +48,8 @@ def _getauth(thing):
 		if thing.startswith("#"):
 			return thing
 		else:
-			if parent.user(thing).auth is not None:
+			u = parent.user(thing, create=False)
+			if u is not None and u.auth is not None:
 				return "#"+parent.user(thing).auth
 	return None
 
