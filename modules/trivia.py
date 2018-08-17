@@ -65,7 +65,7 @@ def pts(num):
 		return 0
 
 def country(num, default="??"):
-	return lib.mod('userinfo')._get(person(num), 'country', default=default).upper()
+	return lib.mod('userinfo').get(person(num), 'country', default=default).upper()
 
 class MyTimer(timerbase):
 	def __init__(self, *args, **kwargs):

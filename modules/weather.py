@@ -27,7 +27,7 @@ if sys.version_info.major < 3:
 else:
 	from urllib.request import urlopen
 
-def location(person, default=None): return lib.mod('userinfo')._get(person, 'location', default=None)
+def location(person, default=None): return lib.mod('userinfo').get(person, 'location', default=None)
 
 def _dayofweek(dayname):
 	return ['mon','tue','wed','thu','fri','sat','sun'].index(dayname.lower())
