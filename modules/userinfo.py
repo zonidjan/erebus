@@ -25,7 +25,7 @@ def modstop(*args, **kwargs):
 	return lib.modstop(*args, **kwargs)
 
 # module code
-import json
+import json, __builtin__
 
 #setup
 def gotParent():
@@ -54,7 +54,7 @@ def _getauth(thing):
 	return None
 
 def keys(user):
-	return list(set(db.get(_getauth(user), {}).keys() + db.get(str(user).lower(), {}).keys())) #list-to-set-to-list to remove duplicates
+	return list(__builtin__.set(db.get(_getauth(user), {}).keys() + db.get(str(user).lower(), {}).keys())) #list-to-set-to-list to remove duplicates
 def has(user, key):
 	key = key.lower()
 	return (
@@ -88,23 +88,17 @@ def delete(user, key):
 @lib.hook(needchan=False, wantchan=True)
 @lib.help("[<target>]", "lists info items known about someone", "<target> may be a nick, or an auth in format '#auth'", "it defaults to yourself")
 def getitems(bot, user, chan, realtarget, *args):
-	if chan is not None: replyto = chan
-	else: replyto = user
-
 	if len(args) > 0:
 		target = args[0]
 	else:
 		target = user
 
-	bot.msg(replyto, "%(user)s: %(target)s has the following info items: %(items)s" % {'user':user,'target':target,'items':(', '.join(keys(target)))})
+	return "%(target)s has the following info items: %(items)s" % {'target':target,'items':(', '.join(keys(target)))}
 
 @lib.hook(needchan=False, wantchan=True)
 @lib.help("[<target>] <item>", "gets an info item about someone", "<target> may be a nick, or an auth in format '#auth'", "it defaults to yourself")
 @lib.argsGE(1)
 def getinfo(bot, user, chan, realtarget, *args):
-	if chan is not None: replyto = chan
-	else: replyto = user
-
 	if len(args) > 1:
 		target = args[0]
 		item = args[1]
@@ -114,9 +108,9 @@ def getinfo(bot, user, chan, realtarget, *args):
 
 	value = get(target, item, None)
 	if value is None:
-		bot.msg(replyto, "%(user)s: %(item)s on %(target)s is not set." % {'user':user,'item':item,'target':target})
+		return "%(item)s on %(target)s is not set." % {'item':item,'target':target}
 	else:
-		bot.msg(replyto, "%(user)s: %(item)s on %(target)s: %(value)s" % {'user':user,'item':item,'target':target,'value':value})
+		return "%(item)s on %(target)s: %(value)s" % {'item':item,'target':target,'value':value}
 
 @lib.hook(needchan=False)
 @lib.help("<item> <value>", "sets an info item about you")
