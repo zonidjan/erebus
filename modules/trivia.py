@@ -159,11 +159,13 @@ class TriviaState(object):
 		else:
 			oldhintstr = ''.join(self.hintstr)
 
-		for i in range(self.reveal):
-			revealcount = random.choice(self.revealpossibilities)
-			revealloc = findnth(''.join(self.hintstr), '*', revealcount)
-			self.revealpossibilities.remove(revealcount)
-			self.hintstr[revealloc] = answer[revealloc]
+		try:
+			for i in range(self.reveal):
+				revealcount = random.choice(self.revealpossibilities)
+				revealloc = findnth(''.join(self.hintstr), '*', revealcount)
+				self.revealpossibilities.remove(revealcount)
+				self.hintstr[revealloc] = answer[revealloc]
+		except IndexError: pass # if everything is revealed, random.choice will IndexError
 		if oldhintstr != ''.join(self.hintstr): self.getchan().fastmsg("\00304,01Here's a hint: %s" % (''.join(self.hintstr)))
 
 		self.hintsgiven += 1
@@ -196,6 +198,7 @@ class TriviaState(object):
 
 		self.db['users'] = {}
 		self.db['ranks'] = []
+		self.savedb()
 		stop()
 		self.closeshop()
 
@@ -218,6 +221,7 @@ class TriviaState(object):
 			except: return 0
 
 		status = False
+		f = None
 		try:
 			f = open(self.db['hofpath'], 'rb+')
 			for i in range(self.db['hoflines']): #skip this many lines
@@ -241,7 +245,8 @@ class TriviaState(object):
 		except Exception as e:
 			status = False
 		finally:
-			f.close()
+			if f is not None:
+				f.close()
 			return status
 
 	def endPointVote(self):
