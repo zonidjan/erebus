@@ -287,18 +287,19 @@ class Bot(object):
 		if triggerused: msg = msg[len(self.parent.trigger):]
 		pieces = msg.split()
 
-		if target != self.nick: # message was sent to a channel
-			try:
-				if msg.startswith('*'): # message may be addressed to bot by "*BOTNICK" trigger?
-					if pieces[0][1:].lower() == self.nick.lower():
-						pieces.pop(0) # command actually starts with next word
-						msg = ' '.join(pieces) # command actually starts with next word
-						triggerused = True
-			except IndexError:
-				return # "message" is empty
-
 		if len(pieces) == 0:
 			return
+
+		if target != self.nick: # message was sent to a channel
+			try:
+				if pieces[0][:-1].lower() == self.nick.lower() and (pieces[0][-1] == ":" or pieces[0][-1] == ","):
+					pieces.pop(0) # command actually starts with next word
+					if len(pieces) == 0: # is there still anything left?
+						return
+					msg = ' '.join(pieces)
+					triggerused = True
+			except IndexError:
+				return # "message" is empty
 
 		if len(pieces) > 1:
 			chanword = pieces[1]
