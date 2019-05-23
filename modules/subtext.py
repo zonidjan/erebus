@@ -1,6 +1,7 @@
 # Erebus IRC bot - Author: Erebus Team
 # vim: fileencoding=utf-8
 # module for 's/regex/replacement/' style correction
+# warning: arbitrary regex's are generally capable of various DoS attacks on CPU/memory usage. use with caution.
 # see for usage examples: https://github.com/zonidjan/erebus/commit/d7e9802778477f1faa26a03078cb1b3c018a5e5c
 # This file is released into the public domain; see http://unlicense.org/
 
