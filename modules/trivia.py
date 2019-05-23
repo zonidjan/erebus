@@ -678,7 +678,8 @@ def questionpause(bot, user, chan, realtarget, *args):
 		bot.msg(user, "Failed to set questionpause.")
 
 @lib.hook(glevel=1, needchan=False)
-@lib.help("<full question>", "finds a qid given a complete question")
+@lib.help("[@category] <full question>", "finds a qid given a complete question")
+@lib.argsGE(1)
 def findq(bot, user, chan, realtarget, *args):
 	args = list(args)
 	if args[0].startswith("@"):
@@ -702,6 +703,7 @@ def findq(bot, user, chan, realtarget, *args):
 
 @lib.hook(glevel=1, needchan=False)
 @lib.help("[@<category>] <regex>", "finds a qid given a regex or partial question")
+@lib.argsGE(1)
 def findqre(bot, user, chan, realtarget, *args):
 	args = list(args)
 	if args[0].startswith("@"):
