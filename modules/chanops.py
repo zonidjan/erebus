@@ -50,12 +50,17 @@ def kick(bot, user, chan, realtarget, *args):
 	bot.msg(user, "Done. Kicked %d people." % (number))
 
 @lib.hook(None, clevel=lib.OP)
-@lib.help("<nick> [<reason>]", "kick all using the auth of <nick>")
+@lib.help("<nick|#auth> [<reason>]", "kick all using the auth of <nick>")
 @lib.argsGE(1)
 def kickall(bot, user, chan, realtarget, *args):
-	auth = bot.parent.user(args[0]).auth
+	target = args[0]
+	if target[0] == "#" and len(target) > 1:
+		auth = target[1:]
+	else:
+		auth = bot.parent.user(args[0]).auth
+
 	if auth is not None:
-		number = _kick(bot, user, chan, realtarget, "#"+bot.parent.user(args[0]).auth, *args[1:])
+		number = _kick(bot, user, chan, realtarget, "#"+auth, *args[1:])
 		bot.msg(user, "Done. Kicked %d people." % (number))
 	else:
 		bot.msg(user, "I don't know that person's auth.")
