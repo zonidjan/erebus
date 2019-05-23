@@ -503,7 +503,7 @@ def setnext(bot, user, chan, realtarget, *args):
 def skip(bot, user, chan, realtarget, *args):
 	state.nextquestion(qskipped=True, skipwait=True)
 
-@lib.hook(needchan=False, wantchan=True)
+@lib.hook(('start','trivia'), needchan=False, wantchan=True)
 @lib.help(None, "starts the trivia game")
 def start(bot, user, chan, realtarget, *args):
 	if chan is not None: replyto = chan
