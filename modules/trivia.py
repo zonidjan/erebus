@@ -101,8 +101,8 @@ class TriviaState(object):
 			self.db['lastwon'] = time.time()
 
 		if pointvote:
-			self.getchan().msg("Vote for the next round target points! Options: %s. Vote using !vote <choice>" % (', '.join([str(x) for x in self.db['targetoptions']])))
-			self.getchan().msg("You have %s seconds." % (self.db['votetimer']))
+			self.getchan().fastmsg("Vote for the next round target points! Options: %s. Vote using !vote <choice>" % (', '.join([str(x) for x in self.db['targetoptions']])))
+			self.getchan().fastmsg("You have %s seconds." % (self.db['votetimer']))
 			self.voteamounts = dict([(x, 0) for x in self.db['targetoptions']]) # make a dict {pointsoptionA: 0, pointsoptionB: 0, ...}
 			self.pointvote = MyTimer(self.db['votetimer'], self.endPointVote)
 			self.pointvote.start()
@@ -334,9 +334,10 @@ class TriviaState(object):
 			)
 			qtext += "\00304,01"+qword+"\00301,01"+chr(spacer) #a-z
 		if not self.getbot().fastmsg(self.chan, qtext): #if message is too long:
-			if nextqid is None: nextqid = "manual"
-			self.getbot().slowmsg(self.chan, "(Unable to ask question #%s: line too long)" % (nextqid))
-			return self._nextquestion(iteration) #retry; don't increment the iteration
+			if not self.getbot().fastmsg(self.chan, "\00312,01Next up: " + ("(%5d)" % (random.randint(0,99999))) + "\00304,01" + nextq[0]):
+				if nextqid is None: nextqid = "manual"
+				self.getbot().slowmsg(self.chan, "(Unable to ask question #%s: line too long)" % (nextqid))
+				return self._nextquestion(iteration) #retry; don't increment the iteration
 
 		self.curq = nextq
 		self.curqid = nextqid
@@ -606,7 +607,7 @@ def top10(bot, user, chan, realtarget, *args):
 	if max > 10:
 		max = 10
 	replylist = ', '.join(["%s (%s) %s" % (person(x), country(x), pts(x)) for x in range(max)])
-	bot.msg(state.db['chan'], "Top 10: %s" % (replylist))
+	bot.msg(state.db['chan'], "Game is to %s! Top 10: %s" % (state.db['target'], replylist))
 
 @lib.hook(glevel=lib.ADMIN, needchan=False)
 @lib.help("<target score>", "changes the target score for this round")
