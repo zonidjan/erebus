@@ -140,6 +140,7 @@ class Erebus(object): #singleton to pass around
 		def __repr__(self): return "<Channel %r>" % (self.name)
 
 	def __init__(self, cfg):
+		self.starttime = time.time()
 		self.cfg = cfg
 		self.trigger = cfg.trigger
 		if os.name == "posix":
