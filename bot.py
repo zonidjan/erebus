@@ -369,10 +369,14 @@ class Bot(object):
 		else:
 			self.msg(user, msg)
 
-	def msg(self, target, msg):
+	def msg(self, target, msg, truncate=False):
 		if self.parent.cfg.getboolean('erebus', 'nofakelag'): return self.fastmsg(target, msg)
 		cmd = self._formatmsg(target, msg)
-		if len(cmd) > MAXLEN: return False
+		if len(cmd) > MAXLEN:
+			if not truncate:
+				return False
+			else:
+				cmd = cmd[:MAXLEN]
 		if self.conn.exceeded or self.conn.bytessent+len(cmd) >= self.conn.recvq:
 			self.msgqueue.append(cmd)
 		else:
@@ -380,10 +384,14 @@ class Bot(object):
 		self.conn.exceeded = True
 		return True
 
-	def slowmsg(self, target, msg):
+	def slowmsg(self, target, msg, truncate=False):
 		if self.parent.cfg.getboolean('erebus', 'nofakelag'): return self.fastmsg(target, msg)
 		cmd = self._formatmsg(target, msg)
-		if len(cmd) > MAXLEN: return False
+		if len(cmd) > MAXLEN:
+			if not truncate:
+				return False
+			else:
+				cmd = cmd[:MAXLEN]
 		if self.conn.exceeded or self.conn.bytessent+len(cmd) >= self.conn.recvq:
 			self.slowmsgqueue.append(cmd)
 		else:
@@ -391,9 +399,13 @@ class Bot(object):
 		self.conn.exceeded = True
 		return True
 
-	def fastmsg(self, target, msg):
+	def fastmsg(self, target, msg, truncate=False):
 		cmd = self._formatmsg(target, msg)
-		if len(cmd) > MAXLEN: return False
+		if len(cmd) > MAXLEN:
+			if not truncate:
+				return False
+			else:
+				cmd = cmd[:MAXLEN]
 		self.conn.send(cmd)
 		self.conn.exceeded = True
 		return True

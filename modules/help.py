@@ -136,7 +136,7 @@ def _genhelp(bot, user, chan, realtarget, *args):
 	return True
 
 @lib.hook(glevel=1, needchan=False)
-@lib.help("[@<module>] [#<exact_level>] [+<max_level>] [-<min_level>] [./<filename>]", "generates help file", "arguments are all optional and may be specified in any order", "default file: ./help/<module><level>.txt, with module blank if not supplied", "filename can also contain %(@)s, %(#)s, %(+)s, %(-)s", "for module, current (single) level, max and min level, respectively")
+@lib.help("[@<module>] [#<exact_level>] [+<max_level>] [-<min_level>] [./<filename>]", "generates help file", "arguments are all optional and may be specified in any order", "default file: ./<module><level>.txt, with module blank if not supplied. will always be under help/", "filename can also contain %(@)s, %(#)s, %(+)s, %(-)s", "for module, current (single) level, max and min level, respectively")
 def genhelp(bot, user, chan, realtarget, *args):
 	try:
 		_genhelp(bot, user, chan, realtarget, *args)

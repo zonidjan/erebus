@@ -482,7 +482,7 @@ def setnextid(bot, user, chan, realtarget, *args):
 		bot.msg(user, "Error: no such QID.")
 		return
 	state.nextqid = qid
-	bot.msg(user, "Done. Next question is %d: %s" % (qid, state.questions[qid][0]))
+	bot.msg(user, "Done. Next question is %d: %s" % (qid, state.questions[qid][0]), truncate=True)
 
 @lib.hook(glevel=lib.STAFF, needchan=False)
 @lib.help("<q>*<a>", "sets next question to one not in database")
