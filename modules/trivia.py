@@ -747,7 +747,7 @@ def showq(bot, user, chan, realtarget, *args):
 	except:
 		bot.msg(user, "ID not valid.")
 		return
-	bot.msg(user, "%s: %s*%s" % (qid, q[0], q[1]))
+	bot.msg(user, "%s: %s*%s" % (qid, q[0], q[1]), True)
 
 @lib.hook(('delq', 'deleteq'), glevel=lib.STAFF, needchan=False)
 @lib.help("[@<category>] <qid>", "removes a question from the database")
