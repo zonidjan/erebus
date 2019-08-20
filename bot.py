@@ -93,6 +93,7 @@ class Bot(object):
 			'ERROR': self._goterror,
 		}
 		one = { #things to look for after source
+			'NOTICE': self._gotconnected,
 			'001': self._got001,
 			'376': self._gotRegistered,
 			'422': self._gotRegistered,
