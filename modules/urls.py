@@ -27,11 +27,13 @@ if sys.version_info.major < 3:
 	import urlparse
 	import HTMLParser
 	from BeautifulSoup import BeautifulSoup
+	import re
 else:
 	import urllib.request as urllib2
 	import urllib.parse as urlparse
 	import html.parser as HTMLParser
 	from bs4 import BeautifulSoup
+	import re
 
 import re, json
 
@@ -104,7 +106,7 @@ def privmsg_hook(bot, textline):
 				bot.msg(chan, response)
 
 def unescape(line):
-	return html_parser.unescape(line)
+	return re.sub('\s+', ' ', html_parser.unescape(line))
 
 def gotspotify(type, track):
 	url = 'http://ws.spotify.com/lookup/1/?uri=spotify:%s:%s' % (type, track)
