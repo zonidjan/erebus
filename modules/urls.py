@@ -166,8 +166,8 @@ def goturl(url):
 	opener = urllib2.build_opener(SmartRedirectHandler())
 	try:
 		soup = BeautifulSoup(opener.open(request, timeout=2))
-		return url + ' ' + unescape('Title: %s' % (soup.title.string))
+		return unescape('Title: %s' % (soup.title.string))
 	except urllib2.HTTPError as e:
-		return url + ' ' + 'Error: %s %s' % (e.code, e.reason)
+		return 'Error: %s %s' % (e.code, e.reason)
 	except:
 		return None
