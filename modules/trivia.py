@@ -10,8 +10,8 @@ modinfo = {
 	'author': 'Erebus Team',
 	'license': 'public domain',
 	'compatible': [0],
-	'depends': ['userinfo'],
-	'softdeps': ['help'],
+	'depends': [],
+	'softdeps': ['help','userinfo'],
 }
 
 # preamble
@@ -65,7 +65,10 @@ def pts(num):
 		return 0
 
 def country(num, default="??"):
-	return lib.mod('userinfo').get(person(num), 'country', default=default).upper()
+	try:
+		return lib.mod('userinfo').get(person(num), 'country', default=default).upper()
+	except KeyError:
+		return default.upper()
 
 class MyTimer(timerbase):
 	def __init__(self, *args, **kwargs):
