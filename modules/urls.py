@@ -99,11 +99,12 @@ def privmsg_hook(bot, textline):
 	except IndexError:
 		line = ''
 
+	responses = []
 	for match in url_regex.findall(line):
 		if match:
-			response = goturl(match)
-			if response is not None:
-				bot.msg(chan, response)
+			responses.append(goturl(match))
+	if len(responses) > 0:
+		bot.msg(chan, ' | '.join(responses), True)
 
 def unescape(line):
 	return re.sub('\s+', ' ', html_parser.unescape(line))
@@ -165,9 +166,9 @@ def goturl(url):
 	request = urllib2.Request(url)
 	opener = urllib2.build_opener(SmartRedirectHandler())
 	try:
-		soup = BeautifulSoup(opener.open(request, timeout=2))
+		soup = BeautifulSoup(opener.open(request, timeout=0.5))
 		return unescape('Title: %s' % (soup.title.string))
 	except urllib2.HTTPError as e:
 		return 'Error: %s %s' % (e.code, e.reason)
-	except:
-		return None
+	except Exception as e:
+		return 'Error: %r' % (e.message)
