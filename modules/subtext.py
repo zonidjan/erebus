@@ -23,7 +23,7 @@ modstop = lib.modstop
 # module code
 import re
 from collections import namedtuple
-re_findsub = re.compile(r"s(.)(?P<search>.+?)\1(?P<replace>.+?)(?:\1(?P<global>g)?|$)")
+re_findsub = re.compile(r"""s([/'";:!@#$%^&-_=`~])(?P<search>.+?)\1(?P<replace>.+?)(?:\1(?P<global>g)?|$)""")
 Line = namedtuple('Line', ['sender', 'msg'])
 lastline = {}
 @lib.hooknum("PRIVMSG")
@@ -34,7 +34,6 @@ def privmsg_hook(bot, line):
 	msg = pieces[3][1:]
 	mo = re_findsub.match(msg)
 	if mo:
-		bot.msg(chan, `mo.groups()`)
 		if mo.group('global') is not None:
 			count = 0 # unlimited
 		else:
