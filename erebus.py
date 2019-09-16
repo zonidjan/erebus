@@ -237,6 +237,13 @@ class Erebus(object): #singleton to pass around
 	def getuserbyauth(self, auth):
 		return [u for u in self.users.values() if u.auth == auth.lower()]
 
+	def getdb(self):
+		"""Get a DB object. The object must be returned to the pool after us, using returndb()."""
+		return self.dbs.pop()
+
+	def returndb(self, db):
+		self.dbs.append(db)
+
 	#bind functions
 	def hook(self, word, handler):
 		try:
@@ -280,6 +287,9 @@ class Erebus(object): #singleton to pass around
 
 def dbsetup():
 	main.db = None
+	main.dbs = []
+	for i in range(cfg.get('erebus', 'num_db_connections', 2)-1):
+		main.dbs.append(MySQLdb.connect(host=cfg.dbhost, user=cfg.dbuser, passwd=cfg.dbpass, db=cfg.dbname, cursorclass=MySQLdb.cursors.DictCursor))
 	main.db = MySQLdb.connect(host=cfg.dbhost, user=cfg.dbuser, passwd=cfg.dbpass, db=cfg.dbname, cursorclass=MySQLdb.cursors.DictCursor)
 
 def setup():
@@ -295,12 +305,12 @@ def setup():
 	pidfile.close()
 
 	main = Erebus(cfg)
+	dbsetup()
 
 	autoloads = [mod for mod, yes in cfg.items('autoloads') if int(yes) == 1]
 	for mod in autoloads:
 		ctlmod.load(main, mod)
 
-	dbsetup()
 	c = main.query("SELECT nick, user, bind, authname, authpass FROM bots WHERE active = 1")
 	if c:
 		rows = c.fetchall()
