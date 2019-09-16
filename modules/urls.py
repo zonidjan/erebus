@@ -27,30 +27,17 @@ if sys.version_info.major < 3:
 	import urlparse
 	import HTMLParser
 	from BeautifulSoup import BeautifulSoup
-	import re
 else:
 	import urllib.request as urllib2
 	import urllib.parse as urlparse
 	import html.parser as HTMLParser
 	from bs4 import BeautifulSoup
-	import re
 
-import re, json
+import re, json, datetime
 
 html_parser = HTMLParser.HTMLParser()
 
 hostmask_regex = re.compile(r'^(.*)!(.*)@(.*)$')
-url_regex = re.compile(r'https?://[^/\s]+\.[^/\s]+(?:/\S+)?')
-spotify_regex = (
-	re.compile(r'spotify:(?P<type>\w+):(?P<track_id>\w{22})'),
-	re.compile(r'https?://open.spotify.com/(?P<type>\w+)/(?P<track_id>\w+)')
-)
-youtube_regex = (
-	re.compile(r'https?://(?:www\.)?youtube\.com/watch\?[a-zA-Z0-9=&_\-]+'),
-)
-twitch_regex = (
-	re.compile(r'https?:\/\/(?:www\.)?twitch.tv\/([A-Za-z0-9]*)'),
-)
 
 def parser_hostmask(hostmask):
 	if isinstance(hostmask, dict):
@@ -89,6 +76,22 @@ class SmartRedirectHandler(urllib2.HTTPRedirectHandler):
 		result.status = code
 		return result
 
+def process_line(line):
+	responses = []
+	num_found = 0
+	limit = lib.parent.cfg.getint('urls', 'limit', 2)
+	for action, group, prefix in regexes:
+		for regex in group:
+			for match in regex.findall(line):
+				if match:
+					num_found += 1
+					if num_found > limit:
+						return responses
+					resp = action(match)
+					if resp is not None:
+						responses.append("%s: %s" % (prefix, action(match)))
+	return responses
+
 @lib.hooknum("PRIVMSG")
 def privmsg_hook(bot, textline):
 	user = parser_hostmask(textline[1:textline.find(' ')])
@@ -99,12 +102,13 @@ def privmsg_hook(bot, textline):
 	except IndexError:
 		line = ''
 
-	responses = []
-	for match in url_regex.findall(line):
-		if match:
-			responses.append(goturl(match))
+	responses = process_line(line)
 	if len(responses) > 0:
-		bot.msg(chan, ' | '.join(responses), True)
+		if lib.parent.cfg.getboolean('urls', 'multiline'):
+			for r in responses:
+				bot.msg(chan, r, True)
+		else:
+			bot.msg(chan, ' | '.join(responses), True)
 
 def unescape(line):
 	return re.sub('\s+', ' ', html_parser.unescape(line))
@@ -124,7 +128,7 @@ def gotspotify(type, track):
 			popularity = float(popularity.string)*100
 		length = float(soup.find('length').string)
 		minutes = int(length)/60
-		seconds =  int(length)%60
+		seconds = int(length)%60
 
 		return unescape('Track: %s - %s / %s %s:%.2d %2d%%' % (artist_name, name, album_name, minutes, seconds, popularity))
 
@@ -137,38 +141,100 @@ def gotspotify(type, track):
 	else:
 		return 'Unsupported type.'
 
+def _yt_duration(s):
+	mo = re.match(r'P(\d+D)?T(\d+H)?(\d+M)?(\d+S)?', s)
+	pcs = [x for x in mo.groups() if x]
+	return ''.join(pcs).lower()
+def _yt_date(s, f):
+	mo = re.match(r'(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})\.(\d+)Z', s)
+	return datetime.datetime(*(int(x) for x in mo.groups())).strftime(f)
+def _yt_round(n):
+	n = float(n)
+	if n >= 10**12:
+		return '%.1ft' % (n/10**12)
+	elif n >= 10**9:
+		return '%.1fb' % (n/10**9)
+	elif n >= 10**6:
+		return '%.1fm' % (n/10**6)
+	elif n >= 10**3:
+		return '%.1fk' % (n/10**3)
+	else:
+		return int(n)
+
 def gotyoutube(url):
 	url_data = urlparse.urlparse(url)
 	query = urlparse.parse_qs(url_data.query)
 	video = query["v"][0]
-	api_url = 'http://gdata.youtube.com/feeds/api/videos/%s?alt=json&v=2' % video
+	api_url = 'https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&id=%s&key=%s' % (video, lib.parent.cfg.get('urls', 'api_key'))
 	try:
 		respdata = urllib2.urlopen(api_url).read()
-		video_info = json.loads(respdata)
+		v = json.loads(respdata)
+		v = v['items'][0]
 
-		title = video_info['entry']['title']["$t"]
-		author = video_info['entry']['author'][0]['name']['$t']
-
-		return unescape("Youtube: %s (%s)" % (title, author))
-	except:
-		pass
+		return unescape(lib.parent.cfg.get('urls', 'yt_format', "\002%(author)s\002: \037%(title)s\037 [%(duration)s, uploaded %(uploaded)s, %(views)s v/%(likes)s l/%(dislikes)s d]") % {
+			'title': v['snippet']['title'],
+			'author': v['snippet']['channelTitle'],
+			'duration': _yt_duration(v['contentDetails']['duration']),
+			'uploaded': _yt_date(v['snippet']['publishedAt'], lib.parent.cfg.get('urls', 'yt_date_format', '%b %d %Y')),
+			'views': _yt_round(v['statistics']['viewCount']),
+			'likes': _yt_round(v['statistics']['likeCount']),
+			'dislikes': _yt_round(v['statistics']['dislikeCount']),
+		})
+	except urllib2.HTTPError as e:
+		if e.getcode() == 403:
+			return 'API limit exceeded'
+		else:
+			return str(e)
+	except IndexError:
+		return 'no results'
+	except Exception as e:
+		return str(e)
 
 def gottwitch(uri):
-		url = 'http://api.justin.tv/api/stream/list.json?channel=%s' % uri.split('/')[0]
-		respdata = urllib2.urlopen(url).read()
-		twitch = json.loads(respdata)
-		try:
-			return unescape('Twitch: %s (%s playing %s)' % (twitch[0]['channel']['status'], twitch[0]['channel']['login'], twitch[0]['channel']['meta_game']))
-		except:
-			return 'Twitch: Channel offline.'
+	url = 'https://api.twitch.tv/helix/streams?user_login=%s' % uri.split('/')[0]
+	opener = urllib2.build_opener()
+	opener.addheaders = [('Client-ID', lib.parent.cfg.get('urls', 'twitch_api_key'))]
+	respdata = opener.open(url).read()
+	twitch = json.loads(respdata)['data']
+	try:
+		# TODO: add current game.
+		return unescape('\037%s\037 is %s (%s)' % (twitch[0]['user_name'], twitch[0]['type'], twitch[0]['title']))
+	except:
+		return 'Channel offline.'
 
 def goturl(url):
+	for _, group, _ in other_regexes:
+		for regex in group:
+			if regex.match(url):
+				return None
 	request = urllib2.Request(url)
 	opener = urllib2.build_opener(SmartRedirectHandler())
 	try:
 		soup = BeautifulSoup(opener.open(request, timeout=0.5))
-		return unescape('Title: %s' % (soup.title.string))
+		return unescape('%s' % (soup.title.string))
 	except urllib2.HTTPError as e:
 		return 'Error: %s %s' % (e.code, e.reason)
 	except Exception as e:
 		return 'Error: %r' % (e.message)
+
+url_regex = (
+	re.compile(r'https?://[^/\s]+\.[^/\s]+(?:/\S+)?'),
+)
+spotify_regex = (
+	re.compile(r'spotify:(?P<type>\w+):(?P<track_id>\w{22})'),
+	re.compile(r'https?://open.spotify.com/(?P<type>\w+)/(?P<track_id>\w+)')
+)
+youtube_regex = (
+	re.compile(r'https?://(?:www\.)?youtube\.com/watch\?[a-zA-Z0-9=&_\-]+'),
+)
+twitch_regex = (
+	re.compile(r'https?:\/\/(?:www\.)?twitch.tv\/([A-Za-z0-9]*)'),
+)
+other_regexes = (
+	(gotspotify, spotify_regex, 'Spotify'),
+	(gotyoutube, youtube_regex, 'YouTube'),
+	(gottwitch, twitch_regex, 'Twitch'),
+)
+regexes = other_regexes + (
+	(goturl, url_regex, 'Title'),
+)
