@@ -40,14 +40,21 @@ class Config(object):
 			return self.config.get(section, key)
 		except:
 			return default
-	def getboolean(self, section, key):
-		val = self.get(section, key, False)
+	def getint(self, section, key, default=0):
+		try:
+			return int(self.config.get(section, key))
+		except:
+			return default
+	def getboolean(self, section, key, default=False):
+		val = self.get(section, key, default)
 		if val == False or val == "0" or val.lower() == "false":
 			return False
 		else:
 			return True
 
 	def set(self, section, key, value):
+		if not self.config.has_section(section):
+			self.config.add_section(section)
 		self.config.set(section, key, value)
 		if self.writeout: self.write()
 
