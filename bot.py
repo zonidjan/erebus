@@ -129,8 +129,11 @@ class Bot(object):
 		self.conn.send("PONG %s" % (pieces[1]))
 		self._checknick()
 	def _goterror(self, pieces):
+		# TODO: better handling, just reconnect that single bot
 		try:
 			self.quit("Error detected: %s" % ' '.join(pieces))
+		except: pass
+		try:
 			curs = self.parent.query("UPDATE bots SET connected = 0")
 			curs.close()
 		except: pass
@@ -496,7 +499,10 @@ class BotConnection(object):
 		if self.parent.parent.cfg.getboolean('debug', 'io'):
 			self.parent.log('O', line)
 		self.bytessent += len(line)
-		self._write(line)
+		try:
+			self._write(line)
+		except socket.error as e:
+			self.parent._goterror(repr(e))
 
 	def _write(self, line):
 		self.socket.sendall(line.encode('utf-8', 'backslashreplace')+b"\r\n")
