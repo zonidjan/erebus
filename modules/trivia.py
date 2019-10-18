@@ -765,8 +765,8 @@ def delq(bot, user, chan, realtarget, *args):
 	try:
 		backup = questions[int(args[0])]
 		del questions[int(args[0])]
-		bot.msg(user, "Deleted %s*%s" % (backup[0], backup[1]))
-	except:
+		bot.msg(user, "Deleted %s*%s" % (backup[0], backup[1]), True)
+	except Exception as e:
 		bot.msg(user, "Couldn't delete that question. %r" % (e))
 
 @lib.hook(glevel=lib.STAFF, needchan=False)
