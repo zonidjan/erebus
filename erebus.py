@@ -151,11 +151,11 @@ class Erebus(object): #singleton to pass around
 			self.fdlist = []
 
 	def query(self, *args, **kwargs):
-		if 'norecurse' in kwargs:
-			norecurse = kwargs['norecurse']
-			del kwargs['norecurse']
+		if 'noretry' in kwargs:
+			noretry = kwargs['noretry']
+			del kwargs['noretry']
 		else:
-			norecurse = False
+			noretry = False
 
 		self.log("[SQL]", "?", "query(%s, %s)" % (', '.join([repr(i) for i in args]), ', '.join([str(key)+"="+repr(kwargs[key]) for key in kwargs])))
 		try:
@@ -167,11 +167,16 @@ class Erebus(object): #singleton to pass around
 				return res
 		except MySQLdb.MySQLError as e:
 			self.log("[SQL]", "!", "MySQL error! %r" % (e))
-			if not norecurse:
+			if not noretry:
 				dbsetup()
-				return self.query(*args, norecurse=True, **kwargs)
+				return self.query(*args, noretry=True, **kwargs)
 			else:
 				raise e
+
+	def querycb(self, cb, *args, **kwargs):
+		def run_query():
+			cb(self.query(*args, **kwargs))
+		threading.Thread(target=run_query).start()
 
 	def newbot(self, nick, user, bind, authname, authpass, server, port, realname):
 		if bind is None: bind = ''
