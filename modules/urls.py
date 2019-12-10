@@ -211,7 +211,10 @@ def goturl(url):
 	opener = urllib2.build_opener(SmartRedirectHandler())
 	try:
 		soup = BeautifulSoup(opener.open(request, timeout=0.5))
-		return unescape('%s' % (soup.title.string))
+		if soup.title:
+			return unescape('%s' % (soup.title.string))
+		else:
+			return None
 	except urllib2.HTTPError as e:
 		return 'Error: %s %s' % (e.code, e.reason)
 	except Exception as e:
