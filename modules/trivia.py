@@ -77,6 +77,8 @@ class MyTimer(timerbase):
 
 class TriviaState(object):
 	def __init__(self, parent=None, pointvote=False):
+		self.streak = 0
+		self.streak_holder = None
 		if parent is not None:
 			self.gotParent(parent, pointvote)
 
@@ -429,12 +431,25 @@ def trivia_checkanswer(bot, user, chan, *args):
 	line = ' '.join([str(arg) for arg in args])
 	if state.checkanswer(line):
 		state.curq = None
-		if state.hintanswer.lower() == line.lower():
-			bot.fastmsg(chan, "\00312%s\003 has it! The answer was \00312%s\003. New score: %d. Rank: %d. Target: %s %s" % (user, line, state.addpoint(user), state.rank(user), state.targetuser(user), state.targetpoints(user)))
+
+		if state.streak_holder == user:
+			state.streak += 1
 		else:
-			bot.fastmsg(chan, "\00312%s\003 has it! The answer was \00312%s\003 (hinted answer: %s). New score: %d. Rank: %d. Target: %s%s" % (user, line, state.hintanswer, state.addpoint(user), state.rank(user), state.targetuser(user), state.targetpoints(user)))
+			state.streak_holder = user
+			state.streak = 1
+
+		response = "\00312%s\003 has it! The answer was \00312%s\003" % (user, line)
+		if state.hintanswer.lower() != line.lower():
+			response += " (hinted answer: %s)" % (state.hintanswer)
+		response += ". New score: %d. Rank: %d. Target: %s %s" % (state.addpoint(user), state.rank(user), state.targetuser(user), state.targetpoints(user))
+		bot.fastmsg(chan, response)
+
+		if state.streak >= 3:
+			bot.msg(chan, "\00312%s\003 is on a streak! \00307%d\003 answers correct in a row!" % (user, state.streak))
+
 		if state.hintsgiven == 0:
 			bot.msg(chan, "\00312%s\003 got an extra point for getting it before the hints! New score: %d." % (user, state.addpoint(user)))
+
 		state.nextquestion()
 
 @lib.hook(glevel=1, needchan=False, wantchan=True)
