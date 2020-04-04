@@ -195,11 +195,11 @@ class TriviaState(object):
 		except Exception as e:
 			msg("DERP! %r" % (e))
 
-		self.db['lastwinner'] = winner
-		self.db['lastwon'] = time.time()
-
 		if self.db['hofpath'] is not None and self.db['hofpath'] != '':
 			self.writeHof()
+
+		self.db['lastwinner'] = winner
+		self.db['lastwon'] = time.time()
 
 		self.db['users'] = {}
 		self.db['ranks'] = []
