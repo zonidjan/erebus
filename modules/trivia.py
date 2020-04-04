@@ -274,6 +274,8 @@ class TriviaState(object):
 		if self.gameover == True:
 			return self.doGameOver()
 		if qskipped:
+			self.streak = 0
+			self.streak_holder = None
 			self.getchan().fastmsg("\00304Fail! The correct answer was: %s" % (self.hintanswer))
 			self.missedquestions += 1
 		else:
@@ -435,6 +437,8 @@ def trivia_checkanswer(bot, user, chan, *args):
 		if state.streak_holder == user:
 			state.streak += 1
 		else:
+			if state.streak >= 3:
+				bot.fastmsg(chan, "\00312%s\003 broke \00304%s\003's streak of \00307%d\003!" % (user, state.streak_holder, state.streak))
 			state.streak_holder = user
 			state.streak = 1
 
