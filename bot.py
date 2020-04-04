@@ -341,7 +341,7 @@ class Bot(object):
 						if cbret is NotImplemented:
 							raise NotImplementedError
 						elif isinstance(cbret, stringbase):
-							self.reply(chan, user, cbret)
+							self.reply(target, user, cbret)
 					except NotImplementedError:
 						self.msg(user, "Command not implemented.")
 					except Exception:
@@ -368,7 +368,7 @@ class Bot(object):
 
 
 	def reply(self, chan, user, msg):
-		if chan is not None:
+		if chan is not None and (isinstance(chan, self.parent.Channel) or (isinstance(chan, stringbase) and chan[0] == "#")):
 			self.msg(chan, "%s: %s" % (user, msg))
 		else:
 			self.msg(user, msg)
@@ -448,8 +448,7 @@ class Bot(object):
 		self.msgtimer.start()
 
 	def makemsgtimer(self):
-		self.msgtimer = threading.Timer(3, self._popmsg)
-		self.msgtimer.daemon = True
+		self.msgtimer = MyTimer(3, self._popmsg)
 
 	def join(self, chan):
 		self.conn.send("JOIN %s" % (chan))
@@ -478,6 +477,7 @@ class BotConnection(object):
 		self.bytessent = 0
 		self.recvq = 500
 		self.exceeded = False
+		self._nowrite = False
 
 	def connect(self):
 		self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -496,13 +496,18 @@ class BotConnection(object):
 		return self.state == 2
 
 	def send(self, line):
-		if self.parent.parent.cfg.getboolean('debug', 'io'):
-			self.parent.log('O', line)
-		self.bytessent += len(line)
-		try:
-			self._write(line)
-		except socket.error as e:
-			self.parent._goterror(repr(e))
+		if not self._nowrite:
+			if self.parent.parent.cfg.getboolean('debug', 'io'):
+				self.parent.log('O', line)
+			self.bytessent += len(line)
+			try:
+				self._write(line)
+			except socket.error as e:
+				self._nowrite = True
+				self.parent._goterror(repr(e))
+		else:
+			if self.parent.parent.cfg.getboolean('debug', 'io'):
+				self.parent.log('X', line)
 
 	def _write(self, line):
 		self.socket.sendall(line.encode('utf-8', 'backslashreplace')+b"\r\n")
