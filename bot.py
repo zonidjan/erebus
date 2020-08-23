@@ -70,6 +70,7 @@ class Bot(object):
 		self.parent.log(self.nick, *args, **kwargs)
 
 	def connect(self):
+		self.log('!', "Connecting")
 		if self.conn.connect():
 			self.parent.newfd(self, self.conn.socket.fileno())
 
