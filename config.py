@@ -3,7 +3,7 @@
 # "Config" class (reading/providing access to bot.config)
 
 from __future__ import print_function
-import sys
+import sys, os
 
 if sys.version_info.major < 3:
 	import ConfigParser
@@ -55,12 +55,13 @@ class Config(object):
 	def set(self, section, key, value):
 		if not self.config.has_section(section):
 			self.config.add_section(section)
-		self.config.set(section, key, value)
+		self.config.set(section, key, str(value))
 		if self.writeout: self.write()
 
 	def write(self):
-		with open(self.filename, 'wb') as configfile:
+		with open(self.filename+'.tmp', 'wb') as configfile:
 			self.config.write(configfile)
+			os.rename(configfile.name, self.filename)
 
 	def __del__(self):
 		if self.writeout: self.write()
