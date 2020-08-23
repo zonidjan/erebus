@@ -28,3 +28,6 @@ topiccommand = TOPIC %(chan)s :%(topic)s
 account_sid = twilio AccountSid
 auth_token = twilio auth token
 mynumber = +11234567890 (sms "callerid")
+
+[help]
+url = https://where.ever/dir/%d.txt
