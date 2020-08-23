@@ -271,6 +271,7 @@ class TriviaState(object):
 		self.lastqid = self.curqid
 		self.curq = None
 		self.curqid = None
+		self.lastqtime = time.time()
 		if self.gameover == True:
 			return self.doGameOver()
 		if qskipped:
@@ -442,7 +443,7 @@ def trivia_checkanswer(bot, user, chan, *args):
 			state.streak_holder = user
 			state.streak = 1
 
-		response = "\00312%s\003 has it! The answer was \00312%s\003" % (user, line)
+		response = "\00312%s\003 got it in %d seconds! The answer was \00312%s\003" % (user, time.time()-state.lastqtime, line)
 		if state.hintanswer.lower() != line.lower():
 			response += " (hinted answer: %s)" % (state.hintanswer)
 		response += ". New score: %d. Rank: %d. Target: %s %s" % (state.addpoint(user), state.rank(user), state.targetuser(user), state.targetpoints(user))
